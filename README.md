@@ -1,6 +1,6 @@
-# 📚 Private Dictionary App
+# 📚 Private Dictionary
 
-A modern, interactive English-Hungarian dictionary application designed for structured language learning with 60 lesson modules.
+A modern, interactive English-Hungarian dictionary application designed for structured language learning with lesson modules.
 
 ![React](https://img.shields.io/badge/React-18.2.0-61DAFB?style=flat&logo=react)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.1-06B6D4?style=flat&logo=tailwindcss)
@@ -10,22 +10,22 @@ A modern, interactive English-Hungarian dictionary application designed for stru
 
 ## 📋 Table of Contents
 
-- [About](#about)
-- [Features](#features)
-- [Demo](#demo)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-- [Project Structure](#project-structure)
-- [Technologies](#technologies)
-- [Contributing](#contributing)
-- [License](#license)
-- [Contact](#contact)
+- [About](#-about)
+- [Features](#-features)
+- [Demo](#-demo)
+- [Prerequisites](#-prerequisites)
+- [Installation](#-installation)
+- [Configuration](#️-configuration)
+- [Usage](#-usage)
+- [Project Structure](#-project-structure)
+- [Technologies](#-technologies)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Contact](#-contact)
 
 ## 🎯 About
 
-Private Dictionary App is a comprehensive language learning platform that provides a structured 60-hour English curriculum with Hungarian translations. The application supports both demo mode for trying out features and Google authentication for personalized learning experiences with cloud synchronization.
+Private Dictionary is a comprehensive language learning platform that provides a structured 60-hour English curriculum with Hungarian translations. The application supports both demo mode for trying out features and Google authentication for personalized learning experiences with cloud synchronization.
 
 ### Key Highlights:
 - **Structured Learning Path**: 60 pre-designed lesson modules
@@ -95,8 +95,8 @@ Before you begin, ensure you have the following installed:
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/SzaniszloIvor/private-dictionary-app.git
-cd private-dictionary-app
+git clone https://github.com/SzaniszloIvor/private-dictionary.git
+cd private-dictionary
 ```
 
 ### 2. Install dependencies
@@ -207,7 +207,7 @@ npm run lint
 ## 📁 Project Structure
 
 ```
-private-dictionary-app/
+private-dictionary/
 ├── public/
 │   └── vite.svg
 ├── src/
@@ -295,12 +295,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 
-**Your Name**
+**Szaniszló ivor**
 - Email: info@ivor.hu
 - GitHub: [@SzaniszloIvor](https://github.com/SzaniszloIvor)
-- LinkedIn: [Szaniszlo Ivor](https://www.linkedin.com/in/ivorszaniszlo)
+- LinkedIn: [SzaniszloIvor](https://www.linkedin.com/in/ivorszaniszlo/)
 
-**Project Link**: [https://github.com/SzaniszloIvor/private-dictionary-app](https://github.com/SzaniszloIvor/private-dictionary-app)
+**Project Link**: [https://github.com/SzaniszloIvor/private-dictionary](https://github.com/SzaniszloIvor/private-dictionary)
 
 ---
 
