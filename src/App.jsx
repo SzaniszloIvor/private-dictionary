@@ -15,13 +15,27 @@ import { styles } from './styles/styles';
 
 const MainApp = () => {
   const { currentUser, isDemo, logout } = useAuth();
-  const [dictionary, setDictionary] = useState(isDemo ? initialDictionary : {});
+  
+  const getDemoLessons = () => {
+    const demoLessons = {};
+    if (initialDictionary[1]) demoLessons[1] = initialDictionary[1];
+    if (initialDictionary[2]) demoLessons[2] = initialDictionary[2];
+    return demoLessons;
+  };
+  
+  const [dictionary, setDictionary] = useState(isDemo ? getDemoLessons() : {});
   const [currentLesson, setCurrentLesson] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [lastSaved, setLastSaved] = useState(null);
+  
+  const getNextLessonNumber = () => {
+    if (Object.keys(dictionary).length === 0) return 1;
+    const lessonNumbers = Object.keys(dictionary).map(num => parseInt(num));
+    return Math.max(...lessonNumbers) + 1;
+  };
 
   useEffect(() => {
     const loadUserDictionary = async () => {
@@ -29,14 +43,20 @@ const MainApp = () => {
         setLoading(true);
         try {
           const userDictionary = await loadDictionary(currentUser.uid);
-          setDictionary(userDictionary);
+          setDictionary(userDictionary || {});
+          if (userDictionary && Object.keys(userDictionary).length > 0) {
+            const firstLesson = Math.min(...Object.keys(userDictionary).map(num => parseInt(num)));
+            setCurrentLesson(firstLesson);
+          }
         } catch (error) {
           console.error('Error loading dictionary:', error);
+          setDictionary({});
         } finally {
           setLoading(false);
         }
       } else if (isDemo) {
-        setDictionary(initialDictionary);
+        setDictionary(getDemoLessons());
+        setCurrentLesson(1);
         setLoading(false);
       } else {
         setLoading(false);
@@ -48,7 +68,7 @@ const MainApp = () => {
 
   useEffect(() => {
     const saveTimer = setTimeout(async () => {
-      if (currentUser && !isDemo && dictionary) {
+      if (currentUser && !isDemo && dictionary && Object.keys(dictionary).length > 0) {
         try {
           await saveDictionary(currentUser.uid, dictionary);
           setLastSaved(new Date());
@@ -164,8 +184,8 @@ const MainApp = () => {
         </div>
       </div>
       
-      <Header />
-      <ProgressSection dictionary={dictionary} />
+      <Header isDemo={isDemo} />
+      <ProgressSection dictionary={dictionary} isDemo={isDemo} />
       <SearchControls
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -176,6 +196,8 @@ const MainApp = () => {
         dictionary={dictionary}
         currentLesson={currentLesson}
         setCurrentLesson={setCurrentLesson}
+        isDemo={isDemo}
+        getNextLessonNumber={getNextLessonNumber}
       />
       
       <div style={styles.lessonContent}>
@@ -185,17 +207,21 @@ const MainApp = () => {
           <LessonContent
             lesson={dictionary[currentLesson]}
             lessonNumber={currentLesson}
+            isDemo={isDemo}
           />
         )}
       </div>
 
       <div style={styles.controls}>
-        <button style={styles.addWordsBtn} onClick={() => setShowAddModal(true)}>
+        <button 
+          style={styles.addWordsBtn} 
+          onClick={() => setShowAddModal(true)}
+        >
           📚 Szavak hozzáadása
         </button>
         {isDemo && (
           <p style={{ marginTop: '10px', color: '#6c757d', fontSize: '14px' }}>
-            ⚠️ Demo módban vagy - a változtatások nem kerülnek mentésre!
+            ⚠️ Demo módban vagy - csak 2 órához adhatsz szavakat. Jelentkezz be a teljes funkcionalitásért!
           </p>
         )}
       </div>
@@ -205,6 +231,8 @@ const MainApp = () => {
         onClose={() => setShowAddModal(false)}
         dictionary={dictionary}
         setDictionary={updateDictionary}
+        isDemo={isDemo}
+        getNextLessonNumber={getNextLessonNumber}
       />
     </div>
   );

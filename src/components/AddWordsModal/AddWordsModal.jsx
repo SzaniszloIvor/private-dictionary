@@ -1,9 +1,9 @@
 // src/components/AddWordsModal/AddWordsModal.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { styles } from '../../styles/styles';
 import { generatePhonetic, generatePhoneticSync } from '../../utils/phoneticHelper';
 
-const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary }) => {
+const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, getNextLessonNumber }) => {
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [newLessonTitle, setNewLessonTitle] = useState('');
   const [englishWord, setEnglishWord] = useState('');
@@ -13,6 +13,21 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary }) => {
   const [addMode, setAddMode] = useState('single');
   const [wordList, setWordList] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      if (isDemo) {
+        setSelectedLesson(1);
+      } else {
+        const existingLessons = Object.keys(dictionary).map(num => parseInt(num));
+        if (existingLessons.length === 0) {
+          setSelectedLesson(1);
+        } else {
+          setSelectedLesson(null);
+        }
+      }
+    }
+  }, [isOpen, dictionary, isDemo]);
 
   if (!isOpen) return null;
 
@@ -28,7 +43,6 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary }) => {
       setPhoneticWord(phonetic);
     } catch (error) {
       console.error('Fonetika generálási hiba:', error);
-      // Fallback
       const phonetic = generatePhoneticSync(englishWord);
       setPhoneticWord(phonetic);
     } finally {
@@ -51,7 +65,6 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary }) => {
       alert('✅ Fonetika sikeresen újragenerálva az API-ból!');
     } catch (error) {
       console.error('Fonetika újragenerálási hiba:', error);
-      // Fallback
       const updatedWords = wordsToAdd.map(word => ({
         ...word,
         phonetic: generatePhoneticSync(word.english)
@@ -65,7 +78,7 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary }) => {
 
   const handleAddWord = async () => {
     if (!englishWord || !hungarianWord) {
-      alert('❌ Kérjük töltse ki az angol és magyar mezőket!');
+      alert('⌚ Kérjük töltse ki az angol és magyar mezőket!');
       return;
     }
     
@@ -76,7 +89,6 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary }) => {
       try {
         finalPhonetic = await generatePhonetic(englishWord);
       } catch (error) {
-        // Fallback
         finalPhonetic = generatePhoneticSync(englishWord);
       } finally {
         setIsGenerating(false);
@@ -98,7 +110,7 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary }) => {
   const processWordList = async () => {
     const listText = wordList.trim();
     if (!listText) {
-      alert('❌ Kérjük írjon be szavakat a listába!');
+      alert('⌚ Kérjük írjon be szavakat a listába!');
       return;
     }
 
@@ -135,7 +147,6 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary }) => {
             hungarian: hungarianWord
           });
         } catch (error) {
-          // Fallback
           processedWords.push({
             english: englishWord,
             phonetic: generatePhoneticSync(englishWord),
@@ -145,12 +156,12 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary }) => {
       }
       
       if (errorLines.length > 0) {
-        alert(`❌ Hibás formátum a következő sorokban: ${errorLines.join(', ')}\n\nHelyes formátum: "angol szó - magyar jelentés"`);
+        alert(`⌚ Hibás formátum a következő sorokban: ${errorLines.join(', ')}\n\nHelyes formátum: "angol szó - magyar jelentés"`);
         return;
       }
       
       if (processedWords.length === 0) {
-        alert('❌ Nem található feldolgozható szó a listában!');
+        alert('⌚ Nem található feldolgozható szó a listában!');
         return;
       }
       
@@ -214,6 +225,22 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary }) => {
     setIsGenerating(false);
   };
 
+  const getLessonOptions = () => {
+    if (isDemo) {
+      return [1, 2];
+    }
+    
+    const existingLessons = Object.keys(dictionary)
+      .map(num => parseInt(num))
+      .sort((a, b) => a - b);
+    
+    const nextLesson = getNextLessonNumber();
+    
+    return [...existingLessons, nextLesson];
+  };
+
+  const lessonOptions = getLessonOptions();
+
   return (
     <div style={styles.modal}>
       <div style={styles.modalContent}>
@@ -223,27 +250,64 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary }) => {
         </div>
         <div style={styles.modalBody}>
           <div style={styles.formGroup}>
-            <label>Válaszd ki a leckét:</label>
+            <label>
+              {isDemo 
+                ? 'Válaszd ki a demo órát:' 
+                : 'Válaszd ki vagy hozz létre új órát:'}
+            </label>
             <div style={styles.lessonSelector}>
-              {Array.from({ length: 60 }, (_, i) => i + 1).map(num => (
-                <div
-                  key={num}
-                  style={{
-                    ...styles.lessonOption,
-                    ...(selectedLesson === num ? styles.lessonOptionSelected : {}),
-                    ...(dictionary[num] ? styles.lessonOptionCompleted : {})
-                  }}
-                  onClick={() => setSelectedLesson(num)}
-                >
-                  <strong>{num}. óra</strong>
-                  {dictionary[num] && <br />}
-                  {dictionary[num] && `${dictionary[num].words.length} szó`}
-                </div>
-              ))}
+              {lessonOptions.map(num => {
+                const hasContent = dictionary[num];
+                const isNewLesson = !hasContent && !isDemo;
+                
+                return (
+                  <div
+                    key={num}
+                    style={{
+                      ...styles.lessonOption,
+                      ...(selectedLesson === num ? styles.lessonOptionSelected : {}),
+                      ...(hasContent ? styles.lessonOptionCompleted : {}),
+                      ...(isNewLesson ? {
+                        background: 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)',
+                        borderColor: '#28a745',
+                        borderStyle: 'dashed'
+                      } : {})
+                    }}
+                    onClick={() => setSelectedLesson(num)}
+                  >
+                    <strong>{num}. óra</strong>
+                    {hasContent && (
+                      <>
+                        <br />
+                        <span style={{ fontSize: '11px' }}>{hasContent.words.length} szó</span>
+                      </>
+                    )}
+                    {isNewLesson && (
+                      <>
+                        <br />
+                        <span style={{ fontSize: '11px', color: '#28a745' }}>+ Új óra</span>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
             </div>
+            {isDemo && (
+              <div style={{
+                marginTop: '10px',
+                padding: '10px',
+                background: '#fff3cd',
+                border: '1px solid #ffc107',
+                borderRadius: '8px',
+                fontSize: '13px',
+                color: '#856404'
+              }}>
+                ⚠️ Demo módban csak az 1. és 2. órához adhatsz szavakat
+              </div>
+            )}
           </div>
 
-          {selectedLesson && !dictionary[selectedLesson] && (
+          {selectedLesson && !dictionary[selectedLesson] && !isDemo && (
             <div style={styles.formGroup}>
               <label>Új lecke címe:</label>
               <input
@@ -432,7 +496,6 @@ determination - eltökéltség"
             </div>
           )}
 
-          {/* Loading indicator */}
           {isGenerating && (
             <div style={{ 
               textAlign: 'center', 
