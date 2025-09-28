@@ -1,6 +1,7 @@
 // src/components/AddWordsModal/AddWordsModal.jsx
 import React, { useState } from 'react';
 import { styles } from '../../styles/styles';
+import { generatePhonetic, generatePhoneticSync } from '../../utils/phoneticHelper';
 
 const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary }) => {
   const [selectedLesson, setSelectedLesson] = useState(null);
@@ -11,18 +12,80 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary }) => {
   const [wordsToAdd, setWordsToAdd] = useState([]);
   const [addMode, setAddMode] = useState('single');
   const [wordList, setWordList] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleAddWord = () => {
-    if (!englishWord || !phoneticWord || !hungarianWord) {
-      alert('Kérjük töltse ki az összes mezőt!');
+  const generatePhoneticForCurrent = async () => {
+    if (!englishWord) {
+      alert('Írjon be egy angol szót először!');
       return;
+    }
+    
+    setIsGenerating(true);
+    try {
+      const phonetic = await generatePhonetic(englishWord);
+      setPhoneticWord(phonetic);
+    } catch (error) {
+      console.error('Fonetika generálási hiba:', error);
+      // Fallback
+      const phonetic = generatePhoneticSync(englishWord);
+      setPhoneticWord(phonetic);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const regenerateAllPhonetics = async () => {
+    if (wordsToAdd.length === 0) return;
+    
+    setIsGenerating(true);
+    try {
+      const updatedWords = await Promise.all(
+        wordsToAdd.map(async (word) => ({
+          ...word,
+          phonetic: await generatePhonetic(word.english)
+        }))
+      );
+      setWordsToAdd(updatedWords);
+      alert('✅ Fonetika sikeresen újragenerálva az API-ból!');
+    } catch (error) {
+      console.error('Fonetika újragenerálási hiba:', error);
+      // Fallback
+      const updatedWords = wordsToAdd.map(word => ({
+        ...word,
+        phonetic: generatePhoneticSync(word.english)
+      }));
+      setWordsToAdd(updatedWords);
+      alert('✅ Fonetika újragenerálva (offline módban)!');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleAddWord = async () => {
+    if (!englishWord || !hungarianWord) {
+      alert('❌ Kérjük töltse ki az angol és magyar mezőket!');
+      return;
+    }
+    
+    let finalPhonetic = phoneticWord;
+    
+    if (!finalPhonetic) {
+      setIsGenerating(true);
+      try {
+        finalPhonetic = await generatePhonetic(englishWord);
+      } catch (error) {
+        // Fallback
+        finalPhonetic = generatePhoneticSync(englishWord);
+      } finally {
+        setIsGenerating(false);
+      }
     }
     
     const newWord = {
       english: englishWord,
-      phonetic: phoneticWord,
+      phonetic: finalPhonetic,
       hungarian: hungarianWord
     };
     
@@ -32,7 +95,7 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary }) => {
     setHungarianWord('');
   };
 
-  const processWordList = () => {
+  const processWordList = async () => {
     const listText = wordList.trim();
     if (!listText) {
       alert('❌ Kérjük írjon be szavakat a listába!');
@@ -46,55 +109,68 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary }) => {
     const maxWords = 20;
     const linesToProcess = lines.slice(0, maxWords);
     
-    linesToProcess.forEach((line, index) => {
-      const trimmedLine = line.trim();
-      if (!trimmedLine) return;
+    setIsGenerating(true);
+    
+    try {
+      for (let i = 0; i < linesToProcess.length; i++) {
+        const line = linesToProcess[i];
+        const trimmedLine = line.trim();
+        if (!trimmedLine) continue;
+        
+        const parts = trimmedLine.split(/\s*[-–—]\s*/);
+        
+        if (parts.length !== 2 || !parts[0].trim() || !parts[1].trim()) {
+          errorLines.push(i + 1);
+          continue;
+        }
+        
+        const englishWord = parts[0].trim();
+        const hungarianWord = parts[1].trim();
+        
+        try {
+          const phonetic = await generatePhonetic(englishWord);
+          processedWords.push({
+            english: englishWord,
+            phonetic: phonetic,
+            hungarian: hungarianWord
+          });
+        } catch (error) {
+          // Fallback
+          processedWords.push({
+            english: englishWord,
+            phonetic: generatePhoneticSync(englishWord),
+            hungarian: hungarianWord
+          });
+        }
+      }
       
-      const parts = trimmedLine.split(/\s*[-–—]\s*/);
-      
-      if (parts.length !== 2 || !parts[0].trim() || !parts[1].trim()) {
-        errorLines.push(index + 1);
+      if (errorLines.length > 0) {
+        alert(`❌ Hibás formátum a következő sorokban: ${errorLines.join(', ')}\n\nHelyes formátum: "angol szó - magyar jelentés"`);
         return;
       }
-
-      processedWords.push({
-        english: parts[0].trim(),
-        phonetic: generatePhonetic(parts[0].trim()),
-        hungarian: parts[1].trim()
-      });
-    });
-    
-    if (errorLines.length > 0) {
-      alert(`❌ Hibás formátum a következő sorokban: ${errorLines.join(', ')}\n\nHelyes formátum: "angol szó - magyar jelentés"`);
-      return;
+      
+      if (processedWords.length === 0) {
+        alert('❌ Nem található feldolgozható szó a listában!');
+        return;
+      }
+      
+      if (wordsToAdd.length + processedWords.length > maxWords) {
+        const availableSlots = maxWords - wordsToAdd.length;
+        alert(`⚠️ Maximum ${maxWords} szót adhatsz hozzá egyszerre. Még ${availableSlots} szót adhatsz hozzá.`);
+        return;
+      }
+      
+      setWordsToAdd([...wordsToAdd, ...processedWords]);
+      setWordList('');
+      
+      if (lines.length > maxWords) {
+        alert(`✅ ${processedWords.length} szó sikeresen feldolgozva pontos fonetikával!\n⚠️ Figyelem: csak az első ${maxWords} sor került feldolgozásra.`);
+      } else {
+        alert(`✅ ${processedWords.length} szó sikeresen feldolgozva pontos fonetikával!`);
+      }
+    } finally {
+      setIsGenerating(false);
     }
-    
-    if (processedWords.length === 0) {
-      alert('❌ Nem található feldolgozható szó a listában!');
-      return;
-    }
-    
-    if (wordsToAdd.length + processedWords.length > maxWords) {
-      const availableSlots = maxWords - wordsToAdd.length;
-      alert(`⚠️ Maximum ${maxWords} szót adhatsz hozzá egyszerre. Még ${availableSlots} szót adhatsz hozzá.`);
-      return;
-    }
-    
-    setWordsToAdd([...wordsToAdd, ...processedWords]);
-    setWordList('');
-    
-    if (lines.length > maxWords) {
-      alert(`✅ ${processedWords.length} szó sikeresen feldolgozva!\n⚠️ Figyelem: csak az első ${maxWords} sor került feldolgozásra.`);
-    } else {
-      alert(`✅ ${processedWords.length} szó sikeresen feldolgozva!`);
-    }
-  };
-
-  const generatePhonetic = (word) => {
-    let phonetic = word.toLowerCase();
-    phonetic = phonetic.replace(/tion/g, 'ʃən');
-    phonetic = phonetic.replace(/th/g, 'θ');
-    return phonetic;
   };
 
   const handleSave = () => {
@@ -135,6 +211,7 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary }) => {
     setWordsToAdd([]);
     setAddMode('single');
     setWordList('');
+    setIsGenerating(false);
   };
 
   return (
@@ -220,13 +297,34 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary }) => {
                 </div>
                 <div style={styles.formGroup}>
                   <label>Fonetika:</label>
-                  <input
-                    type="text"
-                    style={styles.formInput}
-                    value={phoneticWord}
-                    onChange={(e) => setPhoneticWord(e.target.value)}
-                    placeholder="pl. ˈfæm.ə.li"
-                  />
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <input
+                      type="text"
+                      style={{ ...styles.formInput, flex: '1' }}
+                      value={phoneticWord}
+                      onChange={(e) => setPhoneticWord(e.target.value)}
+                      placeholder="Automatikusan generálódik API-ból"
+                    />
+                    <button 
+                      style={{
+                        ...styles.btnSecondary,
+                        background: isGenerating 
+                          ? '#6c757d'
+                          : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        padding: '10px 15px',
+                        minWidth: '100px',
+                        cursor: isGenerating ? 'wait' : 'pointer'
+                      }}
+                      onClick={generatePhoneticForCurrent}
+                      disabled={isGenerating}
+                      type="button"
+                    >
+                      {isGenerating ? '⏳...' : '🪄 API'}
+                    </button>
+                  </div>
+                  <small style={{ color: '#6c757d', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    Pontos kiejtés a Datamuse API-ból
+                  </small>
                 </div>
               </div>
               <div style={styles.formGroup}>
@@ -239,8 +337,16 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary }) => {
                   placeholder="pl. család"
                 />
               </div>
-              <button style={styles.btnSecondary} onClick={handleAddWord}>
-                ➕ Szó hozzáadása
+              <button 
+                style={{
+                  ...styles.btnSecondary,
+                  cursor: isGenerating ? 'wait' : 'pointer',
+                  opacity: isGenerating ? 0.7 : 1
+                }} 
+                onClick={handleAddWord}
+                disabled={isGenerating}
+              >
+                {isGenerating ? '⏳ Generálás...' : '➕ Szó hozzáadása'}
               </button>
             </div>
           ) : (
@@ -254,17 +360,28 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary }) => {
                 value={wordList}
                 onChange={(e) => setWordList(e.target.value)}
                 placeholder="tick - pipa
-                  reliable - megbízható
-                  resourceful - találékony
-                  passion - szenvedély
-                  determination - eltökéltség"
+reliable - megbízható
+resourceful - találékony
+passion - szenvedély
+determination - eltökéltség"
+                disabled={isGenerating}
               />
               <small style={{ display: 'block', marginTop: '5px', color: '#6c757d' }}>
                 Maximum 20 szó adható hozzá egyszerre. Formátum: "angol szó - magyar jelentés"
+                <br />
+                <strong>🌐 Pontos fonetika a Datamuse API-ból minden szóhoz!</strong>
               </small>
               <div style={{ marginTop: '10px' }}>
-                <button style={styles.btnSecondary} onClick={processWordList}>
-                  🔄 Lista feldolgozása
+                <button 
+                  style={{
+                    ...styles.btnSecondary,
+                    cursor: isGenerating ? 'wait' : 'pointer',
+                    opacity: isGenerating ? 0.7 : 1
+                  }} 
+                  onClick={processWordList}
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? '⏳ Feldolgozás...' : '🔄 Lista feldolgozása (API fonetika)'}
                 </button>
               </div>
             </div>
@@ -272,9 +389,28 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary }) => {
 
           {wordsToAdd.length > 0 && (
             <div style={styles.wordPreview}>
-              <h4 style={{ marginBottom: '15px', color: '#495057' }}>
-                Hozzáadandó szavak: ({wordsToAdd.length}/20)
-              </h4>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                <h4 style={{ color: '#495057', margin: 0 }}>
+                  Hozzáadandó szavak: ({wordsToAdd.length}/20)
+                </h4>
+                <button 
+                  style={{
+                    background: isGenerating 
+                      ? '#6c757d'
+                      : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '6px 12px',
+                    cursor: isGenerating ? 'wait' : 'pointer',
+                    fontSize: '14px'
+                  }}
+                  onClick={regenerateAllPhonetics}
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? '⏳ Frissítés...' : '🌐 API újralekérés'}
+                </button>
+              </div>
               <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
                 {wordsToAdd.map((word, index) => (
                   <div key={index} style={styles.previewWord}>
@@ -296,8 +432,31 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary }) => {
             </div>
           )}
 
+          {/* Loading indicator */}
+          {isGenerating && (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '10px', 
+              background: '#f8f9fa', 
+              borderRadius: '8px',
+              marginTop: '10px'
+            }}>
+              <span style={{ color: '#667eea' }}>⏳ Fonetika lekérése az API-ból...</span>
+            </div>
+          )}
+
           <div style={styles.modalFooter}>
-            <button style={styles.btnSuccess} onClick={handleSave}>💾 Mentés</button>
+            <button 
+              style={{
+                ...styles.btnSuccess,
+                cursor: isGenerating ? 'wait' : 'pointer',
+                opacity: isGenerating ? 0.7 : 1
+              }}
+              onClick={handleSave}
+              disabled={isGenerating}
+            >
+              💾 Mentés
+            </button>
             <button style={styles.btnSecondary} onClick={onClose}>❌ Mégse</button>
           </div>
         </div>
