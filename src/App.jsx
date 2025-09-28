@@ -18,6 +18,7 @@ const MainApp = () => {
   
   const getDemoLessons = () => {
     const demoLessons = {};
+
     if (initialDictionary[1]) demoLessons[1] = initialDictionary[1];
     if (initialDictionary[2]) demoLessons[2] = initialDictionary[2];
     return demoLessons;
@@ -43,7 +44,9 @@ const MainApp = () => {
         setLoading(true);
         try {
           const userDictionary = await loadDictionary(currentUser.uid);
+
           setDictionary(userDictionary || {});
+
           if (userDictionary && Object.keys(userDictionary).length > 0) {
             const firstLesson = Math.min(...Object.keys(userDictionary).map(num => parseInt(num)));
             setCurrentLesson(firstLesson);
@@ -83,6 +86,40 @@ const MainApp = () => {
 
   const updateDictionary = (newDictionary) => {
     setDictionary(newDictionary);
+  };
+
+  const deleteLesson = (lessonNumber) => {
+    if (window.confirm(`Biztosan törölni szeretnéd a ${lessonNumber}. órát és az összes szavát?`)) {
+      const updatedDictionary = { ...dictionary };
+      delete updatedDictionary[lessonNumber];
+      setDictionary(updatedDictionary);
+      
+      // Ha az aktuális órát töröltük, váltson másikra
+      if (currentLesson === lessonNumber) {
+        const remainingLessons = Object.keys(updatedDictionary).map(num => parseInt(num));
+        if (remainingLessons.length > 0) {
+          setCurrentLesson(Math.min(...remainingLessons));
+        } else {
+          setCurrentLesson(1);
+        }
+      }
+    }
+  };
+
+  const renameLesson = (lessonNumber, newTitle) => {
+    const updatedDictionary = { ...dictionary };
+    if (updatedDictionary[lessonNumber]) {
+      updatedDictionary[lessonNumber].title = newTitle;
+      setDictionary(updatedDictionary);
+    }
+  };
+
+  const deleteWord = (lessonNumber, wordIndex) => {
+    const updatedDictionary = { ...dictionary };
+    if (updatedDictionary[lessonNumber]) {
+      updatedDictionary[lessonNumber].words.splice(wordIndex, 1);
+      setDictionary(updatedDictionary);
+    }
   };
 
   const getSearchResults = () => {
@@ -208,6 +245,9 @@ const MainApp = () => {
             lesson={dictionary[currentLesson]}
             lessonNumber={currentLesson}
             isDemo={isDemo}
+            deleteLesson={deleteLesson}
+            renameLesson={renameLesson}
+            deleteWord={deleteWord}
           />
         )}
       </div>

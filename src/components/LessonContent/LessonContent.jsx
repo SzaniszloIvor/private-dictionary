@@ -1,9 +1,23 @@
 // src/components/LessonContent/LessonContent.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import WordTable from '../WordTable/WordTable';
 import { styles } from '../../styles/styles';
 
-const LessonContent = ({ lesson, lessonNumber, isDemo }) => {
+const LessonContent = ({ lesson, lessonNumber, isDemo, deleteLesson, renameLesson, deleteWord }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [newTitle, setNewTitle] = useState(lesson?.title || '');
+
+  const handleRename = () => {
+    if (newTitle.trim() && newTitle !== lesson.title) {
+      renameLesson(lessonNumber, newTitle.trim());
+    }
+    setIsEditing(false);
+  };
+
+  const handleDelete = () => {
+    deleteLesson(lessonNumber);
+  };
+
   if (!lesson) {
     return (
       <div style={styles.emptyLesson}>
@@ -61,8 +75,101 @@ const LessonContent = ({ lesson, lessonNumber, isDemo }) => {
   return (
     <div>
       <div style={styles.lessonHeader}>
-        <div style={styles.lessonTitle}>{lessonNumber}. óra</div>
-        <div style={styles.lessonSubtitle}>{lesson.title}</div>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          marginBottom: '10px'
+        }}>
+          <div style={styles.lessonTitle}>{lessonNumber}. óra</div>
+          {!isDemo && (
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                onClick={() => setIsEditing(true)}
+                style={{
+                  padding: '8px 15px',
+                  background: '#ffc107',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+                title="Óra átnevezése"
+              >
+                ✏️ Átnevezés
+              </button>
+              {lesson.words.length === 0 && (
+                <button
+                  onClick={handleDelete}
+                  style={{
+                    padding: '8px 15px',
+                    background: '#dc3545',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                  }}
+                  title="Óra törlése"
+                >
+                  🗑️ Törlés
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+        
+        {isEditing ? (
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+            <input
+              type="text"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              style={{
+                flex: 1,
+                padding: '8px',
+                border: '2px solid #ffc107',
+                borderRadius: '5px',
+                fontSize: '16px'
+              }}
+              autoFocus
+              onKeyPress={(e) => e.key === 'Enter' && handleRename()}
+            />
+            <button
+              onClick={handleRename}
+              style={{
+                padding: '8px 15px',
+                background: '#28a745',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer'
+              }}
+            >
+              ✓ Mentés
+            </button>
+            <button
+              onClick={() => {
+                setIsEditing(false);
+                setNewTitle(lesson.title);
+              }}
+              style={{
+                padding: '8px 15px',
+                background: '#6c757d',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer'
+              }}
+            >
+              ✗ Mégse
+            </button>
+          </div>
+        ) : (
+          <div style={styles.lessonSubtitle}>{lesson.title}</div>
+        )}
+        
         <div style={styles.wordCount}>{lesson.words.length} szó</div>
         {!isDemo && lesson.words.length === 0 && (
           <div style={{
@@ -79,7 +186,12 @@ const LessonContent = ({ lesson, lessonNumber, isDemo }) => {
         )}
       </div>
       {lesson.words.length > 0 ? (
-        <WordTable words={lesson.words} />
+        <WordTable 
+          words={lesson.words} 
+          lessonNumber={lessonNumber}
+          deleteWord={deleteWord}
+          isDemo={isDemo}
+        />
       ) : (
         <div style={{
           textAlign: 'center',

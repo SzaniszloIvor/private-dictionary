@@ -1,6 +1,6 @@
-# 📚 Private Dictionary
+# 🎧 Private Dictionary
 
-A modern, interactive English-Hungarian dictionary application designed for structured language learning with lesson modules.
+A modern, interactive English-Hungarian dictionary application designed for personalized language learning with dynamic lesson management.
 
 ![React](https://img.shields.io/badge/React-18.2.0-61DAFB?style=flat&logo=react)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.1-06B6D4?style=flat&logo=tailwindcss)
@@ -17,6 +17,7 @@ A modern, interactive English-Hungarian dictionary application designed for stru
 - [Installation](#-installation)
 - [Configuration](#️-configuration)
 - [Usage](#-usage)
+- [API Integration](#-api-integration)
 - [Project Structure](#-project-structure)
 - [Technologies](#-technologies)
 - [Contributing](#-contributing)
@@ -25,60 +26,93 @@ A modern, interactive English-Hungarian dictionary application designed for stru
 
 ## 🎯 About
 
-Private Dictionary is a comprehensive language learning platform that provides a structured 60-hour English curriculum with Hungarian translations. The application supports both demo mode for trying out features and Google authentication for personalized learning experiences with cloud synchronization.
+Private Dictionary is a comprehensive language learning platform that provides a dynamic, customizable English curriculum with Hungarian translations. The application supports both demo mode for trying out features (limited to 2 lessons) and Google authentication for unlimited personalized learning experiences with cloud synchronization.
 
 ### Key Highlights:
-- **Structured Learning Path**: 60 pre-designed lesson modules
+- **Dynamic Learning Path**: Create unlimited custom lessons (registered users)
+- **Demo Mode**: Try the first 2 lessons without registration
 - **Dual Authentication**: Demo mode and Google Sign-in
 - **Real-time Sync**: Cloud-based storage with Firebase
+- **Phonetic API**: Automatic IPA phonetic generation via Datamuse API
 - **Speech Synthesis**: Native pronunciation for all words
 - **Responsive Design**: Optimized for mobile and desktop devices
 
 ## ✨ Features
 
 ### Core Features
-- 📖 **60-Hour Curriculum** - Structured lessons from basics to advanced
+- 📖 **Dynamic Lesson System** - Create unlimited custom lessons (registered users)
+- 🎯 **Demo Mode** - First 2 lessons available without registration
 - 🔊 **Text-to-Speech** - Native English pronunciation for every word
+- 🎵 **Automatic Phonetics** - IPA phonetic transcription via Datamuse API
 - 🔍 **Smart Search** - Filter by English or Hungarian words
 - 📱 **Responsive Design** - Works seamlessly on all devices
 - 💾 **Auto-Save** - Automatic cloud synchronization for Google users
-- 🎯 **Progress Tracking** - Visual indicators for learning progress
+- ✏️ **Lesson Management** - Rename and delete lessons
+- 🗑️ **Word Management** - Add, delete, and organize words
 
 ### Authentication Modes
-- **Demo Mode**: 
-  - Instant access without registration
-  - Pre-loaded sample lessons
-  - Session-based storage
-  - Perfect for trying the app
 
-- **Google Authentication**:
-  - Personal dictionary storage
-  - Cross-device synchronization
-  - Unlimited word additions
-  - Long-term progress tracking
+#### **Demo Mode**: 
+- Instant access without registration
+- Access to first 2 lessons only
+- Can add/modify words in existing lessons
+- Session-based storage (not saved)
+- Cannot create new lessons
+- Cannot delete words or rename lessons
+- Perfect for trying the app
 
-### Word Management
-- Add words individually with phonetic transcription
-- Bulk import word lists
-- Edit existing entries
-- Organize words by lessons
+#### **Google Authentication**:
+- Unlimited lesson creation
+- Full CRUD operations on lessons and words
+- Personal dictionary storage
+- Cross-device synchronization
+- Automatic phonetic generation
+- Import/export capabilities
+- Long-term progress tracking
+
+### Word Management Features
+
+#### Adding Words
+- **Single Word Entry**: Add words individually with automatic phonetic generation
+- **Bulk Import**: Add up to 20 words at once from a list
+- **API Phonetics**: Automatic IPA transcription from Datamuse API
+- **Fallback System**: Local phonetic generation if API fails
+- **Format**: "english word - magyar jelentés"
+
+#### Phonetic Generation
+- **Primary Source**: Datamuse API for accurate IPA transcription
+- **ARPAbet Conversion**: Converts ARPAbet to IPA notation
+- **Fallback Algorithm**: Local generation for common patterns
+- **Batch Processing**: Automatic phonetics for bulk imports
+- **Manual Override**: Edit phonetics manually if needed
+
+#### Lesson Operations
+- **Create**: Add new lessons dynamically
+- **Rename**: Edit lesson titles inline
+- **Delete**: Remove empty lessons
+- **Navigate**: Quick lesson switching
+- **Progress Tracking**: Visual indicators for completed lessons
 
 ## 🚀 Demo
 
-Try the application in demo mode without any registration:
+### Try Demo Mode
 
 ```
 1. Open the application
-2. Click "Demo fiók használata" (Use Demo Account)
-3. Explore the features with sample data
+2. Click "Demó fiók használata" (Use Demo Account)
+3. Explore the first 2 lessons
+4. Add words to existing lessons
+5. Test speech synthesis
 ```
 
-For full features, sign in with Google:
+### Full Features with Google
 
 ```
 1. Click "Belépés Google fiókkal" (Sign in with Google)
 2. Authorize the application
-3. Start building your personal dictionary
+3. Create unlimited custom lessons
+4. Add/edit/delete words and lessons
+5. Access from any device
 ```
 
 ## 📋 Prerequisites
@@ -154,7 +188,19 @@ The application will be available at `http://localhost:5173`
 
 3. **Configure Firestore**
    ```
-   Firebase Console → Firestore Database → Create database → Start in test mode
+   Firebase Console → Firestore Database → Create database → Start in production mode
+   ```
+
+4. **Set Firestore Rules**
+   ```javascript
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /dictionaries/{userId} {
+         allow read, write: if request.auth != null && request.auth.uid == userId;
+       }
+     }
+   }
    ```
 
 ### Tailwind CSS Configuration
@@ -171,6 +217,35 @@ module.exports = {
   plugins: [],
 }
 ```
+
+## 🌐 API Integration
+
+### Datamuse API for Phonetics
+
+The application uses the Datamuse API for accurate phonetic transcription:
+
+**Endpoint**: `https://api.datamuse.com/words`
+
+**Parameters**:
+- `sp`: spelling (the word to look up)
+- `md=r`: metadata flag for pronunciation
+- `max=1`: return only the best match
+
+**Example Request**:
+```javascript
+fetch('https://api.datamuse.com/words?sp=hello&md=r&max=1')
+```
+
+**Response Processing**:
+1. Extract ARPAbet pronunciation from response
+2. Convert ARPAbet to IPA notation
+3. Display in the phonetic field
+
+**Features**:
+- No API key required
+- Free to use
+- Rate limit friendly
+- Automatic fallback to local generation
 
 ## 💻 Usage
 
@@ -213,14 +288,23 @@ private-dictionary/
 ├── src/
 │   ├── components/
 │   │   ├── Header/
+│   │   │   └── Header.jsx
 │   │   ├── ProgressSection/
+│   │   │   └── ProgressSection.jsx
 │   │   ├── SearchControls/
+│   │   │   └── SearchControls.jsx
 │   │   ├── LessonNavigation/
+│   │   │   └── LessonNavigation.jsx
 │   │   ├── LessonContent/
+│   │   │   └── LessonContent.jsx
 │   │   ├── WordTable/
+│   │   │   └── WordTable.jsx
 │   │   ├── SearchResults/
+│   │   │   └── SearchResults.jsx
 │   │   ├── AddWordsModal/
+│   │   │   └── AddWordsModal.jsx
 │   │   └── LoginScreen/
+│   │       └── LoginScreen.jsx
 │   ├── contexts/
 │   │   └── AuthContext.jsx
 │   ├── services/
@@ -228,6 +312,8 @@ private-dictionary/
 │   ├── hooks/
 │   │   ├── useSpeechSynthesis.js
 │   │   └── useLocalStorage.js
+│   ├── utils/
+│   │   └── phoneticHelper.js
 │   ├── data/
 │   │   └── dictionary.js
 │   ├── styles/
@@ -237,6 +323,7 @@ private-dictionary/
 │   ├── main.jsx
 │   └── index.css
 ├── .env
+├── .env.example
 ├── .gitignore
 ├── index.html
 ├── package.json
@@ -246,25 +333,34 @@ private-dictionary/
 └── README.md
 ```
 
-### Key Directories
+### Key Components
 
-- **`/src/components`** - Reusable React components
-- **`/src/contexts`** - React Context providers (Authentication)
-- **`/src/services`** - External service integrations (Firebase, AI)
-- **`/src/hooks`** - Custom React hooks
-- **`/src/data`** - Initial dictionary data
+- **`App.jsx`** - Main application logic and state management
+- **`AuthContext.jsx`** - Authentication state and methods
+- **`AddWordsModal.jsx`** - Word addition interface with API integration
+- **`LessonContent.jsx`** - Lesson display with edit/delete capabilities
+- **`WordTable.jsx`** - Word list with pronunciation and deletion
+- **`phoneticHelper.js`** - Phonetic generation and API integration
+
+### Key Utilities
+
+- **`firebase.js`** - Firebase initialization and CRUD operations
+- **`phoneticHelper.js`** - Datamuse API integration and IPA conversion
+- **`useSpeechSynthesis.js`** - Browser speech synthesis hook
+- **`useLocalStorage.js`** - Local storage management hook
 
 ## 🔧 Technologies
 
 ### Frontend
-- **React 18** - UI library
+- **React 18** - UI library with hooks
 - **Tailwind CSS** - Utility-first CSS framework
 - **Vite** - Build tool and dev server
 - **Lucide React** - Icon library
 
 ### Backend & Services
-- **Firebase Authentication** - User authentication
+- **Firebase Authentication** - Google OAuth integration
 - **Firebase Firestore** - NoSQL database
+- **Datamuse API** - Phonetic transcription service
 - **Web Speech API** - Text-to-speech functionality
 
 ### Development Tools
@@ -288,6 +384,7 @@ Contributions are welcome! Please follow these steps:
 - Write meaningful commit messages
 - Add tests for new features
 - Update documentation as needed
+- Test both demo and authenticated modes
 
 ## 📜 License
 
@@ -295,7 +392,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 
-**Szaniszló ivor**
+**Szaniszló Ivor**
 - Email: info@ivor.hu
 - GitHub: [@SzaniszloIvor](https://github.com/SzaniszloIvor)
 - LinkedIn: [SzaniszloIvor](https://www.linkedin.com/in/ivorszaniszlo/)
@@ -305,5 +402,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 <div align="center">
-  Made with ❤️ by [Your Name]
+  Made with ❤️ by Szaniszló Ivor
 </div>
