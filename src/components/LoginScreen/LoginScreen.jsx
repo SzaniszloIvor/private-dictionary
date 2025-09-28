@@ -109,7 +109,7 @@ const LoginScreen = () => {
     <div style={loginStyles.container}>
       <div style={loginStyles.card}>
         <h1 style={loginStyles.title}>🎧 Angol Szótár</h1>
-        <p style={loginStyles.subtitle}>60 órás interaktív szótanulási program</p>
+        <p style={loginStyles.subtitle}>Korlátlan szavas interaktív szótanulási program</p>
         
         <button
           style={{...loginStyles.button, ...loginStyles.googleButton}}
