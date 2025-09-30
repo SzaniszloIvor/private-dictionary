@@ -34,17 +34,14 @@ export const useSpeechSynthesis = () => {
       return;
     }
 
-    // Cancel any ongoing speech
     speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
     
-    // Use saved rate or override with options
     utterance.rate = options.rate || speechRate;
     utterance.pitch = options.pitch || 1;
     utterance.volume = options.volume || 1;
 
-    // Try to find an English voice
     const englishVoice = voices.find(voice => voice.lang.startsWith('en'));
     if (englishVoice) {
       utterance.voice = englishVoice;
@@ -77,8 +74,9 @@ export const useSpeechSynthesis = () => {
   };
 
   const updateSpeechRate = (newRate) => {
-    setSpeechRate(newRate);
-    localStorage.setItem('speechRate', newRate.toString());
+    const clampedRate = Math.min(Math.max(newRate, 0.3), 1.2);
+    setSpeechRate(clampedRate);
+    localStorage.setItem('speechRate', clampedRate.toString());
   };
 
   return {

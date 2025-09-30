@@ -301,7 +301,7 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
     setActiveId(event.active.id);
   };
 
-  const handleDragEnd = (event) => {
+  const handleDragEnd = async (event) => {
     const { active, over } = event;
     
     if (active && over && active.id !== over.id) {
@@ -318,9 +318,15 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
         // Update local state immediately for smooth UX
         setLocalWords(newOrder);
         
-        // Then update parent component
+        // Then update parent component and save to Firebase
         if (onReorderWords && lessonNumber) {
-          onReorderWords(lessonNumber, newOrder);
+          try {
+            await onReorderWords(lessonNumber, newOrder);
+          } catch (error) {
+            console.error('Failed to save reorder:', error);
+            // Revert on error
+            setLocalWords(words);
+          }
         }
       }
     }
@@ -358,7 +364,7 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
       <input
         type="range"
         min="0.3"
-        max="1.5"
+        max="1.2"
         step="0.1"
         value={speechRate}
         onChange={(e) => updateSpeechRate(parseFloat(e.target.value))}
@@ -440,7 +446,7 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
               <input
                 type="range"
                 min="0.3"
-                max="1.5"
+                max="1.2"
                 step="0.1"
                 value={speechRate}
                 onChange={(e) => updateSpeechRate(parseFloat(e.target.value))}
@@ -520,7 +526,7 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
               <input
                 type="range"
                 min="0.3"
-                max="1.5"
+                max="1.2"
                 step="0.1"
                 value={speechRate}
                 onChange={(e) => updateSpeechRate(parseFloat(e.target.value))}

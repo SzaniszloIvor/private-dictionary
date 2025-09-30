@@ -27,8 +27,22 @@ const MainApp = () => {
   
   // Demo módban csak az első 2 óra, élesben üres vagy mentett állapot
   const getDemoLessons = () => {
+    // Először próbáljuk betölteni localStorage-ból
+    try {
+      const saved = localStorage.getItem('demoDictionary');
+      if (saved) {
+        const parsedData = JSON.parse(saved);
+        // Ellenőrizzük, hogy valid-e
+        if (parsedData && typeof parsedData === 'object') {
+          return parsedData;
+        }
+      }
+    } catch (error) {
+      console.error('Error loading from localStorage:', error);
+    }
+    
+    // Ha nincs mentett adat, akkor az alapértelmezett 2 óra
     const demoLessons = {};
-    // Csak az első 2 órát adjuk hozzá demo módban
     if (initialDictionary[1]) demoLessons[1] = initialDictionary[1];
     if (initialDictionary[2]) demoLessons[2] = initialDictionary[2];
     return demoLessons;
@@ -41,6 +55,7 @@ const MainApp = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [lastSaved, setLastSaved] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
   
   // Dinamikus következő óra szám kiszámítása
   const getNextLessonNumber = () => {
@@ -137,23 +152,41 @@ const MainApp = () => {
   };
 
   // Szavak átrendezése
-  const reorderWords = (lessonNumber, newWordOrder) => {
-    console.log('reorderWords called:', { lessonNumber, newWordOrder });
-    
-    const updatedDictionary = { ...dictionary };
-    
-    // lessonNumber lehet string vagy number
+  const reorderWords = async (lessonNumber, newWordOrder) => {
     const lessonKey = lessonNumber.toString();
     
+    // Optimistic update - azonnal frissítjük a UI-t
+    const updatedDictionary = { ...dictionary };
     if (updatedDictionary[lessonKey]) {
       updatedDictionary[lessonKey] = {
         ...updatedDictionary[lessonKey],
         words: [...newWordOrder]
       };
-      console.log('Dictionary will be updated:', updatedDictionary[lessonKey]);
       setDictionary(updatedDictionary);
-    } else {
-      console.warn('Lesson not found:', lessonKey);
+      
+      // Mentés Firebase-be vagy localStorage-ba
+      setIsSaving(true);
+      
+      if (currentUser && !isDemo) {
+        try {
+          await saveDictionary(currentUser.uid, updatedDictionary);
+          setLastSaved(new Date());
+        } catch (error) {
+          console.error('Error saving reordered words:', error);
+          // Hiba esetén visszaállítjuk az eredeti sorrendet
+          setDictionary(dictionary);
+        }
+      } else if (isDemo) {
+        // Demo módban localStorage-ba mentünk
+        try {
+          localStorage.setItem('demoDictionary', JSON.stringify(updatedDictionary));
+          setLastSaved(new Date());
+        } catch (error) {
+          console.error('Error saving to localStorage:', error);
+        }
+      }
+      
+      setIsSaving(false);
     }
   };
 
@@ -325,8 +358,22 @@ const MainApp = () => {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
               {lastSaved && !isDemo && (
-                <span style={{ fontSize: '12px', color: '#6c757d' }}>
-                  Mentve: {lastSaved.toLocaleTimeString()}
+                <span style={{ 
+                  fontSize: '12px', 
+                  color: isSaving ? '#ffc107' : '#28a745',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px'
+                }}>
+                  {isSaving ? '⏳ Mentés...' : '✓ Mentve:'} {!isSaving && lastSaved.toLocaleTimeString()}
+                </span>
+              )}
+              {lastSaved && isDemo && (
+                <span style={{ 
+                  fontSize: '12px', 
+                  color: '#6c757d'
+                }}>
+                  ✓ Lokálisan mentve
                 </span>
               )}
               <button

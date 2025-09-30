@@ -18,7 +18,9 @@ const LessonContent = ({ lesson, lessonNumber, isDemo, deleteLesson, renameLesso
     deleteLesson(lessonNumber);
   };
 
+  // FIX: Handler for reordering words - this ensures drag & drop changes are saved
   const handleReorderWords = (lessonNum, newWordOrder) => {
+    console.log('LessonContent handleReorderWords called:', { lessonNum, newWordOrder });
     if (reorderWords) {
       reorderWords(lessonNum, newWordOrder);
     }
@@ -197,6 +199,7 @@ const LessonContent = ({ lesson, lessonNumber, isDemo, deleteLesson, renameLesso
           lessonNumber={lessonNumber}
           deleteWord={deleteWord}
           isDemo={isDemo}
+          onReorderWords={handleReorderWords}
         />
       ) : (
         <div style={{
