@@ -79,6 +79,7 @@ export const AuthProvider = ({ children }) => {
     
     if (isDemo) {
       localStorage.removeItem('demoSession');
+      localStorage.removeItem('demoDictionary');
       setCurrentUser(null);
       setIsDemo(false);
       setAuthMode(null);

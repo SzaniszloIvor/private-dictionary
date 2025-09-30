@@ -203,6 +203,15 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, get
       };
     }
     
+    // ✅ DEMO KORLÁTOZÁS: Max 20 szó per óra
+    const currentWords = updatedDictionary[selectedLesson].words.length;
+    const totalWords = currentWords + wordsToAdd.length;
+    
+    if (isDemo && totalWords > 20) {
+      alert(`⚠️ Demo módban maximum 20 szó adható egy órához!\n\nJelenleg: ${currentWords} szó\nHozzáadni próbált: ${wordsToAdd.length} szó\nMaximum: 20 szó`);
+      return;
+    }
+    
     updatedDictionary[selectedLesson].words = [
       ...updatedDictionary[selectedLesson].words,
       ...wordsToAdd
@@ -227,7 +236,7 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, get
 
   const getLessonOptions = () => {
     if (isDemo) {
-      return [1, 2];
+      return [1, 2];  // ✅ Demo: csak 2 óra
     }
     
     const existingLessons = Object.keys(dictionary)
@@ -279,7 +288,10 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, get
                     {hasContent && (
                       <>
                         <br />
-                        <span style={{ fontSize: '11px' }}>{hasContent.words.length} szó</span>
+                        <span style={{ fontSize: '11px' }}>
+                          {hasContent.words.length} szó
+                          {isDemo && ` / 20`}
+                        </span>
                       </>
                     )}
                     {isNewLesson && (
@@ -302,7 +314,7 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, get
                 fontSize: '13px',
                 color: '#856404'
               }}>
-                ⚠️ Demo módban csak az 1. és 2. órához adhatsz szavakat
+                ⚠️ Demo módban csak az 1. és 2. órához adhatsz szavakat (max 20 szó/óra)
               </div>
             )}
           </div>

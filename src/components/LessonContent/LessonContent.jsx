@@ -18,9 +18,7 @@ const LessonContent = ({ lesson, lessonNumber, isDemo, deleteLesson, renameLesso
     deleteLesson(lessonNumber);
   };
 
-  // FIX: Handler for reordering words - this ensures drag & drop changes are saved
   const handleReorderWords = (lessonNum, newWordOrder) => {
-    console.log('LessonContent handleReorderWords called:', { lessonNum, newWordOrder });
     if (reorderWords) {
       reorderWords(lessonNum, newWordOrder);
     }
@@ -35,14 +33,14 @@ const LessonContent = ({ lesson, lessonNumber, isDemo, deleteLesson, renameLesso
           <>
             <p>Ez a lecke még nem elérhető demo módban!</p>
             <p style={{ marginTop: '15px', color: '#495057' }}>
-              Jelentkezz be Google fiókkal a teljes funkcionalitás eléréséhez.
+              Demo módban maximum 2 óra érhető el, óránként maximum 20 szóval.
             </p>
           </>
         ) : (
           <>
             <p>Ez az óra még üres!</p>
             <p style={{ marginTop: '15px', color: '#495057' }}>
-              Kattints a "Szavak hozzáadása" gombra és kezdd el feltölteni ezt az órát.
+              Kattints a "Szavak hozzáadása" gombra és kezd el feltölteni ezt az órát.
             </p>
             <div style={{
               marginTop: '30px',
@@ -90,42 +88,40 @@ const LessonContent = ({ lesson, lessonNumber, isDemo, deleteLesson, renameLesso
           marginBottom: '10px'
         }}>
           <div style={styles.lessonTitle}>{lessonNumber}. óra</div>
-          {!isDemo && (
-            <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              onClick={() => setIsEditing(true)}
+              style={{
+                padding: '8px 15px',
+                background: '#ffc107',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}
+              title="Óra átnevezése"
+            >
+              ✏️ Átnevezés
+            </button>
+            {lesson.words.length === 0 && (
               <button
-                onClick={() => setIsEditing(true)}
+                onClick={handleDelete}
                 style={{
                   padding: '8px 15px',
-                  background: '#ffc107',
+                  background: '#dc3545',
                   color: 'white',
                   border: 'none',
                   borderRadius: '5px',
                   cursor: 'pointer',
                   fontSize: '14px'
                 }}
-                title="Óra átnevezése"
+                title="Óra törlése"
               >
-                ✏️ Átnevezés
+                🗑️ Törlés
               </button>
-              {lesson.words.length === 0 && (
-                <button
-                  onClick={handleDelete}
-                  style={{
-                    padding: '8px 15px',
-                    background: '#dc3545',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                    fontSize: '14px'
-                  }}
-                  title="Óra törlése"
-                >
-                  🗑️ Törlés
-                </button>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </div>
         
         {isEditing ? (
@@ -178,8 +174,12 @@ const LessonContent = ({ lesson, lessonNumber, isDemo, deleteLesson, renameLesso
           <div style={styles.lessonSubtitle}>{lesson.title}</div>
         )}
         
-        <div style={styles.wordCount}>{lesson.words.length} szó</div>
-        {!isDemo && lesson.words.length === 0 && (
+        <div style={styles.wordCount}>
+          {lesson.words.length} szó
+          {isDemo && ` / 20 max`}
+        </div>
+        
+        {isDemo && lesson.words.length === 0 && (
           <div style={{
             marginTop: '15px',
             padding: '10px',
@@ -189,17 +189,18 @@ const LessonContent = ({ lesson, lessonNumber, isDemo, deleteLesson, renameLesso
             fontSize: '14px',
             color: '#856404'
           }}>
-            ⚠️ Ez az óra még üres. Kattints a "Szavak hozzáadása" gombra!
+            ⚠️ Demo mód: Maximum 20 szó adható hozzá ehhez az órához
           </div>
         )}
       </div>
+      
       {lesson.words.length > 0 ? (
         <WordTable 
           words={lesson.words} 
           lessonNumber={lessonNumber}
           deleteWord={deleteWord}
-          isDemo={isDemo}
-          onReorderWords={handleReorderWords}
+          isDemo={false}  // ← Módosítva! Demo módban is engedélyezzük a funkciókat
+          onReorderWords={handleReorderWords}  // ← Hozzáadva!
         />
       ) : (
         <div style={{

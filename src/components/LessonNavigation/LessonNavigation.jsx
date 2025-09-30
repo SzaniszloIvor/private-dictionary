@@ -2,7 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { styles } from '../../styles/styles';
 
-const LessonNavigation = ({ dictionary, currentLesson, setCurrentLesson, isDemo, getNextLessonNumber }) => {
+const LessonNavigation = ({ 
+  dictionary, 
+  currentLesson, 
+  setCurrentLesson, 
+  isDemo, 
+  getNextLessonNumber,
+  canAddLesson,
+  demoLimits 
+}) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -13,13 +21,7 @@ const LessonNavigation = ({ dictionary, currentLesson, setCurrentLesson, isDemo,
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Demo módban csak 2 óra, élesben dinamikus
   const getLessonsToShow = () => {
-    if (isDemo) {
-      return [1, 2];
-    }
-    
-    // Éles módban: meglévő órák + egy "új óra" gomb
     const existingLessons = Object.keys(dictionary)
       .map(num => parseInt(num))
       .sort((a, b) => a - b);
@@ -28,7 +30,7 @@ const LessonNavigation = ({ dictionary, currentLesson, setCurrentLesson, isDemo,
   };
 
   const lessonsToShow = getLessonsToShow();
-  const nextLessonNumber = !isDemo ? getNextLessonNumber() : null;
+  const nextLessonNumber = canAddLesson() ? getNextLessonNumber() : null;
 
   const mobileStyles = {
     lessonNavigation: {
@@ -87,8 +89,8 @@ const LessonNavigation = ({ dictionary, currentLesson, setCurrentLesson, isDemo,
         );
       })}
       
-      {/* Új óra hozzáadása gomb - csak éles módban */}
-      {!isDemo && (
+      {/* New lesson button - shown if can add */}
+      {nextLessonNumber && (
         <button
           style={{
             ...currentStyles.lessonNavBtn,
@@ -105,8 +107,8 @@ const LessonNavigation = ({ dictionary, currentLesson, setCurrentLesson, isDemo,
         </button>
       )}
       
-      {/* Demo módban tájékoztató */}
-      {isDemo && (
+      {/* Demo limit info */}
+      {isDemo && !canAddLesson() && (
         <div style={{
           padding: isMobile ? '8px 10px' : '10px 15px',
           background: '#fff3cd',
@@ -118,7 +120,7 @@ const LessonNavigation = ({ dictionary, currentLesson, setCurrentLesson, isDemo,
           alignItems: 'center',
           width: isMobile ? '100%' : 'auto'
         }}>
-          ⚠️ {isMobile ? 'Max 2 óra' : 'Demo módban csak 2 óra érhető el'}
+          ⚠️ {isMobile ? `Max ${demoLimits.maxLessons} óra` : `Demo limit: Max ${demoLimits.maxLessons} óra`}
         </div>
       )}
     </div>

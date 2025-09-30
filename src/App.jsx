@@ -25,23 +25,8 @@ const MainApp = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   
-  // Demo módban csak az első 2 óra, élesben üres vagy mentett állapot
+  // Demo mode: Load first 2 lessons from initial data
   const getDemoLessons = () => {
-    // Először próbáljuk betölteni localStorage-ból
-    try {
-      const saved = localStorage.getItem('demoDictionary');
-      if (saved) {
-        const parsedData = JSON.parse(saved);
-        // Ellenőrizzük, hogy valid-e
-        if (parsedData && typeof parsedData === 'object') {
-          return parsedData;
-        }
-      }
-    } catch (error) {
-      console.error('Error loading from localStorage:', error);
-    }
-    
-    // Ha nincs mentett adat, akkor az alapértelmezett 2 óra
     const demoLessons = {};
     if (initialDictionary[1]) demoLessons[1] = initialDictionary[1];
     if (initialDictionary[2]) demoLessons[2] = initialDictionary[2];
@@ -55,13 +40,36 @@ const MainApp = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [lastSaved, setLastSaved] = useState(null);
-  const [isSaving, setIsSaving] = useState(false);
   
-  // Dinamikus következő óra szám kiszámítása
+  // Dynamic next lesson number calculation
   const getNextLessonNumber = () => {
     if (Object.keys(dictionary).length === 0) return 1;
     const lessonNumbers = Object.keys(dictionary).map(num => parseInt(num));
     return Math.max(...lessonNumbers) + 1;
+  };
+
+  // DEMO LIMITS CHECKER
+  const getDemoLimits = () => {
+    return {
+      maxLessons: 2,
+      maxWordsPerLesson: 20
+    };
+  };
+
+  const canAddLesson = () => {
+    if (!isDemo) return true;
+    const limits = getDemoLimits();
+    return Object.keys(dictionary).length < limits.maxLessons;
+  };
+
+  const canAddWordsToLesson = (lessonNumber) => {
+    if (!isDemo) return { canAdd: true, remaining: Infinity };
+    const limits = getDemoLimits();
+    const currentWords = dictionary[lessonNumber]?.words?.length || 0;
+    return {
+      canAdd: currentWords < limits.maxWordsPerLesson,
+      remaining: limits.maxWordsPerLesson - currentWords
+    };
   };
 
   useEffect(() => {
@@ -70,9 +78,7 @@ const MainApp = () => {
         setLoading(true);
         try {
           const userDictionary = await loadDictionary(currentUser.uid);
-          // Ha nincs mentett adat, üres dictionary-val indulunk
           setDictionary(userDictionary || {});
-          // Ha van adat, az első órára navigálunk, ha nincs, akkor 1 marad
           if (userDictionary && Object.keys(userDictionary).length > 0) {
             const firstLesson = Math.min(...Object.keys(userDictionary).map(num => parseInt(num)));
             setCurrentLesson(firstLesson);
@@ -84,9 +90,32 @@ const MainApp = () => {
           setLoading(false);
         }
       } else if (isDemo) {
-        setDictionary(getDemoLessons());
-        setCurrentLesson(1);
-        setLoading(false);
+        // ✅ DEMO MÓD: localStorage betöltés VAGY alapértelmezett órák
+        setLoading(true);
+        try {
+          const savedDemoDictionary = localStorage.getItem('demoDictionary');
+          
+          if (savedDemoDictionary) {
+            // Van mentett demo adat
+            const parsedDictionary = JSON.parse(savedDemoDictionary);
+            setDictionary(parsedDictionary);
+            
+            if (Object.keys(parsedDictionary).length > 0) {
+              const firstLesson = Math.min(...Object.keys(parsedDictionary).map(num => parseInt(num)));
+              setCurrentLesson(firstLesson);
+            }
+          } else {
+            // Nincs mentett adat, használjuk az alapértelmezett demo órákat
+            setDictionary(getDemoLessons());
+            setCurrentLesson(1);
+          }
+        } catch (error) {
+          console.error('Error loading demo dictionary:', error);
+          setDictionary(getDemoLessons());
+          setCurrentLesson(1);
+        } finally {
+          setLoading(false);
+        }
       } else {
         setLoading(false);
       }
@@ -97,12 +126,22 @@ const MainApp = () => {
 
   useEffect(() => {
     const saveTimer = setTimeout(async () => {
-      if (currentUser && !isDemo && dictionary && Object.keys(dictionary).length > 0) {
-        try {
-          await saveDictionary(currentUser.uid, dictionary);
-          setLastSaved(new Date());
-        } catch (error) {
-          console.error('Error saving dictionary:', error);
+      if (dictionary && Object.keys(dictionary).length > 0) {
+        if (isDemo) {
+          try {
+            localStorage.setItem('demoDictionary', JSON.stringify(dictionary));
+            setLastSaved(new Date());
+          } catch (error) {
+            console.error('Error saving to localStorage:', error);
+          }
+        } else if (currentUser) {
+          // ✅ ÉLES: Firebase mentés
+          try {
+            await saveDictionary(currentUser.uid, dictionary);
+            setLastSaved(new Date());
+          } catch (error) {
+            console.error('Error saving dictionary:', error);
+          }
         }
       }
     }, 1000);
@@ -114,8 +153,15 @@ const MainApp = () => {
     setDictionary(newDictionary);
   };
 
-  // Óra törlése
+  // Delete lesson (available in demo too, but can't delete below 0 lessons)
+  
   const deleteLesson = (lessonNumber) => {
+    // ✅ Demo védelem
+    if (isDemo) {
+      alert('⚠️ Demo módban az alapértelmezett órákat nem lehet törölni!');
+      return;
+    }
+    
     if (window.confirm(`Biztosan törölni szeretnéd a ${lessonNumber}. órát és az összes szavát?`)) {
       const updatedDictionary = { ...dictionary };
       delete updatedDictionary[lessonNumber];
@@ -133,7 +179,7 @@ const MainApp = () => {
     }
   };
 
-  // Óra átnevezése
+  // Rename lesson (available in demo too)
   const renameLesson = (lessonNumber, newTitle) => {
     const updatedDictionary = { ...dictionary };
     if (updatedDictionary[lessonNumber]) {
@@ -142,7 +188,7 @@ const MainApp = () => {
     }
   };
 
-  // Szó törlése
+  // Delete word (available in demo too)
   const deleteWord = (lessonNumber, wordIndex) => {
     const updatedDictionary = { ...dictionary };
     if (updatedDictionary[lessonNumber]) {
@@ -151,42 +197,20 @@ const MainApp = () => {
     }
   };
 
-  // Szavak átrendezése
-  const reorderWords = async (lessonNumber, newWordOrder) => {
+  // Reorder words (available in demo too)
+  const reorderWords = (lessonNumber, newWordOrder) => {
+    
+    const updatedDictionary = { ...dictionary };
     const lessonKey = lessonNumber.toString();
     
-    // Optimistic update - azonnal frissítjük a UI-t
-    const updatedDictionary = { ...dictionary };
     if (updatedDictionary[lessonKey]) {
       updatedDictionary[lessonKey] = {
         ...updatedDictionary[lessonKey],
         words: [...newWordOrder]
       };
       setDictionary(updatedDictionary);
-      
-      // Mentés Firebase-be vagy localStorage-ba
-      setIsSaving(true);
-      
-      if (currentUser && !isDemo) {
-        try {
-          await saveDictionary(currentUser.uid, updatedDictionary);
-          setLastSaved(new Date());
-        } catch (error) {
-          console.error('Error saving reordered words:', error);
-          // Hiba esetén visszaállítjuk az eredeti sorrendet
-          setDictionary(dictionary);
-        }
-      } else if (isDemo) {
-        // Demo módban localStorage-ba mentünk
-        try {
-          localStorage.setItem('demoDictionary', JSON.stringify(updatedDictionary));
-          setLastSaved(new Date());
-        } catch (error) {
-          console.error('Error saving to localStorage:', error);
-        }
-      }
-      
-      setIsSaving(false);
+    } else {
+      console.warn('Lesson not found:', lessonKey);
     }
   };
 
@@ -227,8 +251,8 @@ const MainApp = () => {
   }
 
   const searchResults = getSearchResults();
+  const demoLimits = getDemoLimits();
 
-  // Mobile navigation bar styles
   const mobileNavStyles = {
     container: {
       background: '#f8f9fa', 
@@ -358,22 +382,8 @@ const MainApp = () => {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
               {lastSaved && !isDemo && (
-                <span style={{ 
-                  fontSize: '12px', 
-                  color: isSaving ? '#ffc107' : '#28a745',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px'
-                }}>
-                  {isSaving ? '⏳ Mentés...' : '✓ Mentve:'} {!isSaving && lastSaved.toLocaleTimeString()}
-                </span>
-              )}
-              {lastSaved && isDemo && (
-                <span style={{ 
-                  fontSize: '12px', 
-                  color: '#6c757d'
-                }}>
-                  ✓ Lokálisan mentve
+                <span style={{ fontSize: '12px', color: '#6c757d' }}>
+                  Mentve: {lastSaved.toLocaleTimeString()}
                 </span>
               )}
               <button
@@ -395,8 +405,8 @@ const MainApp = () => {
         )}
       </div>
       
-      <Header isDemo={isDemo} />
-      <ProgressSection dictionary={dictionary} isDemo={isDemo} />
+      <Header isDemo={isDemo} demoLimits={demoLimits} />
+      <ProgressSection dictionary={dictionary} isDemo={isDemo} demoLimits={demoLimits} />
       <SearchControls
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -409,6 +419,8 @@ const MainApp = () => {
         setCurrentLesson={setCurrentLesson}
         isDemo={isDemo}
         getNextLessonNumber={getNextLessonNumber}
+        canAddLesson={canAddLesson}
+        demoLimits={demoLimits}
       />
       
       <div style={styles.lessonContent}>
@@ -436,7 +448,7 @@ const MainApp = () => {
         </button>
         {isDemo && (
           <p style={{ marginTop: '10px', color: '#6c757d', fontSize: isMobile ? '13px' : '14px' }}>
-            ⚠️ Demo módban vagy - csak 2 órához adhatsz szavakat. Jelentkezz be a teljes funkcionalitásért!
+            ⚠️ Demo módban: Max {demoLimits.maxLessons} óra, óránként {demoLimits.maxWordsPerLesson} szó
           </p>
         )}
       </div>
@@ -448,14 +460,15 @@ const MainApp = () => {
         setDictionary={updateDictionary}
         isDemo={isDemo}
         getNextLessonNumber={getNextLessonNumber}
+        canAddLesson={canAddLesson}
+        canAddWordsToLesson={canAddWordsToLesson}
+        demoLimits={demoLimits}
       />
     </div>
   );
 };
 
 const App = () => {
-  const [authReady, setAuthReady] = useState(false);
-
   return (
     <AuthProvider>
       <AuthWrapper />

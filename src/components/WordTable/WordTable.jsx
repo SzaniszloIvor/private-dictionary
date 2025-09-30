@@ -33,7 +33,7 @@ const SortableRow = ({ word, index, isDemo, speak, speechRate, deleteWord, handl
     isDragging
   } = useSortable({ 
     id: `${word.english}-${index}`,
-    disabled: isDemo 
+    disabled: false
   });
 
   const style = {
@@ -104,7 +104,7 @@ const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, to
     isDragging
   } = useSortable({ 
     id: `${word.english}-${index}`,
-    disabled: isDemo 
+    disabled: false
   });
 
   const style = {
@@ -301,7 +301,7 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
     setActiveId(event.active.id);
   };
 
-  const handleDragEnd = async (event) => {
+  const handleDragEnd = (event) => {
     const { active, over } = event;
     
     if (active && over && active.id !== over.id) {
@@ -318,15 +318,9 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
         // Update local state immediately for smooth UX
         setLocalWords(newOrder);
         
-        // Then update parent component and save to Firebase
+        // ✅ JAVÍTÁS: Azonnal mentsük az adatbázisba
         if (onReorderWords && lessonNumber) {
-          try {
-            await onReorderWords(lessonNumber, newOrder);
-          } catch (error) {
-            console.error('Failed to save reorder:', error);
-            // Revert on error
-            setLocalWords(words);
-          }
+          onReorderWords(lessonNumber, newOrder);
         }
       }
     }
