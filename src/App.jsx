@@ -136,6 +136,27 @@ const MainApp = () => {
     }
   };
 
+  // Szavak átrendezése
+  const reorderWords = (lessonNumber, newWordOrder) => {
+    console.log('reorderWords called:', { lessonNumber, newWordOrder });
+    
+    const updatedDictionary = { ...dictionary };
+    
+    // lessonNumber lehet string vagy number
+    const lessonKey = lessonNumber.toString();
+    
+    if (updatedDictionary[lessonKey]) {
+      updatedDictionary[lessonKey] = {
+        ...updatedDictionary[lessonKey],
+        words: [...newWordOrder]
+      };
+      console.log('Dictionary will be updated:', updatedDictionary[lessonKey]);
+      setDictionary(updatedDictionary);
+    } else {
+      console.warn('Lesson not found:', lessonKey);
+    }
+  };
+
   const getSearchResults = () => {
     if (!searchTerm) return null;
 
@@ -354,6 +375,7 @@ const MainApp = () => {
             deleteLesson={deleteLesson}
             renameLesson={renameLesson}
             deleteWord={deleteWord}
+            reorderWords={reorderWords}
           />
         )}
       </div>

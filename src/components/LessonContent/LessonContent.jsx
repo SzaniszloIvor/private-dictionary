@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import WordTable from '../WordTable/WordTable';
 import { styles } from '../../styles/styles';
 
-const LessonContent = ({ lesson, lessonNumber, isDemo, deleteLesson, renameLesson, deleteWord }) => {
+const LessonContent = ({ lesson, lessonNumber, isDemo, deleteLesson, renameLesson, deleteWord, reorderWords }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [newTitle, setNewTitle] = useState(lesson?.title || '');
 
@@ -16,6 +16,12 @@ const LessonContent = ({ lesson, lessonNumber, isDemo, deleteLesson, renameLesso
 
   const handleDelete = () => {
     deleteLesson(lessonNumber);
+  };
+
+  const handleReorderWords = (lessonNum, newWordOrder) => {
+    if (reorderWords) {
+      reorderWords(lessonNum, newWordOrder);
+    }
   };
 
   if (!lesson) {

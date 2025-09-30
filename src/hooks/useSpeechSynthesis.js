@@ -5,6 +5,11 @@ export const useSpeechSynthesis = () => {
   const [voices, setVoices] = useState([]);
   const [speaking, setSpeaking] = useState(false);
   const [supported, setSupported] = useState(false);
+  const [speechRate, setSpeechRate] = useState(() => {
+    // Load saved rate from localStorage or use default
+    const saved = localStorage.getItem('speechRate');
+    return saved ? parseFloat(saved) : 0.7;
+  });
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -34,8 +39,8 @@ export const useSpeechSynthesis = () => {
 
     const utterance = new SpeechSynthesisUtterance(text);
     
-    // Default options
-    utterance.rate = options.rate || 1;
+    // Use saved rate or override with options
+    utterance.rate = options.rate || speechRate;
     utterance.pitch = options.pitch || 1;
     utterance.volume = options.volume || 1;
 
@@ -71,6 +76,11 @@ export const useSpeechSynthesis = () => {
     }
   };
 
+  const updateSpeechRate = (newRate) => {
+    setSpeechRate(newRate);
+    localStorage.setItem('speechRate', newRate.toString());
+  };
+
   return {
     speak,
     cancel,
@@ -78,6 +88,8 @@ export const useSpeechSynthesis = () => {
     resume,
     speaking,
     voices,
-    supported
+    supported,
+    speechRate,
+    updateSpeechRate
   };
 };

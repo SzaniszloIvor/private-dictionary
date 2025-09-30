@@ -21,6 +21,7 @@ A modern, interactive English-Hungarian dictionary application designed for pers
 - [Project Structure](#-project-structure)
 - [Technologies](#-technologies)
 - [Contributing](#-contributing)
+- [Planned UI Enhancements](#-planned-ui-enhancements)
 - [License](#-license)
 - [Contact](#-contact)
 
@@ -49,6 +50,8 @@ Private Dictionary is a comprehensive language learning platform that provides a
 - 💾 **Auto-Save** - Automatic cloud synchronization for Google users
 - ✏️ **Lesson Management** - Rename and delete lessons
 - 🗑️ **Word Management** - Add, delete, and organize words
+- 🖱️ **Drag & Drop** – Intuitive reordering of words within lessons and rearranging lessons themselves
+- 🎚️ **Pronunciation Speed Control** – Adjustable speech synthesis speed for better listening practice
 
 ### Authentication Modes
 
@@ -279,6 +282,16 @@ npm run test
 npm run lint
 ```
 
+### New UI Features
+
+- **Drag & Drop**:  
+  Simply click and hold a word or lesson, then drag it to its new position.  
+  This makes it easier to organize your personal learning path.
+
+- **Pronunciation Speed Control**:  
+  Use the new slider in the word table to adjust playback speed.  
+  Perfect for slowing down difficult words or practicing faster comprehension.
+
 ## 📁 Project Structure
 
 ```
@@ -385,6 +398,39 @@ Contributions are welcome! Please follow these steps:
 - Add tests for new features
 - Update documentation as needed
 - Test both demo and authenticated modes
+
+## 📝 Planned UI Enhancements
+
+The following improvements are planned to enhance usability, learning efficiency, and overall user experience:
+
+### 🎯 Quick Wins
+- **Keyboard Shortcuts** – Ctrl/Cmd + N (new word), F (search), S (save notification)
+- **Dark Mode** – Toggle with local storage persistence, optional automatic time-based switching
+- **Undo/Redo** – Step back accidental deletions or edits
+
+### 📊 Learning Aids
+- **Practice Mode** – Quiz cards with “show/hide answer” flow
+- **Daily Goal & Streaks** – Track words per day and visualize learning progress
+- **Favorites** – Mark difficult or favorite words for quick access
+
+### 🎨 Visual Improvements
+- **Smooth Animations** – Card hover transitions
+- **Loading States** – Skeleton screens, optimistic updates
+- **Empty States** – Friendly SVG illustrations for no data / no results
+
+### 🔧 Usability
+- **Bulk Actions** – Multi-select for delete, copy, move
+- **Import/Export** – CSV, JSON backup/restore, Anki deck, printable flashcards
+- **Smart Search** – Fuzzy search with suggestions
+
+### 📱 Mobile Specific
+- **Swipe Gestures** – Left = delete, right = favorite, double-tap = pronounce
+- **PWA Support** – Offline mode, install prompt
+- **Haptic Feedback** – Vibration feedback on actions
+
+### 🚀 Performance
+- **Virtual Scrolling** – Efficient rendering of large word lists
+- **Lazy Loading** – Lessons, images, and code splitting
 
 ## 📜 License
 
