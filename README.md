@@ -1,18 +1,19 @@
 # 🎧 Private Dictionary
 
-A modern, interactive English-Hungarian dictionary application designed for personalized language learning with dynamic lesson management.
+A modern, interactive English-Hungarian dictionary application designed for personalized language learning with dynamic lesson management and comprehensive keyboard shortcuts.
 
 ![React](https://img.shields.io/badge/React-19.1.1-61DAFB?style=flat&logo=react)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.1-06B6D4?style=flat&logo=tailwindcss)
 ![Firebase](https://img.shields.io/badge/Firebase-12.x-FFCA28?style=flat&logo=firebase)
 ![Vite](https://img.shields.io/badge/Vite-7.x-646CFF?style=flat&logo=vite)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
-![Version](https://img.shields.io/badge/Version-0.2.0-blue.svg)
+![Version](https://img.shields.io/badge/Version-0.3.0-blue.svg)
 
 ## 📋 Table of Contents
 
 - [About](#-about)
 - [Features](#-features)
+- [Keyboard Shortcuts](#-keyboard-shortcuts)
 - [Demo Mode](#-demo-mode)
 - [Demo](#-demo)
 - [Prerequisites](#-prerequisites)
@@ -34,6 +35,7 @@ Private Dictionary is a comprehensive language learning platform that provides a
 
 ### Key Highlights:
 - **Full-Featured Demo Mode**: Try all features with 2 lessons (max 20 words each)
+- **Keyboard Shortcuts**: 11 productivity shortcuts for efficient navigation
 - **Dynamic Learning Path**: Create unlimited custom lessons (registered users)
 - **Dual Authentication**: Demo mode with localStorage and Google Sign-in with Firebase
 - **Real-time Sync**: Cloud-based storage with automatic saving
@@ -46,6 +48,7 @@ Private Dictionary is a comprehensive language learning platform that provides a
 
 ### Core Features
 - 📖 **Dynamic Lesson System** - Create unlimited custom lessons (registered users)
+- ⌨️ **Keyboard Shortcuts** - 11 shortcuts for rapid navigation and actions
 - 🎯 **Full-Featured Demo Mode** - Try all features with 2 lessons (max 20 words/lesson)
 - 🔊 **Text-to-Speech** - Native English pronunciation with adjustable speed (0.3x - 1.5x)
 - 🎵 **Automatic Phonetics** - IPA phonetic transcription via Datamuse API
@@ -57,6 +60,42 @@ Private Dictionary is a comprehensive language learning platform that provides a
 - 🖱️ **Drag & Drop** – Intuitive reordering with database/localStorage persistence
 - 🎚️ **Pronunciation Speed Control** – Adjustable speech synthesis speed (0.3x - 1.5x)
 - 🌐 **Offline Support** - Demo mode works offline with localStorage
+
+## ⌨️ Keyboard Shortcuts
+
+Private Dictionary includes a comprehensive keyboard shortcut system for efficient navigation and productivity. All shortcuts work on both Windows/Linux (Ctrl) and macOS (⌘).
+
+### Quick Reference
+
+| Shortcut | Windows/Linux | macOS | Action |
+|----------|---------------|-------|--------|
+| **Basic Actions** | | | |
+| New Word | `Ctrl+E` | `⌘E` | Open add words modal |
+| Search | `Ctrl+F` | `⌘F` | Focus search input |
+| Save Status | `Ctrl+S` | `⌘S` | Show save notification |
+| Help | `Ctrl+K` | `⌘K` | Toggle shortcuts help |
+| Close | `ESC` | `ESC` | Close active modal |
+| **Navigation** | | | |
+| Next Lesson | `Ctrl+→` or `]` | `⌘→` or `]` | Navigate to next lesson |
+| Previous Lesson | `Ctrl+←` or `[` | `⌘←` or `[` | Navigate to previous lesson |
+| First Lesson | `Ctrl+Home` | `⌘Home` | Jump to first lesson |
+| Last Lesson | `Ctrl+End` | `⌘End` | Jump to last lesson |
+
+### Features
+- **Cross-platform**: Automatic detection of Windows/Linux (Ctrl) vs macOS (⌘)
+- **Visual Feedback**: Toast notifications for all navigation actions
+- **Help Modal**: Press `Ctrl/⌘+K` to view all available shortcuts
+- **Floating Button**: Click the ⌨️ icon in the bottom-right corner for help
+
+### Toast Notifications
+Every navigation action provides visual feedback:
+- `➡️ 2. óra címe` - When navigating to next lesson
+- `⬅️ 1. óra címe` - When navigating to previous lesson
+- `⏮️ 1. óra címe` - When jumping to first lesson
+- `⏭️ 5. óra címe` - When jumping to last lesson
+- `⚠️ Ez az első/utolsó óra` - When at boundaries
+
+For complete documentation, see [docs/KEYBOARD_SHORTCUTS.md](docs/KEYBOARD_SHORTCUTS.md)
 
 ## 🎮 Demo Mode
 
@@ -71,6 +110,7 @@ Demo mode allows you to **try all features** of Private Dictionary without creat
 - Adjust pronunciation speed
 - Use text-to-speech
 - Access automatic phonetic generation
+- Use all keyboard shortcuts
 
 ⚠️ **Demo Limitations**
 - Maximum **2 lessons** available
@@ -88,6 +128,7 @@ Demo mode allows you to **try all features** of Private Dictionary without creat
 | Add/Edit Words | ✅ | ✅ |
 | Delete Words | ✅ | ✅ |
 | Drag & Drop | ✅ | ✅ |
+| Keyboard Shortcuts | ✅ | ✅ |
 | Rename Lessons | ✅ | ✅ |
 | Delete Lessons | ❌ | ✅ |
 | Cross-device Sync | ❌ | ✅ |
@@ -102,6 +143,7 @@ Demo mode allows you to **try all features** of Private Dictionary without creat
 - Can add up to 20 words per lesson
 - Can modify, delete, and reorder words
 - Can rename lessons
+- Full keyboard shortcuts support
 - Data persists in browser localStorage
 - Data cleared on logout
 - Perfect for trying the app or offline use
@@ -124,6 +166,7 @@ Demo mode allows you to **try all features** of Private Dictionary without creat
 - **API Phonetics**: Automatic IPA transcription from Datamuse API
 - **Fallback System**: Local phonetic generation if API fails
 - **Format**: "english word - magyar jelentés"
+- **Keyboard Shortcut**: Press `Ctrl/⌘+E` to quickly open the add words modal
 
 #### Phonetic Generation
 - **Primary Source**: Datamuse API for accurate IPA transcription
@@ -142,9 +185,9 @@ Demo mode allows you to **try all features** of Private Dictionary without creat
 - **Create**: Add new lessons dynamically (authenticated users)
 - **Rename**: Edit lesson titles inline
 - **Delete**: Remove empty lessons (authenticated users only)
-- **Navigate**: Quick lesson switching
+- **Navigate**: Quick lesson switching with keyboard shortcuts
 - **Progress Tracking**: Visual indicators for completed lessons
-- **Drag & Drop**: Reorder lessons (coming soon)
+- **Keyboard Navigation**: Use `Ctrl+→/←` or `[/]` to navigate between lessons
 
 ## 🚀 Demo
 
@@ -154,9 +197,10 @@ Demo mode allows you to **try all features** of Private Dictionary without creat
 2. Click "Demó fiók használata" (Use Demo Account)
 3. Explore 2 fully-featured lessons
 4. Add up to 20 words per lesson
-5. Test all features: drag & drop, delete, rename, speech synthesis
+5. Test all features: drag & drop, delete, rename, speech synthesis, keyboard shortcuts
 6. Your changes persist in localStorage
-7. Logout clears demo data
+7. Press `Ctrl/⌘+K` to see all keyboard shortcuts
+8. Logout clears demo data
 
 ### Full Features with Google
 
@@ -166,6 +210,7 @@ Demo mode allows you to **try all features** of Private Dictionary without creat
 4. Add unlimited words per lesson
 5. Access from any device with cloud sync
 6. Long-term data persistence
+7. Full keyboard shortcuts support
 
 ## 📋 Prerequisites
 
@@ -340,6 +385,13 @@ npm run lint
 
 ### Key Features Usage
 
+#### Keyboard Shortcuts
+- Press `Ctrl/⌘+K` to view all available shortcuts
+- Use `Ctrl/⌘+E` to quickly add new words
+- Navigate lessons with `Ctrl/⌘+→/←` or `[/]` keys
+- Press `ESC` to close any modal
+- See [docs/KEYBOARD_SHORTCUTS.md](docs/KEYBOARD_SHORTCUTS.md) for complete documentation
+
 #### Drag & Drop
 Simply click and hold a word or lesson, then drag it to its new position. Changes are automatically saved to database (authenticated) or localStorage (demo).
 
@@ -378,6 +430,8 @@ private-dictionary/
 │   │   │   └── SearchResults.jsx
 │   │   ├── AddWordsModal/
 │   │   │   └── AddWordsModal.jsx
+│   │   ├── KeyboardShortcutsHelper/
+│   │   │   └── KeyboardShortcutsHelper.jsx
 │   │   └── LoginScreen/
 │   │       └── LoginScreen.jsx
 │   ├── contexts/
@@ -386,7 +440,8 @@ private-dictionary/
 │   │   └── firebase.js
 │   ├── hooks/
 │   │   ├── useSpeechSynthesis.js
-│   │   └── useLocalStorage.js
+│   │   ├── useLocalStorage.js
+│   │   └── useKeyboardShortcuts.js
 │   ├── utils/
 │   │   └── phoneticHelper.js
 │   ├── data/
@@ -397,6 +452,12 @@ private-dictionary/
 │   ├── App.css
 │   ├── main.jsx
 │   └── index.css
+├── docs/Keyboard Shortcuts
+│         ├── KEYBOARD_SHORTCUTS.md
+│         ├── INSTALLATION.md
+│         ├── QUICK_REFERENCE.md
+│         ├── ARCHITECTURE.md
+│         └── keyboard-shortcuts-cheatsheet.html
 ├── .env
 ├── .env.example
 ├── .gitignore
@@ -410,11 +471,12 @@ private-dictionary/
 ```
 
 ### Key Components
-- **App.jsx** - Main application logic, state management, and auto-save
+- **App.jsx** - Main application logic, state management, auto-save, and keyboard shortcuts
 - **AuthContext.jsx** - Authentication state and methods (Google + Demo)
 - **AddWordsModal.jsx** - Word addition interface with API integration
 - **LessonContent.jsx** - Lesson display with edit/delete capabilities
 - **WordTable.jsx** - Word list with drag & drop, pronunciation, and deletion
+- **KeyboardShortcutsHelper.jsx** - Floating button and modal for keyboard shortcuts
 - **phoneticHelper.js** - Phonetic generation and Datamuse API integration
 
 ### Key Utilities
@@ -422,6 +484,7 @@ private-dictionary/
 - **phoneticHelper.js** - Datamuse API integration and IPA conversion
 - **useSpeechSynthesis.js** - Browser speech synthesis hook with speed control
 - **useLocalStorage.js** - Local storage management hook (demo mode)
+- **useKeyboardShortcuts.js** - Custom hook for keyboard shortcut handling
 
 ## 🔧 Technologies
 
@@ -462,13 +525,14 @@ Contributions are welcome! Please follow these steps:
 - Update documentation as needed
 - Test both demo and authenticated modes
 - Ensure drag & drop persistence works correctly
+- Test keyboard shortcuts on both Windows and macOS
 - Test on mobile devices
 
 ### Conventional Commit Examples
 ```bash
-feat(demo): add new demo feature
+feat(shortcuts): add keyboard navigation
 fix(drag-drop): resolve position persistence issue
-docs(readme): update installation instructions
+docs(readme): update keyboard shortcuts section
 chore(deps): update dependencies
 ```
 
@@ -476,21 +540,12 @@ chore(deps): update dependencies
 
 See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes.
 
-### Recent Updates (v0.2.0)
-- ✅ Full-featured demo mode with localStorage persistence
-- ✅ Fixed drag & drop position saving
-- ✅ Fixed word deletion functionality
-- ✅ Production build optimization (console.log removal)
-- ✅ Demo mode restrictions (2 lessons, 20 words/lesson)
-
 ## 🎨 Planned UI Enhancements
 
 The following improvements are planned to enhance usability, learning efficiency, and overall user experience:
 
 ### 🎯 Quick Wins
-- **Keyboard Shortcuts** – Ctrl/Cmd + N (new word), F (search), S (save notification)
 - **Dark Mode** – Toggle with local storage persistence, optional automatic time-based switching
-- **Undo/Redo** – Step back accidental deletions or edits
 
 ### 📊 Learning Aids
 - **Practice Mode** – Quiz cards with "show/hide answer" flow
@@ -499,10 +554,10 @@ The following improvements are planned to enhance usability, learning efficiency
 - **Spaced Repetition** – Smart review system based on learning algorithms
 
 ### 🎨 Visual Improvements
+- ✅ **Toast Notifications** – ✅ Implemented for navigation actions (v0.3.0)
 - **Smooth Animations** – Card hover transitions, page transitions
 - **Loading States** – Skeleton screens, optimistic updates
 - **Empty States** – Friendly SVG illustrations for no data / no results
-- **Toast Notifications** – Non-intrusive feedback for user actions
 
 ### 🔧 Usability
 - **Bulk Actions** – Multi-select for delete, copy, move
