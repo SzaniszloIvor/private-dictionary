@@ -1,5 +1,5 @@
-// src/App.jsx
-import React, { useState, useEffect } from 'react';
+// src/App.jsx - TELJES INTEGRÁCIÓS PÉLDA
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginScreen from './components/LoginScreen/LoginScreen';
 import Header from './components/Header/Header';
@@ -9,23 +9,18 @@ import LessonNavigation from './components/LessonNavigation/LessonNavigation';
 import LessonContent from './components/LessonContent/LessonContent';
 import SearchResults from './components/SearchResults/SearchResults';
 import AddWordsModal from './components/AddWordsModal/AddWordsModal';
+import KeyboardShortcutsHelper from './components/KeyboardShortcutsHelper/KeyboardShortcutsHelper';
 import { initialDictionary } from './data/dictionary';
 import { saveDictionary, loadDictionary } from './services/firebase';
 import { styles } from './styles/styles';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 
 const MainApp = () => {
+
   const { currentUser, isDemo, logout } = useAuth();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-  
-  // Demo mode: Load first 2 lessons from initial data
+  // === EXISTING STATES ===
   const getDemoLessons = () => {
     const demoLessons = {};
     if (initialDictionary[1]) demoLessons[1] = initialDictionary[1];
@@ -40,6 +35,226 @@ const MainApp = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [lastSaved, setLastSaved] = useState(null);
+  
+  // === NEW STATES FOR KEYBOARD SHORTCUTS ===
+  const [showSaveNotification, setShowSaveNotification] = useState(false);
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+  const [toastMessage, setToastMessage] = useState(''); 
+  const searchInputRef = useRef(null);
+
+  // Toast helper
+  const showToast = (message, duration = 2000) => {
+    setToastMessage(message);
+    setTimeout(() => setToastMessage(''), duration);
+  };
+  
+  // === KEYBOARD SHORTCUTS CONFIGURATION ===
+const shortcuts = useMemo(() => ({
+  // Új szó hozzáadása
+  'mod+e': (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowAddModal(true);
+    showToast('➕ Új szó hozzáadása');
+  },
+  
+  // Keresés
+  'mod+f': (e) => {
+    e.preventDefault();
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+      searchInputRef.current.select();
+      showToast('🔍 Keresés aktiválva');
+    }
+  },
+  
+  // Súgó
+  'mod+k': (e) => {
+    e.preventDefault();
+    setShowShortcutsHelp(prev => !prev);
+  },
+  
+  // Mentés
+  'mod+s': (e) => {
+    e.preventDefault();
+    setShowSaveNotification(true);
+  },
+  
+  // === NAVIGÁCIÓ: Következő lecke ===
+  'mod+arrowright': (e) => {
+    e.preventDefault();
+    const lessons = Object.keys(dictionary).map(n => parseInt(n)).sort((a,b) => a-b);
+    const currentIndex = lessons.indexOf(currentLesson);
+    if (currentIndex < lessons.length - 1) {
+      const nextLesson = lessons[currentIndex + 1];
+      setCurrentLesson(nextLesson);
+      showToast(`➡️ ${dictionary[nextLesson]?.title || nextLesson + '. óra'}`);
+    } else {
+      showToast('⚠️ Ez az utolsó óra');
+    }
+  },
+  
+  ']': (e) => {
+    e.preventDefault();
+    const lessons = Object.keys(dictionary).map(n => parseInt(n)).sort((a,b) => a-b);
+    const currentIndex = lessons.indexOf(currentLesson);
+    if (currentIndex < lessons.length - 1) {
+      const nextLesson = lessons[currentIndex + 1];
+      setCurrentLesson(nextLesson);
+      showToast(`➡️ ${dictionary[nextLesson]?.title || nextLesson + '. óra'}`);
+    } else {
+      showToast('⚠️ Ez az utolsó óra');
+    }
+  },
+  
+  // === NAVIGÁCIÓ: Előző lecke ===
+  'mod+arrowleft': (e) => {
+    e.preventDefault();
+    const lessons = Object.keys(dictionary).map(n => parseInt(n)).sort((a,b) => a-b);
+    const currentIndex = lessons.indexOf(currentLesson);
+    if (currentIndex > 0) {
+      const prevLesson = lessons[currentIndex - 1];
+      setCurrentLesson(prevLesson);
+      showToast(`⬅️ ${dictionary[prevLesson]?.title || prevLesson + '. óra'}`);
+    } else {
+      showToast('⚠️ Ez az első óra');
+    }
+  },
+  
+  '[': (e) => {
+    e.preventDefault();
+    const lessons = Object.keys(dictionary).map(n => parseInt(n)).sort((a,b) => a-b);
+    const currentIndex = lessons.indexOf(currentLesson);
+    if (currentIndex > 0) {
+      const prevLesson = lessons[currentIndex - 1];
+      setCurrentLesson(prevLesson);
+      showToast(`⬅️ ${dictionary[prevLesson]?.title || prevLesson + '. óra'}`);
+    } else {
+      showToast('⚠️ Ez az első óra');
+    }
+  },
+  
+  // === NAVIGÁCIÓ: Első lecke ===
+  'mod+home': (e) => {
+    e.preventDefault();
+    const lessons = Object.keys(dictionary).map(n => parseInt(n)).sort((a,b) => a-b);
+    if (lessons.length > 0) {
+      const firstLesson = lessons[0];
+      setCurrentLesson(firstLesson);
+      showToast(`⏮️ ${dictionary[firstLesson]?.title || firstLesson + '. óra'}`);
+    }
+  },
+  
+  // === NAVIGÁCIÓ: Utolsó lecke ===
+  'mod+end': (e) => {
+    e.preventDefault();
+    const lessons = Object.keys(dictionary).map(n => parseInt(n)).sort((a,b) => a-b);
+    if (lessons.length > 0) {
+      const lastLesson = lessons[lessons.length - 1];
+      setCurrentLesson(lastLesson);
+      showToast(`⏭️ ${dictionary[lastLesson]?.title || lastLesson + '. óra'}`);
+    }
+  },
+  
+  // Escape
+  'escape': () => {
+    if (showAddModal) {
+      setShowAddModal(false);
+    } else if (showShortcutsHelp) {
+      setShowShortcutsHelp(false);
+    }
+  }
+}), [showAddModal, showShortcutsHelp, dictionary, currentLesson]);
+
+const ToastNotification = () => {
+  if (!toastMessage) return null;
+  
+  return (
+    <div 
+      style={{
+        position: 'fixed',
+        bottom: '80px',
+        right: '20px',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: 'white',
+        padding: '12px 20px',
+        borderRadius: '8px',
+        boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+        zIndex: 1000,
+        animation: 'slideInRight 0.3s ease-out',
+        fontSize: '14px',
+        fontWeight: '500',
+        maxWidth: '300px'
+      }}
+    >
+      {toastMessage}
+    </div>
+  );
+};
+
+useKeyboardShortcuts(shortcuts, !loading);
+  
+  // === KEYBOARD SHORTCUTS HOOK INICIALIZÁLÁSA ===
+   useKeyboardShortcuts(shortcuts, !loading);
+console.log('🎯 Shortcuts enabled:', !loading, 'Loading:', loading);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (showSaveNotification) {
+      const timer = setTimeout(() => {
+        setShowSaveNotification(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSaveNotification]);
+
+  const SaveNotification = () => {
+    if (!showSaveNotification) return null;
+    
+    return (
+      <div 
+        className="save-notification"
+        style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
+          color: 'white',
+          padding: '15px 25px',
+          borderRadius: '10px',
+          boxShadow: '0 4px 12px rgba(40, 167, 69, 0.4)',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px'
+        }}
+      >
+        <span style={{ fontSize: '20px' }}>💾</span>
+        <div>
+          <div style={{ fontWeight: 'bold' }}>
+            {isDemo ? 'Demo mód - Munkamenet mentve' : 'Automatikus mentés aktív'}
+          </div>
+          {lastSaved && !isDemo && (
+            <div style={{ fontSize: '13px', opacity: 0.9 }}>
+              Utoljára mentve: {lastSaved.toLocaleTimeString()}
+            </div>
+          )}
+          {isDemo && (
+            <div style={{ fontSize: '12px', opacity: 0.9 }}>
+              Jelentkezz be a végleges mentéshez!
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
   
   // Dynamic next lesson number calculation
   const getNextLessonNumber = () => {
@@ -90,7 +305,6 @@ const MainApp = () => {
           setLoading(false);
         }
       } else if (isDemo) {
-        // ✅ DEMO MÓD: localStorage betöltés VAGY alapértelmezett órák
         setLoading(true);
         try {
           const savedDemoDictionary = localStorage.getItem('demoDictionary');
@@ -105,7 +319,6 @@ const MainApp = () => {
               setCurrentLesson(firstLesson);
             }
           } else {
-            // Nincs mentett adat, használjuk az alapértelmezett demo órákat
             setDictionary(getDemoLessons());
             setCurrentLesson(1);
           }
@@ -135,7 +348,6 @@ const MainApp = () => {
             console.error('Error saving to localStorage:', error);
           }
         } else if (currentUser) {
-          // ✅ ÉLES: Firebase mentés
           try {
             await saveDictionary(currentUser.uid, dictionary);
             setLastSaved(new Date());
@@ -167,7 +379,6 @@ const MainApp = () => {
       delete updatedDictionary[lessonNumber];
       setDictionary(updatedDictionary);
       
-      // Ha az aktuális órát töröltük, váltson másikra
       if (currentLesson === lessonNumber) {
         const remainingLessons = Object.keys(updatedDictionary).map(num => parseInt(num));
         if (remainingLessons.length > 0) {
@@ -199,7 +410,6 @@ const MainApp = () => {
 
   // Reorder words (available in demo too)
   const reorderWords = (lessonNumber, newWordOrder) => {
-    
     const updatedDictionary = { ...dictionary };
     const lessonKey = lessonNumber.toString();
     
@@ -412,6 +622,7 @@ const MainApp = () => {
         setSearchTerm={setSearchTerm}
         filter={filter}
         setFilter={setFilter}
+        searchInputRef={searchInputRef}
       />
       <LessonNavigation
         dictionary={dictionary}
@@ -422,7 +633,6 @@ const MainApp = () => {
         canAddLesson={canAddLesson}
         demoLimits={demoLimits}
       />
-      
       <div style={styles.lessonContent}>
         {searchResults ? (
           <SearchResults results={searchResults} searchTerm={searchTerm} />
@@ -463,6 +673,13 @@ const MainApp = () => {
         canAddLesson={canAddLesson}
         canAddWordsToLesson={canAddWordsToLesson}
         demoLimits={demoLimits}
+      />
+      <SaveNotification />
+      <ToastNotification />
+      <KeyboardShortcutsHelper 
+        isOpen={showShortcutsHelp}
+        onOpen={() => setShowShortcutsHelp(true)}
+        onClose={() => setShowShortcutsHelp(false)}
       />
     </div>
   );

@@ -2,7 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { styles } from '../../styles/styles';
 
-const SearchControls = ({ searchTerm, setSearchTerm, filter, setFilter }) => {
+const SearchControls = ({ 
+  searchTerm, 
+  setSearchTerm, 
+  filter, 
+  setFilter,
+  searchInputRef  // ÚJ prop
+}) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -72,11 +78,12 @@ const SearchControls = ({ searchTerm, setSearchTerm, filter, setFilter }) => {
       <div style={mobileStyles.searchControls}>
         <div style={mobileStyles.searchInputContainer}>
           <input
+            ref={searchInputRef}  // ÚJ ref csatolása
             type="text"
             style={mobileStyles.searchInput}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Keresés..."
+            placeholder="Keresés... (Ctrl/⌘+F)"
           />
           <button
             style={mobileStyles.clearBtn}
@@ -123,11 +130,12 @@ const SearchControls = ({ searchTerm, setSearchTerm, filter, setFilter }) => {
   return (
     <div style={styles.searchControls}>
       <input
+        ref={searchInputRef}  // ÚJ ref csatolása
         type="text"
         style={styles.searchInput}
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        placeholder="Keresés angol vagy magyar szavak között..."
+        placeholder="Keresés angol vagy magyar szavak között... (Ctrl/⌘+F)"
       />
       <button
         style={{
