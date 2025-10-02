@@ -7,6 +7,7 @@ import {
   closestCenter,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor, // ✅ FONTOS: TouchSensor hozzáadva
   useSensor,
   useSensors,
   DragOverlay
@@ -115,19 +116,47 @@ const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, to
     borderRadius: '8px',
     marginBottom: '8px',
     padding: '12px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-    cursor: !isDemo ? 'move' : 'default',
-    position: 'relative'
+    boxShadow: isDragging 
+      ? '0 8px 16px rgba(0,0,0,0.3)' 
+      : '0 1px 3px rgba(0,0,0,0.1)',
+    cursor: !isDemo ? 'grab' : 'default',
+    position: 'relative',
+    // ✅ Vizuális feedback drag közben
+    ...(isDragging && {
+      transform: 'scale(1.05)',
+      zIndex: 999
+    })
   };
 
   const isExpanded = expandedRows.has(index);
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      {...attributes} 
+      {...listeners}
+    >
+      {/* ✅ Drag handle vizuális jelzés mobilon */}
+      {!isDemo && (
+        <div style={{
+          position: 'absolute',
+          left: '5px',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          fontSize: '20px',
+          color: '#667eea',
+          opacity: 0.5
+        }}>
+          ⋮⋮
+        </div>
+      )}
+      
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'flex-start'
+        alignItems: 'flex-start',
+        paddingLeft: !isDemo ? '25px' : '0'
       }}>
         <div style={{ flex: 1 }}>
           <div style={{ 
@@ -255,27 +284,34 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
   const [activeId, setActiveId] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   
-  // Local state for words to handle drag and drop immediately
   const [localWords, setLocalWords] = useState(words);
   
-  // Update local words when props change
   React.useEffect(() => {
     setLocalWords(words);
   }, [words]);
 
-  // Create word items with unique IDs
   const items = localWords.map((word, index) => ({
     id: `${word.english}-${index}`,
     ...word,
     originalIndex: index
   }));
 
+  // ✅ JAVÍTÁS: Külön szenzorok desktop és mobile eszközökhöz
   const sensors = useSensors(
+    // Desktop: PointerSensor kisebb távolsággal
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 8,
       },
     }),
+    // ✅ Mobile: TouchSensor nagyobb távolsággal és késleltetéssel
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200, // 200ms késleltetés - megakadályozza a scroll ütközést
+        tolerance: 8, // 8px tolerancia
+      },
+    }),
+    // Keyboard support
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -299,6 +335,11 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
 
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
+    
+    // ✅ Haptic feedback mobilon (ha támogatott)
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
   };
 
   const handleDragEnd = (event) => {
@@ -315,12 +356,15 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
       if (oldIndex !== -1 && newIndex !== -1) {
         const newOrder = arrayMove(localWords, oldIndex, newIndex);
         
-        // Update local state immediately for smooth UX
         setLocalWords(newOrder);
         
-        // ✅ JAVÍTÁS: Azonnal mentsük az adatbázisba
         if (onReorderWords && lessonNumber) {
           onReorderWords(lessonNumber, newOrder);
+        }
+        
+        // ✅ Haptic feedback a sikeres mozgatáshoz
+        if (navigator.vibrate) {
+          navigator.vibrate([30, 50, 30]);
         }
       }
     }
@@ -335,60 +379,6 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  // Speed control component
-  const SpeedControl = () => (
-    <div style={{
-      position: 'absolute',
-      bottom: '100%',
-      left: '50%',
-      transform: 'translateX(-50%)',
-      background: 'white',
-      border: '2px solid #4facfe',
-      borderRadius: '8px',
-      padding: '10px',
-      boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-      zIndex: 1000,
-      marginBottom: '10px',
-      minWidth: '200px'
-    }}>
-      <div style={{ marginBottom: '8px', fontWeight: 'bold', fontSize: '14px' }}>
-        Sebesség: {speechRate}x
-      </div>
-      <input
-        type="range"
-        min="0.3"
-        max="1.2"
-        step="0.1"
-        value={speechRate}
-        onChange={(e) => updateSpeechRate(parseFloat(e.target.value))}
-        style={{ width: '100%' }}
-      />
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        fontSize: '12px',
-        marginTop: '4px'
-      }}>
-        <span>Lassú</span>
-        <button
-          onClick={() => updateSpeechRate(0.7)}
-          style={{
-            background: '#4facfe',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            padding: '2px 8px',
-            fontSize: '11px',
-            cursor: 'pointer'
-          }}
-        >
-          Alapértelmezett
-        </button>
-        <span>Gyors</span>
-      </div>
-    </div>
-  );
 
   if (isMobile) {
     return (
@@ -454,6 +444,27 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
           </div>
         </div>
 
+        {/* ✅ Használati útmutató mobilon (első betöltéskor) */}
+        {!isDemo && localWords.length > 1 && (
+          <div style={{
+            background: '#e7f3ff',
+            border: '1px solid #4facfe',
+            borderRadius: '8px',
+            padding: '10px',
+            margin: '0 8px 10px 8px',
+            fontSize: '13px',
+            color: '#495057',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}>
+            <span style={{ fontSize: '20px' }}>👆</span>
+            <span>
+              <strong>Tipp:</strong> Tartsd nyomva egy kártyát, majd húzd az új pozícióba!
+            </span>
+          </div>
+        )}
+
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -480,6 +491,23 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
               ))}
             </SortableContext>
           </div>
+          
+          {/* ✅ DragOverlay mobilon - jobb vizuális feedback */}
+          <DragOverlay>
+            {activeId ? (
+              <div style={{
+                background: 'white',
+                borderRadius: '8px',
+                padding: '12px',
+                boxShadow: '0 8px 20px rgba(0,0,0,0.3)',
+                opacity: 0.9,
+                transform: 'rotate(3deg) scale(1.05)',
+                border: '2px solid #667eea'
+              }}>
+                {localWords.find((_, idx) => `${localWords[idx].english}-${idx}` === activeId)?.english}
+              </div>
+            ) : null}
+          </DragOverlay>
         </DndContext>
       </>
     );
@@ -488,7 +516,6 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
   // Desktop view
   return (
     <>
-      {/* Speed control bar - always visible */}
       <div style={{
         background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
         padding: '15px',

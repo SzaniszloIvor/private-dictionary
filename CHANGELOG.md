@@ -72,6 +72,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Configured Vite with terser to automatically remove console.log statements in production builds.
   - Cleaner production code with reduced bundle size.
 
+- **Mobile Drag & Drop Enhancements**
+  - Added visual drag handle indicator (⋮⋮) on mobile word cards for better UX.
+  - Implemented `DragOverlay` component for improved visual feedback during drag operations.
+  - Added haptic vibration feedback on drag start and successful drop (when supported).
+  - Usage hint tooltip for first-time mobile users explaining drag & drop functionality.
+  - Enhanced shadow effects and scale animation during active drag state.
+
 ### Changed
 - SearchControls component now accepts `searchInputRef` prop for keyboard focus support.
 - App.jsx refactored with `useMemo` for shortcuts configuration to prevent unnecessary re-renders.
@@ -80,12 +87,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Demo mode now has feature parity with authenticated mode (drag & drop, delete, rename, keyboard shortcuts).
 - Improved error handling for localStorage operations.
 - Updated README.md with comprehensive keyboard shortcuts section and documentation links.
+- **Drag & Drop Sensor Configuration**
+  - Separated sensor logic for desktop (`PointerSensor`) and mobile (`TouchSensor`).
+  - Desktop uses 8px distance activation constraint for precise control.
+  - Mobile uses 200ms delay + 8px tolerance to prevent accidental drags while scrolling.
+  - Both sensors now work simultaneously without conflicts.
 
 ### Fixed
 - **Drag & Drop Persistence**
   - Fixed drag & drop position changes not being saved to database/localStorage.
   - Word reordering now properly persists across page refreshes in both demo and authenticated modes.
   - Improved drag & drop read speed to ≤1.2s for better performance.
+  - **CRITICAL FIX: Mobile drag & drop now works on touch devices.**
+  - Fixed touch events being captured by scroll instead of drag gesture.
+  - Resolved conflict between native scroll and drag activation on mobile devices.
 
 - **Word Deletion**
   - Fixed word deletion functionality in both demo and authenticated modes.
@@ -108,6 +123,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Single global event listener instead of multiple listeners.
   - Proper cleanup of event listeners on component unmount.
   - Toast timeout cleanup to prevent memory leaks.
+  - No performance impact from drag & drop sensors - they only activate when needed.
+  - Touch delay (200ms) prevents unnecessary drag calculations during scroll operations.
 
 ### Technical Details
 - **New Files**
@@ -118,8 +135,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Modified Files**
   - `src/App.jsx` - Added keyboard shortcuts integration (~150 lines modified).
   - `src/components/SearchControls/SearchControls.jsx` - Added ref support.
+  - `src/components/WordTable/WordTable.jsx` - Enhanced drag & drop with mobile support (~100 lines modified).
   - `src/index.css` - Added animations for toast notifications.
   - `README.md` - Added keyboard shortcuts section and updated features list.
+
+- **New Dependencies**
+  - `TouchSensor` from `@dnd-kit/core` - Native touch event handling for mobile drag & drop.
 
 ### Breaking Changes
 - Demo mode behavior changed: now includes full features with storage limits instead of read-only access.
