@@ -20,6 +20,139 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.0] - 2025-10-04
+
+### Added
+- **Dark Mode Support**
+  - Full dark mode implementation with system preference detection.
+  - Toggle dark mode via `Ctrl/⌘+D` keyboard shortcut.
+  - Dark mode toggle button in the UI (🌙 icon).
+  - Persistent dark mode preference saved to localStorage.
+  - All components fully styled for both light and dark themes.
+  - Enhanced contrast and readability in dark mode.
+  - Smooth transitions between light and dark themes.
+
+- **Tailwind CSS Integration**
+  - Complete migration from inline styles to Tailwind CSS utility classes.
+  - Implemented Tailwind v3.4.1 with PostCSS and Autoprefixer.
+  - Custom animations: `fade-in`, `slide-in-up`, `slide-in-right`, `pulse`.
+  - Responsive design utilities for mobile, tablet, and desktop.
+  - Custom color palette with dark mode variants.
+  - Optimized production builds with CSS purging.
+
+- **Enhanced Mobile Touch Support**
+  - Optimized TouchSensor configuration for mobile drag & drop.
+  - Reduced touch delay from 200ms to 100ms for faster response.
+  - Improved touch tolerance from 8px to 5px for better sensitivity.
+  - Added `touch-action: none` CSS property for drag handles.
+  - Separate drag handle (⋮⋮) with dedicated touch area on mobile.
+  - Prevention of scroll conflicts during drag operations.
+
+- **Keyboard Shortcuts Enhancement**
+  - Added `Ctrl/⌘+D` for dark mode toggle.
+  - Keyboard shortcuts modal hidden on mobile devices.
+  - Improved keyboard shortcuts visibility in dark mode.
+
+### Changed
+- **Complete UI Refactor with Tailwind CSS**
+  - All components converted from inline styles to Tailwind utility classes.
+  - Removed `src/styles/styles.js` (no longer needed).
+  - Standardized spacing, colors, and typography across the application.
+  - Improved code maintainability with utility-first CSS approach.
+  - Reduced bundle size with Tailwind's CSS purging.
+
+- **Component Updates**
+  - `App.jsx`: Full Tailwind conversion, added dark mode state management.
+  - `WordTable.jsx`: Tailwind classes, optimized touch sensors (100ms delay, 5px tolerance).
+  - `AddWordsModal.jsx`: Tailwind styles with dark mode support.
+  - `LoginScreen.jsx`: Modern gradient backgrounds with Tailwind.
+  - `SearchResults.jsx`: Clean Tailwind layout with dark mode colors.
+  - `KeyboardShortcutsHelper.jsx`: Enhanced contrast in dark mode, hidden on mobile.
+  - All other components: Converted to Tailwind CSS with dark mode variants.
+
+- **Mobile Drag & Drop Improvements**
+  - Drag handle now has visual feedback (increased opacity and size).
+  - Content area (text and buttons) separated from drag listeners.
+  - Improved haptic feedback timing and intensity.
+  - Better visual indicators during drag operations.
+
+- **index.css Restructure**
+  - Added `@tailwind` directives (base, components, utilities).
+  - Custom `@layer` definitions for base styles and utilities.
+  - Touch-action utilities (`.touch-none`, `.touch-auto`).
+  - Cursor utilities (`.cursor-grab`, `.cursor-grabbing`).
+  - Enhanced scrollbar styling for both light and dark modes.
+  - Smooth scroll behavior and focus-visible styles.
+
+### Fixed
+- **Mobile Drag & Drop Critical Fixes**
+  - Fixed drag & drop not working on mobile touch devices.
+  - Resolved scroll vs. drag conflict on mobile.
+  - Fixed touch events being captured by scroll instead of drag.
+  - Improved drag activation consistency across iOS and Android.
+
+- **Dark Mode Fixes**
+  - Fixed low contrast text in dark mode modals.
+  - Enhanced keyboard shortcuts readability in dark mode.
+  - Fixed button visibility issues in dark mode.
+  - Improved gradient colors for better dark mode aesthetics.
+
+- **Build and Configuration**
+  - Resolved Tailwind v4 vs v3 plugin conflicts.
+  - Fixed `vite.config.js` to work with Tailwind v3 via PostCSS.
+  - Fixed build errors related to PostCSS configuration.
+  - Removed conflicting `@tailwindcss/vite` plugin.
+
+### Removed
+- **Deprecated Code**
+  - Removed `src/styles/styles.js` (replaced by Tailwind classes).
+  - Removed `src/App.css` (no longer needed with Tailwind).
+  - Removed alternative keyboard shortcuts (`]` and `[` keys).
+  - Removed redundant inline style definitions.
+
+### Performance
+- **Optimization**
+  - Tailwind CSS purging reduces final CSS bundle size by ~70%.
+  - Faster mobile drag & drop activation (100ms vs 200ms).
+  - Improved rendering performance with utility classes.
+  - Reduced CSS specificity conflicts.
+  - Better tree-shaking with Tailwind's JIT compiler.
+
+### Technical Details
+- **Configuration Files**
+  - `tailwind.config.js`: Configured for dark mode with `class` strategy.
+  - `postcss.config.js`: Setup for Tailwind and Autoprefixer.
+  - `vite.config.js`: Cleaned up, removed Tailwind v4 plugin conflicts.
+  - `src/index.css`: Restructured with `@tailwind` directives and custom layers.
+
+- **Dependencies**
+  - Updated to `tailwindcss@3.4.1`.
+  - Updated to `postcss@8.4.35`.
+  - Updated to `autoprefixer@10.4.17`.
+  - Removed `@tailwindcss/vite` (incompatible with v3).
+
+- **Modified Files**
+  - `src/App.jsx`: Dark mode state + Tailwind classes (~200 lines modified).
+  - `src/components/WordTable/WordTable.jsx`: Touch sensor optimization (~50 lines modified).
+  - `src/components/KeyboardShortcutsHelper/KeyboardShortcutsHelper.jsx`: Dark mode + mobile hiding (~30 lines modified).
+  - `src/index.css`: Complete restructure with Tailwind directives (~180 lines).
+  - All component files: Converted to Tailwind CSS (~1500 lines total).
+
+### Breaking Changes
+- **BREAKING**: Removed `src/styles/styles.js` - all inline styles replaced with Tailwind.
+- **BREAKING**: Dark mode requires `class` attribute on root element (handled automatically).
+- **BREAKING**: Custom CSS animations now defined in `index.css` instead of component files.
+
+### Migration Guide
+For developers updating from v0.2.0:
+1. Ensure Tailwind CSS v3.4.1 is installed: `npm install -D tailwindcss@3.4.1`
+2. Remove old `src/styles/styles.js` imports from components.
+3. Update `vite.config.js` to remove Tailwind v4 plugin if present.
+4. Clear all build caches: `rm -rf node_modules/.vite dist`
+5. Rebuild: `npm run build`
+
+---
+
 ## [0.2.0] - 2025-10-02
 
 ### Added
@@ -36,8 +169,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Ctrl/⌘+F` - Focus and select search input.
   - `Ctrl/⌘+S` - Show save notification status.
   - `Ctrl/⌘+K` - Toggle keyboard shortcuts help modal.
-  - `Ctrl/⌘+→` or `]` - Navigate to next lesson.
-  - `Ctrl/⌘+←` or `[` - Navigate to previous lesson.
+  - `Ctrl/⌘+→` - Navigate to next lesson.
+  - `Ctrl/⌘+←` - Navigate to previous lesson.
   - `Ctrl/⌘+Home` - Jump to first lesson.
   - `Ctrl/⌘+End` - Jump to last lesson.
   - `ESC` - Close active modal (add words, shortcuts help).
@@ -169,6 +302,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/SzaniszloIvor/private-dictionary/releases/tag/v0.1.0

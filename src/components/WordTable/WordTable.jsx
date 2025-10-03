@@ -1,13 +1,12 @@
 // src/components/WordTable/WordTable.jsx
 import React, { useState } from 'react';
-import { styles } from '../../styles/styles';
 import { useSpeechSynthesis } from '../../hooks/useSpeechSynthesis';
 import {
   DndContext,
   closestCenter,
   KeyboardSensor,
   PointerSensor,
-  TouchSensor, // ✅ FONTOS: TouchSensor hozzáadva
+  TouchSensor,
   useSensor,
   useSensors,
   DragOverlay
@@ -18,9 +17,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
-import {
-  useSortable
-} from '@dnd-kit/sortable';
+import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 // Sortable row component for desktop
@@ -41,24 +38,41 @@ const SortableRow = ({ word, index, isDemo, speak, speechRate, deleteWord, handl
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    cursor: !isDemo ? 'move' : 'default',
-    ...(index % 2 === 0 ? styles.tableRowEven : {})
+    cursor: !isDemo ? 'move' : 'default'
   };
 
   return (
-    <tr ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <td style={styles.englishWord}>{word.english}</td>
-      <td style={styles.phonetic}>{word.phonetic}</td>
-      <td style={styles.hungarian}>{word.hungarian}</td>
-      <td style={{...styles.tableCell, textAlign: 'center'}}>
-        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+    <tr 
+      ref={setNodeRef} 
+      style={style} 
+      {...attributes} 
+      {...listeners}
+      className={`
+        border-b border-gray-200 dark:border-gray-700
+        hover:bg-gray-50 dark:hover:bg-gray-800
+        transition-colors duration-200
+        ${index % 2 === 0 ? 'bg-gray-50 dark:bg-gray-900' : 'bg-white dark:bg-gray-800'}
+      `}
+    >
+      <td className="px-4 py-4 font-bold text-gray-800 dark:text-gray-200 text-base">
+        {word.english}
+      </td>
+      <td className="px-4 py-4 text-red-500 dark:text-red-400 italic">
+        {word.phonetic}
+      </td>
+      <td className="px-4 py-4 text-green-600 dark:text-green-400 font-medium">
+        {word.hungarian}
+      </td>
+      <td className="px-4 py-4 text-center">
+        <div className="flex gap-2 justify-center">
           <button
-            style={{
-              ...styles.playBtn,
-              width: '32px',
-              height: '32px',
-              fontSize: '14px'
-            }}
+            className="
+              bg-gradient-to-r from-red-400 to-red-500 dark:from-red-500 dark:to-red-600
+              text-white rounded-full w-8 h-8 
+              hover:shadow-lg hover:scale-110
+              transition-all duration-300
+              flex items-center justify-center
+            "
             onClick={(e) => {
               e.stopPropagation();
               speak(word.english);
@@ -73,16 +87,13 @@ const SortableRow = ({ word, index, isDemo, speak, speechRate, deleteWord, handl
                 e.stopPropagation();
                 handleDeleteWord(index);
               }}
-              style={{
-                background: '#dc3545',
-                color: 'white',
-                border: 'none',
-                borderRadius: '50%',
-                width: '32px',
-                height: '32px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
+              className="
+                bg-red-500 dark:bg-red-600 text-white rounded-full w-8 h-8
+                hover:bg-red-600 dark:hover:bg-red-700
+                hover:shadow-lg hover:scale-110
+                transition-all duration-300
+                flex items-center justify-center
+              "
               title="Törlés"
             >
               🗑️
@@ -112,16 +123,7 @@ const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, to
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    background: index % 2 === 0 ? '#f8f9fa' : 'white',
-    borderRadius: '8px',
-    marginBottom: '8px',
-    padding: '12px',
-    boxShadow: isDragging 
-      ? '0 8px 16px rgba(0,0,0,0.3)' 
-      : '0 1px 3px rgba(0,0,0,0.1)',
     cursor: !isDemo ? 'grab' : 'default',
-    position: 'relative',
-    // ✅ Vizuális feedback drag közben
     ...(isDragging && {
       transform: 'scale(1.05)',
       zIndex: 999
@@ -133,81 +135,56 @@ const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, to
   return (
     <div 
       ref={setNodeRef} 
-      style={style} 
+      style={style}
       {...attributes} 
       {...listeners}
+      className={`
+        rounded-lg mb-2 p-3 relative
+        shadow-md hover:shadow-lg
+        transition-all duration-300
+        ${index % 2 === 0 
+          ? 'bg-gray-50 dark:bg-gray-900' 
+          : 'bg-white dark:bg-gray-800'}
+        ${isDragging ? 'shadow-2xl border-2 border-indigo-500 dark:border-indigo-400' : ''}
+      `}
     >
-      {/* ✅ Drag handle vizuális jelzés mobilon */}
+      {/* Drag handle visual indicator on mobile */}
       {!isDemo && (
-        <div style={{
-          position: 'absolute',
-          left: '5px',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          fontSize: '20px',
-          color: '#667eea',
-          opacity: 0.5
-        }}>
+        <div className="
+          absolute left-1 top-1/2 -translate-y-1/2
+          text-xl text-indigo-500 dark:text-indigo-400 opacity-50
+        ">
           ⋮⋮
         </div>
       )}
       
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        paddingLeft: !isDemo ? '25px' : '0'
-      }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ 
-            fontWeight: 'bold', 
-            fontSize: '16px', 
-            color: '#2c3e50',
-            marginBottom: '4px'
-          }}>
+      <div className={`flex justify-between items-start ${!isDemo ? 'pl-6' : ''}`}>
+        <div className="flex-1">
+          <div className="font-bold text-base text-gray-800 dark:text-gray-200 mb-1">
             {word.english}
           </div>
-          <div style={{ 
-            color: '#e74c3c', 
-            fontStyle: 'italic',
-            fontSize: '14px',
-            marginBottom: '4px'
-          }}>
+          <div className="text-red-500 dark:text-red-400 italic text-sm mb-1">
             {word.phonetic}
           </div>
-          <div style={{ 
-            color: '#27ae60',
-            fontSize: '15px',
-            fontWeight: '500'
-          }}>
+          <div className="text-green-600 dark:text-green-400 text-sm font-medium">
             {word.hungarian}
           </div>
         </div>
         
-        <div style={{
-          display: 'flex',
-          gap: '8px',
-          alignItems: 'center'
-        }}>
+        <div className="flex gap-2 items-center">
           <button
             onClick={(e) => {
               e.stopPropagation();
               speak(word.english);
             }}
-            style={{
-              background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '50%',
-              width: '36px',
-              height: '36px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-              fontSize: '16px'
-            }}
+            className="
+              bg-gradient-to-r from-blue-400 to-cyan-400 
+              dark:from-blue-500 dark:to-cyan-500
+              text-white rounded-full w-9 h-9
+              flex items-center justify-center
+              shadow-md hover:shadow-lg
+              active:scale-95 transition-transform
+            "
             title={`Kiejtés (${speechRate}x)`}
           >
             🔊
@@ -218,22 +195,15 @@ const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, to
               e.stopPropagation();
               toggleExpanded(index);
             }}
-            style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '50%',
-              width: '36px',
-              height: '36px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-              fontSize: '18px',
-              transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: 'transform 0.3s ease'
-            }}
+            className={`
+              bg-gradient-to-r from-indigo-500 to-purple-600
+              dark:from-indigo-600 dark:to-purple-700
+              text-white rounded-full w-9 h-9
+              flex items-center justify-center
+              shadow-md hover:shadow-lg
+              transition-all duration-300
+              ${isExpanded ? 'rotate-180' : 'rotate-0'}
+            `}
             title="Több opció"
           >
             ⋮
@@ -241,32 +211,26 @@ const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, to
         </div>
       </div>
       
+      {/* Expanded options */}
       {isExpanded && (
-        <div style={{
-          marginTop: '12px',
-          paddingTop: '12px',
-          borderTop: '1px solid #dee2e6',
-          display: 'flex',
-          gap: '8px',
-          flexWrap: 'wrap'
-        }}>
+        <div className="
+          mt-3 pt-3 border-t border-gray-200 dark:border-gray-700
+          flex gap-2 flex-wrap
+          animate-fade-in
+        ">
           {!isDemo && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleDeleteWord(index);
               }}
-              style={{
-                flex: '1',
-                minWidth: '100px',
-                padding: '8px',
-                background: '#dc3545',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
+              className="
+                flex-1 min-w-[100px] px-3 py-2
+                bg-red-500 dark:bg-red-600 text-white
+                rounded-md text-sm
+                hover:bg-red-600 dark:hover:bg-red-700
+                transition-colors duration-200
+              "
             >
               🗑️ Törlés
             </button>
@@ -280,10 +244,8 @@ const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, to
 const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = false, onReorderWords = null }) => {
   const { speak, speechRate, updateSpeechRate } = useSpeechSynthesis();
   const [expandedRows, setExpandedRows] = useState(new Set());
-  const [showSpeedControl, setShowSpeedControl] = useState(false);
   const [activeId, setActiveId] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  
   const [localWords, setLocalWords] = useState(words);
   
   React.useEffect(() => {
@@ -296,22 +258,19 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
     originalIndex: index
   }));
 
-  // ✅ JAVÍTÁS: Külön szenzorok desktop és mobile eszközökhöz
+  // Separate sensors for desktop and mobile
   const sensors = useSensors(
-    // Desktop: PointerSensor kisebb távolsággal
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 8,
       },
     }),
-    // ✅ Mobile: TouchSensor nagyobb távolsággal és késleltetéssel
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 200, // 200ms késleltetés - megakadályozza a scroll ütközést
-        tolerance: 8, // 8px tolerancia
+        delay: 200,
+        tolerance: 8,
       },
     }),
-    // Keyboard support
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -336,7 +295,7 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
     
-    // ✅ Haptic feedback mobilon (ha támogatott)
+    // Haptic feedback on mobile (if supported)
     if (navigator.vibrate) {
       navigator.vibrate(50);
     }
@@ -362,7 +321,7 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
           onReorderWords(lessonNumber, newOrder);
         }
         
-        // ✅ Haptic feedback a sikeres mozgatáshoz
+        // Haptic feedback for successful move
         if (navigator.vibrate) {
           navigator.vibrate([30, 50, 30]);
         }
@@ -380,53 +339,35 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Mobile view
   if (isMobile) {
     return (
       <>
         {/* Speed control bar for mobile */}
-        <div style={{
-          background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-          padding: '12px',
-          marginBottom: '10px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 100
-        }}>
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column',
-            gap: '10px'
-          }}>
-            <div style={{ 
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <span style={{ 
-                fontWeight: 'bold', 
-                fontSize: '13px',
-                color: '#495057'
-              }}>
+        <div className="
+          bg-gradient-to-r from-gray-50 to-gray-100 
+          dark:from-gray-800 dark:to-gray-900
+          p-3 mb-2 shadow-sm sticky top-0 z-50
+        ">
+          <div className="flex flex-col gap-2">
+            <div className="flex justify-between items-center">
+              <span className="font-bold text-xs text-gray-700 dark:text-gray-300">
                 🔊 Sebesség: {speechRate}x
               </span>
               <button
                 onClick={() => updateSpeechRate(0.7)}
-                style={{
-                  background: '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  padding: '4px 10px',
-                  fontSize: '11px',
-                  cursor: 'pointer'
-                }}
+                className="
+                  bg-gray-600 dark:bg-gray-700 text-white
+                  rounded px-2 py-1 text-xs
+                  hover:bg-gray-700 dark:hover:bg-gray-600
+                  transition-colors duration-200
+                "
               >
                 Alapért.
               </button>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '11px', color: '#6c757d' }}>Lassú</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-600 dark:text-gray-400">Lassú</span>
               <input
                 type="range"
                 min="0.3"
@@ -434,31 +375,24 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
                 step="0.1"
                 value={speechRate}
                 onChange={(e) => updateSpeechRate(parseFloat(e.target.value))}
-                style={{ 
-                  flex: 1,
-                  cursor: 'pointer'
-                }}
+                className="flex-1 cursor-pointer accent-indigo-500 dark:accent-indigo-400"
               />
-              <span style={{ fontSize: '11px', color: '#6c757d' }}>Gyors</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400">Gyors</span>
             </div>
           </div>
         </div>
 
-        {/* ✅ Használati útmutató mobilon (első betöltéskor) */}
+        {/* Usage hint for mobile drag & drop */}
         {!isDemo && localWords.length > 1 && (
-          <div style={{
-            background: '#e7f3ff',
-            border: '1px solid #4facfe',
-            borderRadius: '8px',
-            padding: '10px',
-            margin: '0 8px 10px 8px',
-            fontSize: '13px',
-            color: '#495057',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px'
-          }}>
-            <span style={{ fontSize: '20px' }}>👆</span>
+          <div className="
+            bg-blue-50 dark:bg-blue-900/30 
+            border border-blue-300 dark:border-blue-700
+            rounded-lg p-2 mx-2 mb-2
+            text-xs text-gray-700 dark:text-gray-300
+            flex items-center gap-2
+            animate-fade-in
+          ">
+            <span className="text-lg">👆</span>
             <span>
               <strong>Tipp:</strong> Tartsd nyomva egy kártyát, majd húzd az új pozícióba!
             </span>
@@ -471,7 +405,7 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div style={{ padding: '8px' }}>
+          <div className="p-2">
             <SortableContext
               items={items.map(item => item.id)}
               strategy={verticalListSortingStrategy}
@@ -492,18 +426,14 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
             </SortableContext>
           </div>
           
-          {/* ✅ DragOverlay mobilon - jobb vizuális feedback */}
+          {/* DragOverlay for better visual feedback on mobile */}
           <DragOverlay>
             {activeId ? (
-              <div style={{
-                background: 'white',
-                borderRadius: '8px',
-                padding: '12px',
-                boxShadow: '0 8px 20px rgba(0,0,0,0.3)',
-                opacity: 0.9,
-                transform: 'rotate(3deg) scale(1.05)',
-                border: '2px solid #667eea'
-              }}>
+              <div className="
+                bg-white dark:bg-gray-800 rounded-lg p-3
+                shadow-2xl opacity-90 rotate-3 scale-105
+                border-2 border-indigo-500 dark:border-indigo-400
+              ">
                 {localWords.find((_, idx) => `${localWords[idx].english}-${idx}` === activeId)?.english}
               </div>
             ) : null}
@@ -516,34 +446,19 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
   // Desktop view
   return (
     <>
-      <div style={{
-        background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-        padding: '15px',
-        borderRadius: '8px',
-        marginBottom: '15px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-      }}>
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '20px',
-          flexWrap: 'wrap'
-        }}>
-          <div style={{ 
-            fontWeight: 'bold', 
-            fontSize: '14px',
-            color: '#495057',
-            minWidth: '120px'
-          }}>
+      {/* Speed control bar for desktop */}
+      <div className="
+        bg-gradient-to-r from-gray-50 to-gray-100 
+        dark:from-gray-800 dark:to-gray-900
+        p-4 rounded-lg mb-4 shadow-sm
+      ">
+        <div className="flex items-center gap-5 flex-wrap">
+          <div className="font-bold text-sm text-gray-700 dark:text-gray-300 min-w-[120px]">
             🔊 Kiejtés sebesség:
           </div>
-          <div style={{ 
-            flex: 1, 
-            minWidth: '200px',
-            maxWidth: '400px' 
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '12px', color: '#6c757d' }}>Lassú</span>
+          <div className="flex-1 min-w-[200px] max-w-[400px]">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-600 dark:text-gray-400">Lassú</span>
               <input
                 type="range"
                 min="0.3"
@@ -551,40 +466,26 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
                 step="0.1"
                 value={speechRate}
                 onChange={(e) => updateSpeechRate(parseFloat(e.target.value))}
-                style={{ 
-                  flex: 1,
-                  cursor: 'pointer'
-                }}
+                className="flex-1 cursor-pointer accent-indigo-500 dark:accent-indigo-400"
               />
-              <span style={{ fontSize: '12px', color: '#6c757d' }}>Gyors</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400">Gyors</span>
             </div>
           </div>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px'
-          }}>
-            <span style={{
-              background: '#4facfe',
-              color: 'white',
-              padding: '4px 12px',
-              borderRadius: '20px',
-              fontSize: '14px',
-              fontWeight: 'bold'
-            }}>
+          <div className="flex items-center gap-2">
+            <span className="
+              bg-blue-500 dark:bg-blue-600 text-white
+              px-3 py-1 rounded-full text-sm font-bold
+            ">
               {speechRate}x
             </span>
             <button
               onClick={() => updateSpeechRate(0.7)}
-              style={{
-                background: '#6c757d',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                padding: '4px 10px',
-                fontSize: '12px',
-                cursor: 'pointer'
-              }}
+              className="
+                bg-gray-600 dark:bg-gray-700 text-white
+                rounded px-2 py-1 text-xs
+                hover:bg-gray-700 dark:hover:bg-gray-600
+                transition-colors duration-200
+              "
             >
               Alapértelmezett
             </button>
@@ -598,14 +499,17 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div style={{ overflowX: 'auto' }}>
-          <table style={styles.dictionaryTable}>
+        <div className="overflow-x-auto">
+          <table className="
+            w-full rounded-lg overflow-hidden
+            shadow-lg
+          ">
             <thead>
-              <tr>
-                <th style={styles.tableHeader}>Angol szó</th>
-                <th style={styles.tableHeader}>Fonetika</th>
-                <th style={styles.tableHeader}>Magyar jelentés</th>
-                <th style={{...styles.tableHeader, width: '120px', textAlign: 'center'}}>
+              <tr className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
+                <th className="px-4 py-4 text-left text-lg font-bold">Angol szó</th>
+                <th className="px-4 py-4 text-left text-lg font-bold">Fonetika</th>
+                <th className="px-4 py-4 text-left text-lg font-bold">Magyar jelentés</th>
+                <th className="px-4 py-4 text-center text-lg font-bold w-[120px]">
                   Műveletek
                 </th>
               </tr>

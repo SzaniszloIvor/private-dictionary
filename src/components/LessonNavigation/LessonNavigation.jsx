@@ -1,6 +1,5 @@
-// src/components/LessonNavigation/LessonNavigation.jsx
+// src/components/LessonNavigation/LessonNavigation.jsx - TAILWIND VERZIÓ
 import React, { useState, useEffect } from 'react';
-import { styles } from '../../styles/styles';
 
 const LessonNavigation = ({ 
   dictionary, 
@@ -32,56 +31,37 @@ const LessonNavigation = ({
   const lessonsToShow = getLessonsToShow();
   const nextLessonNumber = canAddLesson() ? getNextLessonNumber() : null;
 
-  const mobileStyles = {
-    lessonNavigation: {
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: '8px',
-      padding: '12px',
-      background: '#f8f9fa',
-      maxHeight: '200px',
-      overflowY: 'auto',
-      borderBottom: '2px solid #e9ecef'
-    },
-    lessonNavBtn: {
-      padding: '8px 12px',
-      border: '2px solid #dee2e6',
-      background: 'white',
-      borderRadius: '8px',
-      cursor: 'pointer',
-      transition: 'all 0.3s ease',
-      fontSize: '13px',
-      fontWeight: '500',
-      minWidth: '70px',
-      textAlign: 'center'
-    }
-  };
-
-  const currentStyles = isMobile ? mobileStyles : styles;
-
   return (
-    <div style={currentStyles.lessonNavigation}>
+    <div className="flex flex-wrap gap-2 p-4 
+                   bg-gray-50 dark:bg-slate-800 
+                   max-h-[300px] overflow-y-auto
+                   border-b-2 border-gray-200 dark:border-slate-700
+                   transition-all duration-300">
+      {/* Existing Lessons */}
       {lessonsToShow.map(lessonNum => {
         const hasContent = dictionary[lessonNum];
         const isActive = lessonNum === currentLesson;
         
-        let buttonStyle = currentStyles.lessonNavBtn;
-        if (hasContent && !isActive) {
-          buttonStyle = { ...buttonStyle, ...styles.lessonNavBtnCompleted };
-        } else if (isActive) {
-          buttonStyle = { ...buttonStyle, ...styles.lessonNavBtnActive };
-        }
-
         return (
           <button
             key={lessonNum}
-            style={buttonStyle}
             onClick={() => setCurrentLesson(lessonNum)}
             title={hasContent ? dictionary[lessonNum].title : 'Nincs még tartalom'}
+            className={`
+              px-4 py-2 rounded-lg font-medium text-sm
+              min-w-[70px] md:min-w-[80px]
+              border-2 transition-all duration-200
+              ${isActive
+                ? 'bg-blue-500 dark:bg-purple-600 text-white border-blue-500 dark:border-purple-600 shadow-md'
+                : hasContent
+                  ? 'bg-green-500 dark:bg-green-600 text-white border-green-500 dark:border-green-600 hover:shadow-md'
+                  : 'bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-purple-500'
+              }
+            `}
           >
-            {lessonNum}. óra
+            <div>{lessonNum}. óra</div>
             {hasContent && !isMobile && (
-              <div style={{ fontSize: '11px', marginTop: '2px' }}>
+              <div className="text-xs mt-1 opacity-90">
                 {dictionary[lessonNum].words.length} szó
               </div>
             )}
@@ -89,38 +69,41 @@ const LessonNavigation = ({
         );
       })}
       
-      {/* New lesson button - shown if can add */}
+      {/* New Lesson Button */}
       {nextLessonNumber && (
         <button
-          style={{
-            ...currentStyles.lessonNavBtn,
-            background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
-            color: 'white',
-            border: '2px dashed #28a745',
-            opacity: 0.9
-          }}
           onClick={() => setCurrentLesson(nextLessonNumber)}
           title="Új óra létrehozása"
+          className="px-4 py-2 rounded-lg font-medium text-sm
+                   min-w-[70px] md:min-w-[80px]
+                   bg-gradient-to-br from-green-400 to-green-500
+                   dark:from-green-600 dark:to-green-700
+                   text-white
+                   border-2 border-dashed border-green-500 dark:border-green-600
+                   opacity-90 hover:opacity-100
+                   hover:shadow-md
+                   transition-all duration-200"
         >
-          <div style={{ fontSize: isMobile ? '16px' : '20px', lineHeight: '1' }}>+</div>
-          {!isMobile && <div style={{ fontSize: '11px', marginTop: '2px' }}>Új óra</div>}
+          <div className="text-lg md:text-xl leading-none">+</div>
+          {!isMobile && (
+            <div className="text-xs mt-1">Új óra</div>
+          )}
         </button>
       )}
       
-      {/* Demo limit info */}
+      {/* Demo Limit Warning */}
       {isDemo && !canAddLesson() && (
-        <div style={{
-          padding: isMobile ? '8px 10px' : '10px 15px',
-          background: '#fff3cd',
-          border: '2px solid #ffc107',
-          borderRadius: '8px',
-          fontSize: isMobile ? '12px' : '14px',
-          color: '#856404',
-          display: 'flex',
-          alignItems: 'center',
-          width: isMobile ? '100%' : 'auto'
-        }}>
-          ⚠️ {isMobile ? `Max ${demoLimits.maxLessons} óra` : `Demo limit: Max ${demoLimits.maxLessons} óra`}
+        <div className={`
+          px-3 py-2 rounded-lg text-sm
+          bg-yellow-50 dark:bg-yellow-900/20
+          border-2 border-yellow-400 dark:border-yellow-600
+          text-yellow-800 dark:text-yellow-300
+          flex items-center
+          ${isMobile ? 'w-full' : 'w-auto'}
+        `}>
+          ⚠️ {isMobile 
+            ? `Max ${demoLimits.maxLessons} óra` 
+            : `Demo limit: Max ${demoLimits.maxLessons} óra`}
         </div>
       )}
     </div>

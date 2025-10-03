@@ -1,6 +1,5 @@
 // src/components/AddWordsModal/AddWordsModal.jsx
 import React, { useState, useEffect } from 'react';
-import { styles } from '../../styles/styles';
 import { generatePhonetic, generatePhoneticSync } from '../../utils/phoneticHelper';
 
 const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, getNextLessonNumber }) => {
@@ -31,6 +30,7 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, get
 
   if (!isOpen) return null;
 
+  // Generate phonetic for current word using API
   const generatePhoneticForCurrent = async () => {
     if (!englishWord) {
       alert('Írjon be egy angol szót először!');
@@ -42,7 +42,7 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, get
       const phonetic = await generatePhonetic(englishWord);
       setPhoneticWord(phonetic);
     } catch (error) {
-      console.error('Fonetika generálási hiba:', error);
+      console.error('Phonetic generation error:', error);
       const phonetic = generatePhoneticSync(englishWord);
       setPhoneticWord(phonetic);
     } finally {
@@ -50,6 +50,7 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, get
     }
   };
 
+  // Regenerate all phonetics from API
   const regenerateAllPhonetics = async () => {
     if (wordsToAdd.length === 0) return;
     
@@ -64,7 +65,7 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, get
       setWordsToAdd(updatedWords);
       alert('✅ Fonetika sikeresen újragenerálva az API-ból!');
     } catch (error) {
-      console.error('Fonetika újragenerálási hiba:', error);
+      console.error('Phonetic regeneration error:', error);
       const updatedWords = wordsToAdd.map(word => ({
         ...word,
         phonetic: generatePhoneticSync(word.english)
@@ -76,6 +77,7 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, get
     }
   };
 
+  // Add single word
   const handleAddWord = async () => {
     if (!englishWord || !hungarianWord) {
       alert('⌚ Kérjük töltse ki az angol és magyar mezőket!');
@@ -107,6 +109,7 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, get
     setHungarianWord('');
   };
 
+  // Process bulk word list
   const processWordList = async () => {
     const listText = wordList.trim();
     if (!listText) {
@@ -184,6 +187,7 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, get
     }
   };
 
+  // Save words to lesson
   const handleSave = () => {
     if (!selectedLesson || wordsToAdd.length === 0) {
       alert('Válasszon leckét és adjon hozzá szavakat!');
@@ -203,7 +207,7 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, get
       };
     }
     
-    // ✅ DEMO KORLÁTOZÁS: Max 20 szó per óra
+    // Demo limit: Max 20 words per lesson
     const currentWords = updatedDictionary[selectedLesson].words.length;
     const totalWords = currentWords + wordsToAdd.length;
     
@@ -236,7 +240,7 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, get
 
   const getLessonOptions = () => {
     if (isDemo) {
-      return [1, 2];  // ✅ Demo: csak 2 óra
+      return [1, 2];
     }
     
     const existingLessons = Object.keys(dictionary)
@@ -251,20 +255,50 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, get
   const lessonOptions = getLessonOptions();
 
   return (
-    <div style={styles.modal}>
-      <div style={styles.modalContent}>
-        <div style={styles.modalHeader}>
-          <span style={styles.closeBtn} onClick={onClose}>×</span>
-          <h2>📚 Szavak hozzáadása</h2>
+    <div className="
+      fixed inset-0 z-50
+      bg-black bg-opacity-50
+      flex items-center justify-center
+      p-4 animate-fade-in
+    ">
+      <div className="
+        bg-white dark:bg-gray-800
+        rounded-2xl shadow-2xl
+        w-full max-w-2xl max-h-[90vh]
+        overflow-y-auto
+        animate-slide-in-up
+      ">
+        {/* Header */}
+        <div className="
+          bg-gradient-to-r from-blue-500 to-cyan-400
+          dark:from-blue-600 dark:to-cyan-500
+          text-white p-5 rounded-t-2xl
+          relative text-center
+        ">
+          <button
+            onClick={onClose}
+            className="
+              absolute right-5 top-4
+              text-white text-3xl font-bold
+              hover:scale-110 transition-transform
+              leading-none
+            "
+          >
+            ×
+          </button>
+          <h2 className="text-2xl font-bold">📚 Szavak hozzáadása</h2>
         </div>
-        <div style={styles.modalBody}>
-          <div style={styles.formGroup}>
-            <label>
+
+        {/* Body */}
+        <div className="p-6">
+          {/* Lesson selector */}
+          <div className="mb-5">
+            <label className="block mb-3 font-medium text-gray-700 dark:text-gray-300">
               {isDemo 
                 ? 'Válaszd ki a demo órát:' 
                 : 'Válaszd ki vagy hozz létre új órát:'}
             </label>
-            <div style={styles.lessonSelector}>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
               {lessonOptions.map(num => {
                 const hasContent = dictionary[num];
                 const isNewLesson = !hasContent && !isDemo;
@@ -272,59 +306,66 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, get
                 return (
                   <div
                     key={num}
-                    style={{
-                      ...styles.lessonOption,
-                      ...(selectedLesson === num ? styles.lessonOptionSelected : {}),
-                      ...(hasContent ? styles.lessonOptionCompleted : {}),
-                      ...(isNewLesson ? {
-                        background: 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)',
-                        borderColor: '#28a745',
-                        borderStyle: 'dashed'
-                      } : {})
-                    }}
                     onClick={() => setSelectedLesson(num)}
+                    className={`
+                      p-3 rounded-lg text-center cursor-pointer
+                      transition-all duration-200
+                      border-2
+                      ${selectedLesson === num 
+                        ? 'bg-blue-500 text-white border-blue-500' 
+                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600'}
+                      ${hasContent && selectedLesson !== num 
+                        ? 'bg-green-50 dark:bg-green-900/20 border-green-500 dark:border-green-700' 
+                        : ''}
+                      ${isNewLesson 
+                        ? 'bg-green-50 dark:bg-green-900/20 border-dashed border-green-500 dark:border-green-700' 
+                        : ''}
+                      hover:shadow-md hover:scale-105
+                    `}
                   >
-                    <strong>{num}. óra</strong>
+                    <strong className="block">{num}. óra</strong>
                     {hasContent && (
-                      <>
-                        <br />
-                        <span style={{ fontSize: '11px' }}>
-                          {hasContent.words.length} szó
-                          {isDemo && ` / 20`}
-                        </span>
-                      </>
+                      <span className="text-xs">
+                        {hasContent.words.length} szó
+                        {isDemo && ` / 20`}
+                      </span>
                     )}
                     {isNewLesson && (
-                      <>
-                        <br />
-                        <span style={{ fontSize: '11px', color: '#28a745' }}>+ Új óra</span>
-                      </>
+                      <span className="text-xs text-green-600 dark:text-green-400">+ Új óra</span>
                     )}
                   </div>
                 );
               })}
             </div>
             {isDemo && (
-              <div style={{
-                marginTop: '10px',
-                padding: '10px',
-                background: '#fff3cd',
-                border: '1px solid #ffc107',
-                borderRadius: '8px',
-                fontSize: '13px',
-                color: '#856404'
-              }}>
+              <div className="
+                mt-3 p-3 rounded-lg
+                bg-yellow-50 dark:bg-yellow-900/20
+                border border-yellow-300 dark:border-yellow-700
+                text-xs text-yellow-800 dark:text-yellow-300
+              ">
                 ⚠️ Demo módban csak az 1. és 2. órához adhatsz szavakat (max 20 szó/óra)
               </div>
             )}
           </div>
 
+          {/* New lesson title input */}
           {selectedLesson && !dictionary[selectedLesson] && !isDemo && (
-            <div style={styles.formGroup}>
-              <label>Új lecke címe:</label>
+            <div className="mb-5">
+              <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">
+                Új lecke címe:
+              </label>
               <input
                 type="text"
-                style={styles.formInput}
+                className="
+                  w-full px-4 py-3 rounded-lg
+                  border-2 border-gray-300 dark:border-gray-600
+                  bg-white dark:bg-gray-700
+                  text-gray-900 dark:text-gray-100
+                  focus:border-blue-500 dark:focus:border-blue-400
+                  focus:outline-none
+                  transition-colors duration-200
+                "
                 value={newLessonTitle}
                 onChange={(e) => setNewLessonTitle(e.target.value)}
                 placeholder="pl. Családi kapcsolatok"
@@ -332,173 +373,230 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, get
             </div>
           )}
 
-          <div style={styles.formGroup}>
-            <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold', color: '#495057' }}>
+          {/* Add mode selector */}
+          <div className="mb-5">
+            <label className="block mb-3 font-bold text-gray-700 dark:text-gray-300">
               Szavak hozzáadása módja:
             </label>
-            <div style={{ display: 'flex', gap: '20px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#495057' }}>
+            <div className="flex gap-5">
+              <label className="flex items-center cursor-pointer text-gray-700 dark:text-gray-300">
                 <input
                   type="radio"
                   checked={addMode === 'single'}
                   onChange={() => setAddMode('single')}
-                  style={{ marginRight: '8px' }}
+                  className="mr-2 w-4 h-4 accent-blue-500"
                 />
                 Egyedi szó hozzáadása
               </label>
-              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#495057' }}>
+              <label className="flex items-center cursor-pointer text-gray-700 dark:text-gray-300">
                 <input
                   type="radio"
                   checked={addMode === 'bulk'}
                   onChange={() => setAddMode('bulk')}
-                  style={{ marginRight: '8px' }}
+                  className="mr-2 w-4 h-4 accent-blue-500"
                 />
                 Lista feltöltése
               </label>
             </div>
           </div>
 
+          {/* Single word mode */}
           {addMode === 'single' ? (
             <div>
-              <div style={styles.formRow}>
-                <div style={styles.formGroup}>
-                  <label>Angol szó:</label>
+              <div className="flex gap-4 mb-4">
+                <div className="flex-1">
+                  <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">
+                    Angol szó:
+                  </label>
                   <input
                     type="text"
-                    style={styles.formInput}
+                    className="
+                      w-full px-4 py-3 rounded-lg
+                      border-2 border-gray-300 dark:border-gray-600
+                      bg-white dark:bg-gray-700
+                      text-gray-900 dark:text-gray-100
+                      focus:border-blue-500 dark:focus:border-blue-400
+                      focus:outline-none
+                    "
                     value={englishWord}
                     onChange={(e) => setEnglishWord(e.target.value)}
                     placeholder="pl. family"
                   />
                 </div>
-                <div style={styles.formGroup}>
-                  <label>Fonetika:</label>
-                  <div style={{ display: 'flex', gap: '10px' }}>
+                <div className="flex-1">
+                  <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">
+                    Fonetika:
+                  </label>
+                  <div className="flex gap-2">
                     <input
                       type="text"
-                      style={{ ...styles.formInput, flex: '1' }}
+                      className="
+                        flex-1 px-4 py-3 rounded-lg
+                        border-2 border-gray-300 dark:border-gray-600
+                        bg-white dark:bg-gray-700
+                        text-gray-900 dark:text-gray-100
+                        focus:border-blue-500 dark:focus:border-blue-400
+                        focus:outline-none
+                      "
                       value={phoneticWord}
                       onChange={(e) => setPhoneticWord(e.target.value)}
-                      placeholder="Automatikusan generálódik API-ból"
+                      placeholder="Auto API-ból"
                     />
                     <button 
-                      style={{
-                        ...styles.btnSecondary,
-                        background: isGenerating 
-                          ? '#6c757d'
-                          : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        padding: '10px 15px',
-                        minWidth: '100px',
-                        cursor: isGenerating ? 'wait' : 'pointer'
-                      }}
                       onClick={generatePhoneticForCurrent}
                       disabled={isGenerating}
-                      type="button"
+                      className={`
+                        px-4 py-3 rounded-lg
+                        text-white font-medium
+                        min-w-[100px]
+                        transition-all duration-200
+                        ${isGenerating 
+                          ? 'bg-gray-500 cursor-wait' 
+                          : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:shadow-lg hover:scale-105'}
+                      `}
                     >
                       {isGenerating ? '⏳...' : '🪄 API'}
                     </button>
                   </div>
-                  <small style={{ color: '#6c757d', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                  <small className="block mt-1 text-xs text-gray-600 dark:text-gray-400">
                     Pontos kiejtés a Datamuse API-ból
                   </small>
                 </div>
               </div>
-              <div style={styles.formGroup}>
-                <label>Magyar jelentés:</label>
+              <div className="mb-4">
+                <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">
+                  Magyar jelentés:
+                </label>
                 <input
                   type="text"
-                  style={styles.formInput}
+                  className="
+                    w-full px-4 py-3 rounded-lg
+                    border-2 border-gray-300 dark:border-gray-600
+                    bg-white dark:bg-gray-700
+                    text-gray-900 dark:text-gray-100
+                    focus:border-blue-500 dark:focus:border-blue-400
+                    focus:outline-none
+                  "
                   value={hungarianWord}
                   onChange={(e) => setHungarianWord(e.target.value)}
                   placeholder="pl. család"
                 />
               </div>
               <button 
-                style={{
-                  ...styles.btnSecondary,
-                  cursor: isGenerating ? 'wait' : 'pointer',
-                  opacity: isGenerating ? 0.7 : 1
-                }} 
                 onClick={handleAddWord}
                 disabled={isGenerating}
+                className={`
+                  px-6 py-3 rounded-lg
+                  text-white font-medium
+                  transition-all duration-200
+                  ${isGenerating 
+                    ? 'bg-gray-500 cursor-wait opacity-70' 
+                    : 'bg-gray-600 hover:bg-gray-700 hover:shadow-md'}
+                `}
               >
                 {isGenerating ? '⏳ Generálás...' : '➕ Szó hozzáadása'}
               </button>
             </div>
           ) : (
-            <div style={styles.formGroup}>
-              <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold', color: '#495057' }}>
+            /* Bulk mode */
+            <div>
+              <label className="block mb-3 font-bold text-gray-700 dark:text-gray-300">
                 Szavak listája (angol - magyar, soronként):
               </label>
               <textarea
-                style={styles.formTextarea}
                 rows="10"
+                className="
+                  w-full px-4 py-3 rounded-lg
+                  border-2 border-gray-300 dark:border-gray-600
+                  bg-white dark:bg-gray-700
+                  text-gray-900 dark:text-gray-100
+                  focus:border-blue-500 dark:focus:border-blue-400
+                  focus:outline-none
+                  font-mono text-sm
+                  resize-y
+                "
                 value={wordList}
                 onChange={(e) => setWordList(e.target.value)}
+                disabled={isGenerating}
                 placeholder="tick - pipa
 reliable - megbízható
 resourceful - találékony
 passion - szenvedély
 determination - eltökéltség"
-                disabled={isGenerating}
               />
-              <small style={{ display: 'block', marginTop: '5px', color: '#6c757d' }}>
+              <small className="block mt-2 text-xs text-gray-600 dark:text-gray-400">
                 Maximum 20 szó adható hozzá egyszerre. Formátum: "angol szó - magyar jelentés"
                 <br />
                 <strong>🌐 Pontos fonetika a Datamuse API-ból minden szóhoz!</strong>
               </small>
-              <div style={{ marginTop: '10px' }}>
-                <button 
-                  style={{
-                    ...styles.btnSecondary,
-                    cursor: isGenerating ? 'wait' : 'pointer',
-                    opacity: isGenerating ? 0.7 : 1
-                  }} 
-                  onClick={processWordList}
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? '⏳ Feldolgozás...' : '🔄 Lista feldolgozása (API fonetika)'}
-                </button>
-              </div>
+              <button 
+                onClick={processWordList}
+                disabled={isGenerating}
+                className={`
+                  mt-3 px-6 py-3 rounded-lg
+                  text-white font-medium
+                  transition-all duration-200
+                  ${isGenerating 
+                    ? 'bg-gray-500 cursor-wait opacity-70' 
+                    : 'bg-gray-600 hover:bg-gray-700 hover:shadow-md'}
+                `}
+              >
+                {isGenerating ? '⏳ Feldolgozás...' : '🔄 Lista feldolgozása (API fonetika)'}
+              </button>
             </div>
           )}
 
+          {/* Words preview */}
           {wordsToAdd.length > 0 && (
-            <div style={styles.wordPreview}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                <h4 style={{ color: '#495057', margin: 0 }}>
+            <div className="
+              mt-5 p-4 rounded-lg
+              bg-gray-50 dark:bg-gray-900
+              border border-gray-200 dark:border-gray-700
+            ">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-gray-700 dark:text-gray-300 font-medium">
                   Hozzáadandó szavak: ({wordsToAdd.length}/20)
                 </h4>
                 <button 
-                  style={{
-                    background: isGenerating 
-                      ? '#6c757d'
-                      : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    padding: '6px 12px',
-                    cursor: isGenerating ? 'wait' : 'pointer',
-                    fontSize: '14px'
-                  }}
                   onClick={regenerateAllPhonetics}
                   disabled={isGenerating}
+                  className={`
+                    px-3 py-1.5 rounded text-sm
+                    text-white font-medium
+                    transition-all duration-200
+                    ${isGenerating 
+                      ? 'bg-gray-500 cursor-wait' 
+                      : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:shadow-md'}
+                  `}
                 >
                   {isGenerating ? '⏳ Frissítés...' : '🌐 API újralekérés'}
                 </button>
               </div>
-              <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+              <div className="max-h-[300px] overflow-y-auto space-y-2">
                 {wordsToAdd.map((word, index) => (
-                  <div key={index} style={styles.previewWord}>
-                    <span style={{ color: '#495057' }}>
-                      <strong>{word.english}</strong> 
-                      <em style={{ color: '#e74c3c', marginLeft: '8px' }}>{word.phonetic}</em> 
-                      <span style={{ margin: '0 8px' }}>→</span>
-                      <span style={{ color: '#27ae60' }}>{word.hungarian}</span>
+                  <div 
+                    key={index} 
+                    className="
+                      flex justify-between items-center
+                      p-3 rounded
+                      bg-white dark:bg-gray-800
+                      border border-gray-200 dark:border-gray-700
+                    "
+                  >
+                    <span className="text-gray-700 dark:text-gray-300">
+                      <strong>{word.english}</strong>
+                      <em className="text-red-500 dark:text-red-400 ml-2">{word.phonetic}</em>
+                      <span className="mx-2">→</span>
+                      <span className="text-green-600 dark:text-green-400">{word.hungarian}</span>
                     </span>
                     <button
                       onClick={() => setWordsToAdd(wordsToAdd.filter((_, i) => i !== index))}
-                      style={styles.removeBtn}
+                      className="
+                        bg-red-500 text-white
+                        rounded px-2 py-1 text-sm
+                        hover:bg-red-600
+                        transition-colors duration-200
+                      "
                     >
                       🗑️
                     </button>
@@ -508,31 +606,45 @@ determination - eltökéltség"
             </div>
           )}
 
+          {/* Generating indicator */}
           {isGenerating && (
-            <div style={{ 
-              textAlign: 'center', 
-              padding: '10px', 
-              background: '#f8f9fa', 
-              borderRadius: '8px',
-              marginTop: '10px'
-            }}>
-              <span style={{ color: '#667eea' }}>⏳ Fonetika lekérése az API-ból...</span>
+            <div className="
+              mt-4 text-center p-3 rounded-lg
+              bg-gray-100 dark:bg-gray-900
+            ">
+              <span className="text-indigo-500 dark:text-indigo-400">
+                ⏳ Fonetika lekérése az API-ból...
+              </span>
             </div>
           )}
 
-          <div style={styles.modalFooter}>
+          {/* Footer buttons */}
+          <div className="flex justify-center gap-3 mt-8">
             <button 
-              style={{
-                ...styles.btnSuccess,
-                cursor: isGenerating ? 'wait' : 'pointer',
-                opacity: isGenerating ? 0.7 : 1
-              }}
               onClick={handleSave}
               disabled={isGenerating}
+              className={`
+                px-6 py-3 rounded-lg
+                text-white font-medium
+                transition-all duration-200
+                ${isGenerating 
+                  ? 'bg-gray-500 cursor-wait opacity-70' 
+                  : 'bg-green-500 hover:bg-green-600 hover:shadow-md'}
+              `}
             >
               💾 Mentés
             </button>
-            <button style={styles.btnSecondary} onClick={onClose}>❌ Mégse</button>
+            <button 
+              onClick={onClose}
+              className="
+                px-6 py-3 rounded-lg
+                bg-gray-600 text-white font-medium
+                hover:bg-gray-700 hover:shadow-md
+                transition-all duration-200
+              "
+            >
+              ❌ Mégse
+            </button>
           </div>
         </div>
       </div>

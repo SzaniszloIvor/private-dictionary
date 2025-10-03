@@ -1,4 +1,4 @@
-// src/App.jsx - TELJES INTEGRÁCIÓS PÉLDA
+// src/App.jsx - COMPLETE TAILWIND INTEGRATION
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginScreen from './components/LoginScreen/LoginScreen';
@@ -10,17 +10,18 @@ import LessonContent from './components/LessonContent/LessonContent';
 import SearchResults from './components/SearchResults/SearchResults';
 import AddWordsModal from './components/AddWordsModal/AddWordsModal';
 import KeyboardShortcutsHelper from './components/KeyboardShortcutsHelper/KeyboardShortcutsHelper';
+import DarkModeToggle from './components/DarkModeToggle/DarkModeToggle';
 import { initialDictionary } from './data/dictionary';
 import { saveDictionary, loadDictionary } from './services/firebase';
-import { styles } from './styles/styles';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { useDarkMode } from './hooks/useDarkMode';
 
 const MainApp = () => {
-
   const { currentUser, isDemo, logout } = useAuth();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const { darkMode, toggleDarkMode } = useDarkMode();
   
-  // === EXISTING STATES ===
+  // === DEMO LESSONS INITIALIZATION ===
   const getDemoLessons = () => {
     const demoLessons = {};
     if (initialDictionary[1]) demoLessons[1] = initialDictionary[1];
@@ -28,6 +29,7 @@ const MainApp = () => {
     return demoLessons;
   };
   
+  // === STATE MANAGEMENT ===
   const [dictionary, setDictionary] = useState(isDemo ? getDemoLessons() : {});
   const [currentLesson, setCurrentLesson] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,168 +38,138 @@ const MainApp = () => {
   const [loading, setLoading] = useState(true);
   const [lastSaved, setLastSaved] = useState(null);
   
-  // === NEW STATES FOR KEYBOARD SHORTCUTS ===
+  // === KEYBOARD SHORTCUTS & UI STATE ===
   const [showSaveNotification, setShowSaveNotification] = useState(false);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
   const [toastMessage, setToastMessage] = useState(''); 
   const searchInputRef = useRef(null);
 
-  // Toast helper
+  // === TOAST NOTIFICATION HELPER ===
   const showToast = (message, duration = 2000) => {
     setToastMessage(message);
     setTimeout(() => setToastMessage(''), duration);
   };
   
   // === KEYBOARD SHORTCUTS CONFIGURATION ===
-const shortcuts = useMemo(() => ({
-  // Új szó hozzáadása
-  'mod+e': (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setShowAddModal(true);
-    showToast('➕ Új szó hozzáadása');
-  },
-  
-  // Keresés
-  'mod+f': (e) => {
-    e.preventDefault();
-    if (searchInputRef.current) {
-      searchInputRef.current.focus();
-      searchInputRef.current.select();
-      showToast('🔍 Keresés aktiválva');
+  const shortcuts = useMemo(() => ({
+    // Add new word
+    'mod+e': (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setShowAddModal(true);
+      showToast('➕ Add new word');
+    },
+    
+    // Focus search
+    'mod+f': (e) => {
+      e.preventDefault();
+      if (searchInputRef.current) {
+        searchInputRef.current.focus();
+        searchInputRef.current.select();
+        showToast('🔍 Search activated');
+      }
+    },
+    
+    // Toggle shortcuts help
+    'mod+k': (e) => {
+      e.preventDefault();
+      setShowShortcutsHelp(prev => !prev);
+    },
+    
+    // Show save notification
+    'mod+s': (e) => {
+      e.preventDefault();
+      setShowSaveNotification(true);
+    },
+    
+    // Toggle dark mode
+    'mod+d': (e) => {
+      e.preventDefault();
+      toggleDarkMode();
+      showToast(darkMode ? '☀️ Light mode' : '🌙 Dark mode');
+    },
+    
+    // === NAVIGATION: Next lesson ===
+    'mod+arrowright': (e) => {
+      e.preventDefault();
+      const lessons = Object.keys(dictionary).map(n => parseInt(n)).sort((a,b) => a-b);
+      const currentIndex = lessons.indexOf(currentLesson);
+      if (currentIndex < lessons.length - 1) {
+        const nextLesson = lessons[currentIndex + 1];
+        setCurrentLesson(nextLesson);
+        showToast(`➡️ ${dictionary[nextLesson]?.title || `Lesson ${nextLesson}`}`);
+      } else {
+        showToast('⚠️ This is the last lesson');
+      }
+    },
+    
+    // === NAVIGATION: Previous lesson ===
+    'mod+arrowleft': (e) => {
+      e.preventDefault();
+      const lessons = Object.keys(dictionary).map(n => parseInt(n)).sort((a,b) => a-b);
+      const currentIndex = lessons.indexOf(currentLesson);
+      if (currentIndex > 0) {
+        const prevLesson = lessons[currentIndex - 1];
+        setCurrentLesson(prevLesson);
+        showToast(`⬅️ ${dictionary[prevLesson]?.title || `Lesson ${prevLesson}`}`);
+      } else {
+        showToast('⚠️ This is the first lesson');
+      }
+    },
+    
+    // === NAVIGATION: First lesson ===
+    'mod+home': (e) => {
+      e.preventDefault();
+      const lessons = Object.keys(dictionary).map(n => parseInt(n)).sort((a,b) => a-b);
+      if (lessons.length > 0) {
+        const firstLesson = lessons[0];
+        setCurrentLesson(firstLesson);
+        showToast(`⏮️ ${dictionary[firstLesson]?.title || `Lesson ${firstLesson}`}`);
+      }
+    },
+    
+    // === NAVIGATION: Last lesson ===
+    'mod+end': (e) => {
+      e.preventDefault();
+      const lessons = Object.keys(dictionary).map(n => parseInt(n)).sort((a,b) => a-b);
+      if (lessons.length > 0) {
+        const lastLesson = lessons[lessons.length - 1];
+        setCurrentLesson(lastLesson);
+        showToast(`⏭️ ${dictionary[lastLesson]?.title || `Lesson ${lastLesson}`}`);
+      }
+    },
+    
+    // Close modals with Escape
+    'escape': () => {
+      if (showAddModal) {
+        setShowAddModal(false);
+      } else if (showShortcutsHelp) {
+        setShowShortcutsHelp(false);
+      }
     }
-  },
-  
-  // Súgó
-  'mod+k': (e) => {
-    e.preventDefault();
-    setShowShortcutsHelp(prev => !prev);
-  },
-  
-  // Mentés
-  'mod+s': (e) => {
-    e.preventDefault();
-    setShowSaveNotification(true);
-  },
-  
-  // === NAVIGÁCIÓ: Következő lecke ===
-  'mod+arrowright': (e) => {
-    e.preventDefault();
-    const lessons = Object.keys(dictionary).map(n => parseInt(n)).sort((a,b) => a-b);
-    const currentIndex = lessons.indexOf(currentLesson);
-    if (currentIndex < lessons.length - 1) {
-      const nextLesson = lessons[currentIndex + 1];
-      setCurrentLesson(nextLesson);
-      showToast(`➡️ ${dictionary[nextLesson]?.title || nextLesson + '. óra'}`);
-    } else {
-      showToast('⚠️ Ez az utolsó óra');
-    }
-  },
-  
-  ']': (e) => {
-    e.preventDefault();
-    const lessons = Object.keys(dictionary).map(n => parseInt(n)).sort((a,b) => a-b);
-    const currentIndex = lessons.indexOf(currentLesson);
-    if (currentIndex < lessons.length - 1) {
-      const nextLesson = lessons[currentIndex + 1];
-      setCurrentLesson(nextLesson);
-      showToast(`➡️ ${dictionary[nextLesson]?.title || nextLesson + '. óra'}`);
-    } else {
-      showToast('⚠️ Ez az utolsó óra');
-    }
-  },
-  
-  // === NAVIGÁCIÓ: Előző lecke ===
-  'mod+arrowleft': (e) => {
-    e.preventDefault();
-    const lessons = Object.keys(dictionary).map(n => parseInt(n)).sort((a,b) => a-b);
-    const currentIndex = lessons.indexOf(currentLesson);
-    if (currentIndex > 0) {
-      const prevLesson = lessons[currentIndex - 1];
-      setCurrentLesson(prevLesson);
-      showToast(`⬅️ ${dictionary[prevLesson]?.title || prevLesson + '. óra'}`);
-    } else {
-      showToast('⚠️ Ez az első óra');
-    }
-  },
-  
-  '[': (e) => {
-    e.preventDefault();
-    const lessons = Object.keys(dictionary).map(n => parseInt(n)).sort((a,b) => a-b);
-    const currentIndex = lessons.indexOf(currentLesson);
-    if (currentIndex > 0) {
-      const prevLesson = lessons[currentIndex - 1];
-      setCurrentLesson(prevLesson);
-      showToast(`⬅️ ${dictionary[prevLesson]?.title || prevLesson + '. óra'}`);
-    } else {
-      showToast('⚠️ Ez az első óra');
-    }
-  },
-  
-  // === NAVIGÁCIÓ: Első lecke ===
-  'mod+home': (e) => {
-    e.preventDefault();
-    const lessons = Object.keys(dictionary).map(n => parseInt(n)).sort((a,b) => a-b);
-    if (lessons.length > 0) {
-      const firstLesson = lessons[0];
-      setCurrentLesson(firstLesson);
-      showToast(`⏮️ ${dictionary[firstLesson]?.title || firstLesson + '. óra'}`);
-    }
-  },
-  
-  // === NAVIGÁCIÓ: Utolsó lecke ===
-  'mod+end': (e) => {
-    e.preventDefault();
-    const lessons = Object.keys(dictionary).map(n => parseInt(n)).sort((a,b) => a-b);
-    if (lessons.length > 0) {
-      const lastLesson = lessons[lessons.length - 1];
-      setCurrentLesson(lastLesson);
-      showToast(`⏭️ ${dictionary[lastLesson]?.title || lastLesson + '. óra'}`);
-    }
-  },
-  
-  // Escape
-  'escape': () => {
-    if (showAddModal) {
-      setShowAddModal(false);
-    } else if (showShortcutsHelp) {
-      setShowShortcutsHelp(false);
-    }
-  }
-}), [showAddModal, showShortcutsHelp, dictionary, currentLesson]);
+  }), [showAddModal, showShortcutsHelp, dictionary, currentLesson, darkMode, toggleDarkMode]);
 
-const ToastNotification = () => {
-  if (!toastMessage) return null;
-  
-  return (
-    <div 
-      style={{
-        position: 'fixed',
-        bottom: '80px',
-        right: '20px',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
-        padding: '12px 20px',
-        borderRadius: '8px',
-        boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
-        zIndex: 1000,
-        animation: 'slideInRight 0.3s ease-out',
-        fontSize: '14px',
-        fontWeight: '500',
-        maxWidth: '300px'
-      }}
-    >
-      {toastMessage}
-    </div>
-  );
-};
+  // === TOAST NOTIFICATION COMPONENT ===
+  const ToastNotification = () => {
+    if (!toastMessage) return null;
+    
+    return (
+      <div className="fixed bottom-20 right-5 z-[1000]
+                    bg-gradient-to-r from-primary-600 to-primary-dark
+                    text-white px-5 py-3 rounded-lg
+                    shadow-lg animate-slide-in-right
+                    max-w-[300px]">
+        <div className="text-sm font-medium">
+          {toastMessage}
+        </div>
+      </div>
+    );
+  };
 
-useKeyboardShortcuts(shortcuts, !loading);
-  
-  // === KEYBOARD SHORTCUTS HOOK INICIALIZÁLÁSA ===
-   useKeyboardShortcuts(shortcuts, !loading);
-console.log('🎯 Shortcuts enabled:', !loading, 'Loading:', loading);
+  // === INITIALIZE KEYBOARD SHORTCUTS ===
+  useKeyboardShortcuts(shortcuts, !loading);
 
+  // === RESPONSIVE HANDLER ===
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -206,6 +178,7 @@ console.log('🎯 Shortcuts enabled:', !loading, 'Loading:', loading);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // === SAVE NOTIFICATION AUTO-HIDE ===
   useEffect(() => {
     if (showSaveNotification) {
       const timer = setTimeout(() => {
@@ -215,40 +188,29 @@ console.log('🎯 Shortcuts enabled:', !loading, 'Loading:', loading);
     }
   }, [showSaveNotification]);
 
+  // === SAVE NOTIFICATION COMPONENT ===
   const SaveNotification = () => {
     if (!showSaveNotification) return null;
     
     return (
-      <div 
-        className="save-notification"
-        style={{
-          position: 'fixed',
-          top: '20px',
-          right: '20px',
-          background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
-          color: 'white',
-          padding: '15px 25px',
-          borderRadius: '10px',
-          boxShadow: '0 4px 12px rgba(40, 167, 69, 0.4)',
-          zIndex: 1000,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px'
-        }}
-      >
-        <span style={{ fontSize: '20px' }}>💾</span>
+      <div className="fixed top-5 right-5 z-[1000]
+                    bg-gradient-to-r from-success-500 to-success-light
+                    text-white px-6 py-4 rounded-xl
+                    shadow-lg animate-fade-in
+                    flex items-center gap-3">
+        <span className="text-2xl">💾</span>
         <div>
-          <div style={{ fontWeight: 'bold' }}>
-            {isDemo ? 'Demo mód - Munkamenet mentve' : 'Automatikus mentés aktív'}
+          <div className="font-bold">
+            {isDemo ? 'Demo mode - Session saved' : 'Auto-save active'}
           </div>
           {lastSaved && !isDemo && (
-            <div style={{ fontSize: '13px', opacity: 0.9 }}>
-              Utoljára mentve: {lastSaved.toLocaleTimeString()}
+            <div className="text-sm opacity-90">
+              Last saved: {lastSaved.toLocaleTimeString()}
             </div>
           )}
           {isDemo && (
-            <div style={{ fontSize: '12px', opacity: 0.9 }}>
-              Jelentkezz be a végleges mentéshez!
+            <div className="text-xs opacity-90">
+              Sign in for permanent storage!
             </div>
           )}
         </div>
@@ -256,14 +218,13 @@ console.log('🎯 Shortcuts enabled:', !loading, 'Loading:', loading);
     );
   };
   
-  // Dynamic next lesson number calculation
+  // === UTILITY FUNCTIONS ===
   const getNextLessonNumber = () => {
     if (Object.keys(dictionary).length === 0) return 1;
     const lessonNumbers = Object.keys(dictionary).map(num => parseInt(num));
     return Math.max(...lessonNumbers) + 1;
   };
 
-  // DEMO LIMITS CHECKER
   const getDemoLimits = () => {
     return {
       maxLessons: 2,
@@ -287,6 +248,7 @@ console.log('🎯 Shortcuts enabled:', !loading, 'Loading:', loading);
     };
   };
 
+  // === LOAD USER DICTIONARY ===
   useEffect(() => {
     const loadUserDictionary = async () => {
       if (currentUser && !isDemo) {
@@ -310,7 +272,6 @@ console.log('🎯 Shortcuts enabled:', !loading, 'Loading:', loading);
           const savedDemoDictionary = localStorage.getItem('demoDictionary');
           
           if (savedDemoDictionary) {
-            // Van mentett demo adat
             const parsedDictionary = JSON.parse(savedDemoDictionary);
             setDictionary(parsedDictionary);
             
@@ -337,6 +298,7 @@ console.log('🎯 Shortcuts enabled:', !loading, 'Loading:', loading);
     loadUserDictionary();
   }, [currentUser, isDemo]);
 
+  // === AUTO-SAVE DICTIONARY ===
   useEffect(() => {
     const saveTimer = setTimeout(async () => {
       if (dictionary && Object.keys(dictionary).length > 0) {
@@ -361,20 +323,19 @@ console.log('🎯 Shortcuts enabled:', !loading, 'Loading:', loading);
     return () => clearTimeout(saveTimer);
   }, [dictionary, currentUser, isDemo]);
 
+  // === DICTIONARY OPERATIONS ===
   const updateDictionary = (newDictionary) => {
     setDictionary(newDictionary);
   };
 
-  // Delete lesson (available in demo too, but can't delete below 0 lessons)
-  
   const deleteLesson = (lessonNumber) => {
-    // ✅ Demo védelem
+    // Demo protection
     if (isDemo) {
-      alert('⚠️ Demo módban az alapértelmezett órákat nem lehet törölni!');
+      alert('⚠️ Cannot delete default lessons in demo mode!');
       return;
     }
     
-    if (window.confirm(`Biztosan törölni szeretnéd a ${lessonNumber}. órát és az összes szavát?`)) {
+    if (window.confirm(`Are you sure you want to delete lesson ${lessonNumber} and all its words?`)) {
       const updatedDictionary = { ...dictionary };
       delete updatedDictionary[lessonNumber];
       setDictionary(updatedDictionary);
@@ -390,7 +351,6 @@ console.log('🎯 Shortcuts enabled:', !loading, 'Loading:', loading);
     }
   };
 
-  // Rename lesson (available in demo too)
   const renameLesson = (lessonNumber, newTitle) => {
     const updatedDictionary = { ...dictionary };
     if (updatedDictionary[lessonNumber]) {
@@ -399,7 +359,6 @@ console.log('🎯 Shortcuts enabled:', !loading, 'Loading:', loading);
     }
   };
 
-  // Delete word (available in demo too)
   const deleteWord = (lessonNumber, wordIndex) => {
     const updatedDictionary = { ...dictionary };
     if (updatedDictionary[lessonNumber]) {
@@ -408,7 +367,6 @@ console.log('🎯 Shortcuts enabled:', !loading, 'Loading:', loading);
     }
   };
 
-  // Reorder words (available in demo too)
   const reorderWords = (lessonNumber, newWordOrder) => {
     const updatedDictionary = { ...dictionary };
     const lessonKey = lessonNumber.toString();
@@ -424,6 +382,7 @@ console.log('🎯 Shortcuts enabled:', !loading, 'Loading:', loading);
     }
   };
 
+  // === SEARCH FUNCTIONALITY ===
   const getSearchResults = () => {
     if (!searchTerm) return null;
 
@@ -444,17 +403,14 @@ console.log('🎯 Shortcuts enabled:', !loading, 'Loading:', loading);
     return results;
   };
 
+  // === LOADING STATE ===
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-      }}>
-        <div style={{ textAlign: 'center', color: 'white' }}>
-          <h2>Betöltés...</h2>
+      <div className="flex justify-center items-center min-h-screen
+                    bg-gradient-to-br from-primary-600 to-primary-dark">
+        <div className="text-center text-white">
+          <div className="text-6xl mb-4 animate-bounce">📚</div>
+          <h2 className="text-2xl font-bold">Loading...</h2>
         </div>
       </div>
     );
@@ -463,158 +419,99 @@ console.log('🎯 Shortcuts enabled:', !loading, 'Loading:', loading);
   const searchResults = getSearchResults();
   const demoLimits = getDemoLimits();
 
-  const mobileNavStyles = {
-    container: {
-      background: '#f8f9fa', 
-      padding: '8px 12px', 
-      borderBottom: '1px solid #dee2e6',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '8px'
-    },
-    userRow: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center'
-    },
-    userInfo: {
-      display: 'flex', 
-      alignItems: 'center', 
-      gap: '8px',
-      flex: 1,
-      minWidth: 0
-    },
-    userName: {
-      fontWeight: 'bold', 
-      color: '#495057',
-      fontSize: '14px',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap'
-    },
-    logoutBtn: {
-      padding: '6px 12px',
-      background: '#dc3545',
-      color: 'white',
-      border: 'none',
-      borderRadius: '5px',
-      cursor: 'pointer',
-      fontSize: '13px',
-      whiteSpace: 'nowrap'
-    }
-  };
-
+  // === MAIN RENDER ===
   return (
-    <div style={styles.container}>
-      <div style={isMobile ? mobileNavStyles.container : { 
-        background: '#f8f9fa', 
-        padding: '10px 20px', 
-        borderBottom: '1px solid #dee2e6',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
+    <div className="max-w-7xl mx-auto my-5 
+                  bg-white dark:bg-slate-900 
+                  rounded-2xl shadow-2xl overflow-hidden
+                  transition-all duration-300">
+      {/* User Navigation Bar */}
+      <div className={`
+        bg-gray-50 dark:bg-slate-800 
+        border-b border-gray-200 dark:border-slate-700
+        transition-all duration-300
+        ${isMobile ? 'p-3 flex flex-col gap-2' : 'px-5 py-3 flex justify-between items-center'}
+      `}>
         {isMobile ? (
           <>
-            <div style={mobileNavStyles.userRow}>
-              <div style={mobileNavStyles.userInfo}>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
                 {currentUser.photoURL && (
                   <img 
                     src={currentUser.photoURL} 
                     alt="Profile" 
-                    style={{ 
-                      width: '28px', 
-                      height: '28px', 
-                      borderRadius: '50%',
-                      border: '2px solid #4facfe',
-                      flexShrink: 0
-                    }}
+                    className="w-7 h-7 rounded-full 
+                             border-2 border-blue-400 dark:border-purple-500
+                             flex-shrink-0"
                   />
                 )}
-                <span style={mobileNavStyles.userName}>
+                <span className="font-bold text-gray-800 dark:text-gray-200 
+                               text-sm truncate">
                   {currentUser.displayName || currentUser.email?.split('@')[0]}
                 </span>
                 {isDemo && (
-                  <span style={{ 
-                    background: 'orange', 
-                    color: 'white', 
-                    padding: '2px 6px', 
-                    borderRadius: '4px',
-                    fontSize: '11px',
-                    flexShrink: 0
-                  }}>
+                  <span className="bg-orange-500 text-white 
+                                 px-2 py-0.5 rounded text-xs flex-shrink-0">
                     DEMO
                   </span>
                 )}
               </div>
               <button
                 onClick={logout}
-                style={mobileNavStyles.logoutBtn}
+                className="px-3 py-1.5 bg-red-500 hover:bg-red-600 
+                         text-white rounded-md text-xs font-medium
+                         transition-colors duration-200 whitespace-nowrap"
               >
-                Kilépés
+                Logout
               </button>
             </div>
             {lastSaved && !isDemo && (
-              <div style={{ fontSize: '11px', color: '#6c757d' }}>
-                Mentve: {lastSaved.toLocaleTimeString()}
+              <div className="text-xs text-gray-600 dark:text-gray-400">
+                Saved: {lastSaved.toLocaleTimeString()}
               </div>
             )}
           </>
         ) : (
           <>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="flex items-center gap-3">
               {currentUser.photoURL && (
                 <img 
                   src={currentUser.photoURL} 
                   alt="Profile" 
-                  style={{ 
-                    width: '32px', 
-                    height: '32px', 
-                    borderRadius: '50%',
-                    border: '2px solid #4facfe'
-                  }}
+                  className="w-8 h-8 rounded-full 
+                           border-2 border-blue-400 dark:border-purple-500"
                 />
               )}
-              <span style={{ fontWeight: 'bold', color: '#495057' }}>
+              <span className="font-bold text-gray-800 dark:text-gray-200">
                 {currentUser.displayName || currentUser.email}
               </span>
               {isDemo && (
-                <span style={{ 
-                  background: 'orange', 
-                  color: 'white', 
-                  padding: '2px 8px', 
-                  borderRadius: '4px',
-                  fontSize: '12px'
-                }}>
+                <span className="bg-orange-500 text-white 
+                               px-2 py-1 rounded text-xs">
                   DEMO
                 </span>
               )}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <div className="flex items-center gap-4">
               {lastSaved && !isDemo && (
-                <span style={{ fontSize: '12px', color: '#6c757d' }}>
-                  Mentve: {lastSaved.toLocaleTimeString()}
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  Saved: {lastSaved.toLocaleTimeString()}
                 </span>
               )}
               <button
                 onClick={logout}
-                style={{
-                  padding: '6px 15px',
-                  background: '#dc3545',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 
+                         text-white rounded-lg text-sm font-medium
+                         transition-colors duration-200"
               >
-                Kijelentkezés
+                Logout
               </button>
             </div>
           </>
         )}
       </div>
       
+      {/* Main Content */}
       <Header isDemo={isDemo} demoLimits={demoLimits} />
       <ProgressSection dictionary={dictionary} isDemo={isDemo} demoLimits={demoLimits} />
       <SearchControls
@@ -633,7 +530,11 @@ console.log('🎯 Shortcuts enabled:', !loading, 'Loading:', loading);
         canAddLesson={canAddLesson}
         demoLimits={demoLimits}
       />
-      <div style={styles.lessonContent}>
+      
+      {/* Lesson Content or Search Results */}
+      <div className="p-8 min-h-[400px] 
+                    bg-white dark:bg-slate-900 
+                    text-gray-900 dark:text-gray-100">
         {searchResults ? (
           <SearchResults results={searchResults} searchTerm={searchTerm} />
         ) : (
@@ -649,20 +550,33 @@ console.log('🎯 Shortcuts enabled:', !loading, 'Loading:', loading);
         )}
       </div>
 
-      <div style={styles.controls}>
+      {/* Add Words Button */}
+      <div className="bg-gray-50 dark:bg-slate-800 
+                    p-5 text-center 
+                    border-t border-gray-200 dark:border-slate-700
+                    transition-all duration-300">
         <button 
-          style={styles.addWordsBtn} 
           onClick={() => setShowAddModal(true)}
+          className="bg-gradient-to-r from-blue-400 to-cyan-400
+                   dark:from-purple-600 dark:to-indigo-600
+                   text-white px-8 py-4 rounded-full
+                   font-semibold text-lg
+                   shadow-lg hover:shadow-xl
+                   transform hover:scale-105
+                   transition-all duration-300"
         >
-          📚 Szavak hozzáadása
+          📚 Add Words
         </button>
         {isDemo && (
-          <p style={{ marginTop: '10px', color: '#6c757d', fontSize: isMobile ? '13px' : '14px' }}>
-            ⚠️ Demo módban: Max {demoLimits.maxLessons} óra, óránként {demoLimits.maxWordsPerLesson} szó
+          <p className={`mt-3 text-gray-600 dark:text-gray-400 
+                        ${isMobile ? 'text-xs' : 'text-sm'}`}>
+            ⚠️ Demo mode: Max {demoLimits.maxLessons} lessons, 
+            {demoLimits.maxWordsPerLesson} words per lesson
           </p>
         )}
       </div>
 
+      {/* Modals and Overlays */}
       <AddWordsModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
@@ -681,10 +595,12 @@ console.log('🎯 Shortcuts enabled:', !loading, 'Loading:', loading);
         onOpen={() => setShowShortcutsHelp(true)}
         onClose={() => setShowShortcutsHelp(false)}
       />
+      <DarkModeToggle darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
     </div>
   );
 };
 
+// === APP ROOT ===
 const App = () => {
   return (
     <AuthProvider>
@@ -693,20 +609,17 @@ const App = () => {
   );
 };
 
+// === AUTH WRAPPER ===
 const AuthWrapper = () => {
   const { currentUser, loading } = useAuth();
 
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-      }}>
-        <div style={{ textAlign: 'center', color: 'white' }}>
-          <h2>Betöltés...</h2>
+      <div className="flex justify-center items-center min-h-screen
+                    bg-gradient-to-br from-primary-600 to-primary-dark">
+        <div className="text-center text-white">
+          <div className="text-6xl mb-4 animate-bounce">📚</div>
+          <h2 className="text-2xl font-bold">Loading...</h2>
         </div>
       </div>
     );

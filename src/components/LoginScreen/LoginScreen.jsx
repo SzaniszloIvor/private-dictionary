@@ -1,121 +1,51 @@
 // src/components/LoginScreen/LoginScreen.jsx
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { styles } from '../../styles/styles';
 
 const LoginScreen = () => {
   const { loginWithGoogle, loginAsDemo } = useAuth();
 
-  const loginStyles = {
-    container: {
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '20px'
-    },
-    card: {
-      background: 'white',
-      borderRadius: '20px',
-      padding: '40px',
-      boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-      maxWidth: '400px',
-      width: '100%',
-      textAlign: 'center'
-    },
-    title: {
-      fontSize: '2.5em',
-      marginBottom: '10px',
-      color: '#333',
-      fontWeight: 'bold'
-    },
-    subtitle: {
-      fontSize: '1.1em',
-      color: '#666',
-      marginBottom: '40px'
-    },
-    button: {
-      width: '100%',
-      padding: '15px',
-      marginBottom: '15px',
-      border: 'none',
-      borderRadius: '10px',
-      fontSize: '16px',
-      fontWeight: 'bold',
-      cursor: 'pointer',
-      transition: 'all 0.3s ease',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '10px'
-    },
-    googleButton: {
-      background: '#4285f4',
-      color: 'white',
-      boxShadow: '0 3px 10px rgba(66,133,244,0.3)'
-    },
-    demoButton: {
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      color: 'white',
-      boxShadow: '0 3px 10px rgba(102,126,234,0.3)'
-    },
-    divider: {
-      margin: '20px 0',
-      color: '#999',
-      fontSize: '14px',
-      position: 'relative'
-    },
-    dividerLine: {
-      position: 'absolute',
-      top: '50%',
-      left: '0',
-      right: '0',
-      height: '1px',
-      background: '#e0e0e0',
-      zIndex: 0
-    },
-    dividerText: {
-      background: 'white',
-      padding: '0 15px',
-      position: 'relative',
-      zIndex: 1
-    },
-    features: {
-      marginTop: '30px',
-      padding: '20px',
-      background: '#f8f9fa',
-      borderRadius: '10px',
-      textAlign: 'left'
-    },
-    featureTitle: {
-      fontSize: '16px',
-      fontWeight: 'bold',
-      marginBottom: '10px',
-      color: '#333'
-    },
-    featureList: {
-      listStyle: 'none',
-      padding: 0
-    },
-    featureItem: {
-      padding: '5px 0',
-      color: '#666',
-      fontSize: '14px'
-    }
-  };
-
   return (
-    <div style={loginStyles.container}>
-      <div style={loginStyles.card}>
-        <h1 style={loginStyles.title}>🎧 Angol Szótár</h1>
-        <p style={loginStyles.subtitle}>Korlátlan szavas interaktív szótanulási program</p>
+    <div className="
+      min-h-screen flex items-center justify-center p-5
+      bg-gradient-to-br from-indigo-500 via-purple-600 to-purple-700
+      dark:from-indigo-900 dark:via-purple-900 dark:to-gray-900
+      animate-fade-in
+    ">
+      <div className="
+        bg-white dark:bg-gray-800
+        rounded-3xl shadow-2xl
+        p-10 max-w-md w-full
+        text-center
+        animate-slide-in-up
+      ">
+        {/* Title */}
+        <h1 className="
+          text-4xl font-bold mb-3
+          text-gray-800 dark:text-gray-100
+        ">
+          🎧 Angol Szótár
+        </h1>
+        <p className="
+          text-lg text-gray-600 dark:text-gray-300 mb-10
+        ">
+          Korlátlan szavas interaktív szótanulási program
+        </p>
         
+        {/* Google login button */}
         <button
-          style={{...loginStyles.button, ...loginStyles.googleButton}}
           onClick={loginWithGoogle}
-          onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-          onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+          className="
+            w-full flex items-center justify-center gap-3
+            bg-blue-500 hover:bg-blue-600
+            dark:bg-blue-600 dark:hover:bg-blue-700
+            text-white font-bold
+            px-6 py-4 rounded-xl
+            shadow-lg hover:shadow-xl
+            hover:-translate-y-0.5
+            transition-all duration-300
+            mb-4
+          "
         >
           <svg width="20" height="20" viewBox="0 0 24 24">
             <path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -126,28 +56,88 @@ const LoginScreen = () => {
           Belépés Google fiókkal
         </button>
         
-        <div style={loginStyles.divider}>
-          <div style={loginStyles.dividerLine}></div>
-          <span style={loginStyles.dividerText}>VAGY</span>
+        {/* Divider */}
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="
+              bg-white dark:bg-gray-800 px-4 
+              text-gray-500 dark:text-gray-400
+            ">
+              VAGY
+            </span>
+          </div>
         </div>
         
+        {/* Demo login button */}
         <button
-          style={{...loginStyles.button, ...loginStyles.demoButton}}
           onClick={loginAsDemo}
-          onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-          onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+          className="
+            w-full flex items-center justify-center gap-3
+            bg-gradient-to-r from-indigo-500 to-purple-600
+            hover:from-indigo-600 hover:to-purple-700
+            dark:from-indigo-600 dark:to-purple-700
+            dark:hover:from-indigo-700 dark:hover:to-purple-800
+            text-white font-bold
+            px-6 py-4 rounded-xl
+            shadow-lg hover:shadow-xl
+            hover:-translate-y-0.5
+            transition-all duration-300
+          "
         >
           👤 Demó fiók használata
         </button>
         
-        <div style={loginStyles.features}>
-          <div style={loginStyles.featureTitle}>Mit kapsz?</div>
-          <ul style={loginStyles.featureList}>
-            <li style={loginStyles.featureItem}>✅ Saját személyre szabott szótár</li>
-            <li style={loginStyles.featureItem}>✅ Automatikus mentés a felhőbe</li>
-            <li style={loginStyles.featureItem}>✅ Hozzáférés minden eszközről</li>
-            <li style={loginStyles.featureItem}>✅ Korlátlan szavak hozzáadása</li>
-            <li style={loginStyles.featureItem}>✅ Hangos kiejtés minden szóhoz</li>
+        {/* Features list */}
+        <div className="
+          mt-8 p-5 rounded-xl
+          bg-gray-50 dark:bg-gray-900
+          text-left
+        ">
+          <div className="
+            font-bold mb-3
+            text-gray-800 dark:text-gray-200
+          ">
+            Mit kapsz?
+          </div>
+          <ul className="space-y-2">
+            <li className="
+              flex items-start gap-2
+              text-gray-700 dark:text-gray-300 text-sm
+            ">
+              <span className="text-green-500 mt-0.5">✅</span>
+              <span>Saját személyre szabott szótár</span>
+            </li>
+            <li className="
+              flex items-start gap-2
+              text-gray-700 dark:text-gray-300 text-sm
+            ">
+              <span className="text-green-500 mt-0.5">✅</span>
+              <span>Automatikus mentés a felhőbe</span>
+            </li>
+            <li className="
+              flex items-start gap-2
+              text-gray-700 dark:text-gray-300 text-sm
+            ">
+              <span className="text-green-500 mt-0.5">✅</span>
+              <span>Hozzáférés minden eszközről</span>
+            </li>
+            <li className="
+              flex items-start gap-2
+              text-gray-700 dark:text-gray-300 text-sm
+            ">
+              <span className="text-green-500 mt-0.5">✅</span>
+              <span>Korlátlan szavak hozzáadása</span>
+            </li>
+            <li className="
+              flex items-start gap-2
+              text-gray-700 dark:text-gray-300 text-sm
+            ">
+              <span className="text-green-500 mt-0.5">✅</span>
+              <span>Hangos kiejtés minden szóhoz</span>
+            </li>
           </ul>
         </div>
       </div>

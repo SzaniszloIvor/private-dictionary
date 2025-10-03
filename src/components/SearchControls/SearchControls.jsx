@@ -1,13 +1,12 @@
-// src/components/SearchControls/SearchControls.jsx
+// src/components/SearchControls/SearchControls.jsx - TAILWIND
 import React, { useState, useEffect } from 'react';
-import { styles } from '../../styles/styles';
 
 const SearchControls = ({ 
   searchTerm, 
   setSearchTerm, 
   filter, 
   setFilter,
-  searchInputRef  // ÚJ prop
+  searchInputRef
 }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -19,105 +18,79 @@ const SearchControls = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const mobileStyles = {
-    searchControls: {
-      padding: '12px',
-      background: 'white',
-      borderBottom: '1px solid #e9ecef',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '10px'
-    },
-    searchInputContainer: {
-      position: 'relative',
-      width: '100%'
-    },
-    searchInput: {
-      width: '100%',
-      padding: '10px 40px 10px 12px',
-      border: '2px solid #dee2e6',
-      borderRadius: '8px',
-      fontSize: '16px',
-      boxSizing: 'border-box'
-    },
-    clearBtn: {
-      position: 'absolute',
-      right: '8px',
-      top: '50%',
-      transform: 'translateY(-50%)',
-      background: 'transparent',
-      border: 'none',
-      fontSize: '20px',
-      cursor: 'pointer',
-      color: '#6c757d',
-      padding: '4px',
-      display: searchTerm ? 'block' : 'none'
-    },
-    filterContainer: {
-      display: 'flex',
-      gap: '8px',
-      width: '100%'
-    },
-    filterBtn: {
-      flex: 1,
-      padding: '8px',
-      border: '2px solid #dee2e6',
-      background: 'white',
-      borderRadius: '8px',
-      cursor: 'pointer',
-      transition: 'all 0.3s ease',
-      fontSize: '14px',
-      fontWeight: '500'
-    }
-  };
-
-  const currentStyles = isMobile ? mobileStyles : styles;
-
   if (isMobile) {
     return (
-      <div style={mobileStyles.searchControls}>
-        <div style={mobileStyles.searchInputContainer}>
+      <div className="p-3 bg-white dark:bg-slate-800 
+                    border-b border-gray-200 dark:border-slate-700
+                    flex flex-col gap-3
+                    transition-all duration-300">
+        {/* Search Input */}
+        <div className="relative w-full">
           <input
-            ref={searchInputRef}  // ÚJ ref csatolása
+            ref={searchInputRef}
             type="text"
-            style={mobileStyles.searchInput}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Keresés... (Ctrl/⌘+F)"
+            className="w-full px-3 py-2 pr-10
+                     bg-white dark:bg-slate-700
+                     text-gray-900 dark:text-gray-100
+                     border-2 border-gray-300 dark:border-slate-600
+                     rounded-lg
+                     focus:ring-2 focus:ring-blue-500 dark:focus:ring-purple-500
+                     focus:border-transparent
+                     transition-all duration-200
+                     text-base"
           />
-          <button
-            style={mobileStyles.clearBtn}
-            onClick={() => setSearchTerm('')}
-            aria-label="Törlés"
-          >
-            ×
-          </button>
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2
+                       text-gray-500 dark:text-gray-400
+                       hover:text-gray-700 dark:hover:text-gray-200
+                       text-xl p-1
+                       transition-colors duration-200"
+              aria-label="Törlés"
+            >
+              ×
+            </button>
+          )}
         </div>
-        <div style={mobileStyles.filterContainer}>
+        
+        {/* Filter Buttons */}
+        <div className="flex gap-2 w-full">
           <button
-            style={{
-              ...mobileStyles.filterBtn,
-              ...(filter === 'all' ? styles.filterBtnActive : {})
-            }}
             onClick={() => setFilter('all')}
+            className={`flex-1 px-3 py-2 rounded-lg font-medium text-sm
+                     border-2 transition-all duration-200
+                     ${filter === 'all'
+                       ? 'bg-blue-500 dark:bg-purple-600 text-white border-blue-500 dark:border-purple-600'
+                       : 'bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-purple-500'
+                     }`}
           >
             Mind
           </button>
+          
           <button
-            style={{
-              ...mobileStyles.filterBtn,
-              ...(filter === 'english' ? styles.filterBtnActive : {})
-            }}
             onClick={() => setFilter('english')}
+            className={`flex-1 px-3 py-2 rounded-lg font-medium text-sm
+                     border-2 transition-all duration-200
+                     ${filter === 'english'
+                       ? 'bg-blue-500 dark:bg-purple-600 text-white border-blue-500 dark:border-purple-600'
+                       : 'bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-purple-500'
+                     }`}
           >
             🇬🇧 EN
           </button>
+          
           <button
-            style={{
-              ...mobileStyles.filterBtn,
-              ...(filter === 'hungarian' ? styles.filterBtnActive : {})
-            }}
             onClick={() => setFilter('hungarian')}
+            className={`flex-1 px-3 py-2 rounded-lg font-medium text-sm
+                     border-2 transition-all duration-200
+                     ${filter === 'hungarian'
+                       ? 'bg-blue-500 dark:bg-purple-600 text-white border-blue-500 dark:border-purple-600'
+                       : 'bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-purple-500'
+                     }`}
           >
             🇭🇺 HU
           </button>
@@ -128,45 +101,75 @@ const SearchControls = ({
 
   // Desktop view
   return (
-    <div style={styles.searchControls}>
+    <div className="p-5 bg-white dark:bg-slate-800 
+                  border-b border-gray-200 dark:border-slate-700
+                  flex flex-wrap gap-4 items-center
+                  transition-all duration-300">
+      {/* Search Input */}
       <input
-        ref={searchInputRef}  // ÚJ ref csatolása
+        ref={searchInputRef}
         type="text"
-        style={styles.searchInput}
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         placeholder="Keresés angol vagy magyar szavak között... (Ctrl/⌘+F)"
+        className="flex-1 min-w-[200px] px-4 py-3
+                 bg-white dark:bg-slate-700
+                 text-gray-900 dark:text-gray-100
+                 placeholder-gray-500 dark:placeholder-gray-400
+                 border-2 border-gray-300 dark:border-slate-600
+                 rounded-lg
+                 focus:ring-2 focus:ring-blue-500 dark:focus:ring-purple-500
+                 focus:border-transparent
+                 transition-all duration-200
+                 text-base"
       />
+      
+      {/* Filter Buttons */}
       <button
-        style={{
-          ...styles.filterBtn,
-          ...(filter === 'all' ? styles.filterBtnActive : {})
-        }}
         onClick={() => setFilter('all')}
+        className={`px-5 py-3 rounded-lg font-medium text-sm
+                 border-2 transition-all duration-200
+                 ${filter === 'all'
+                   ? 'bg-blue-500 dark:bg-purple-600 text-white border-blue-500 dark:border-purple-600'
+                   : 'bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-purple-500'
+                 }`}
       >
         Összes
       </button>
+      
       <button
-        style={{
-          ...styles.filterBtn,
-          ...(filter === 'english' ? styles.filterBtnActive : {})
-        }}
         onClick={() => setFilter('english')}
+        className={`px-5 py-3 rounded-lg font-medium text-sm
+                 border-2 transition-all duration-200
+                 ${filter === 'english'
+                   ? 'bg-blue-500 dark:bg-purple-600 text-white border-blue-500 dark:border-purple-600'
+                   : 'bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-purple-500'
+                 }`}
       >
         Angol
       </button>
+      
       <button
-        style={{
-          ...styles.filterBtn,
-          ...(filter === 'hungarian' ? styles.filterBtnActive : {})
-        }}
         onClick={() => setFilter('hungarian')}
+        className={`px-5 py-3 rounded-lg font-medium text-sm
+                 border-2 transition-all duration-200
+                 ${filter === 'hungarian'
+                   ? 'bg-blue-500 dark:bg-purple-600 text-white border-blue-500 dark:border-purple-600'
+                   : 'bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-purple-500'
+                 }`}
       >
         Magyar
       </button>
+      
       <button
-        style={styles.filterBtn}
         onClick={() => setSearchTerm('')}
+        className="px-5 py-3 rounded-lg font-medium text-sm
+                 bg-white dark:bg-slate-700 
+                 text-gray-700 dark:text-gray-300
+                 border-2 border-gray-300 dark:border-slate-600
+                 hover:border-red-400 dark:hover:border-red-500
+                 hover:text-red-600 dark:hover:text-red-400
+                 transition-all duration-200"
       >
         Törlés
       </button>

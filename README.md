@@ -1,6 +1,6 @@
 # 🎧 Private Dictionary
 
-A modern, interactive English-Hungarian dictionary application designed for personalized language learning with dynamic lesson management and comprehensive keyboard shortcuts.
+A modern, interactive English-Hungarian dictionary application designed for personalized language learning with dynamic lesson management, comprehensive keyboard shortcuts, and dark mode support.
 
 ![React](https://img.shields.io/badge/React-19.1.1-61DAFB?style=flat&logo=react)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.1-06B6D4?style=flat&logo=tailwindcss)
@@ -34,21 +34,25 @@ A modern, interactive English-Hungarian dictionary application designed for pers
 Private Dictionary is a comprehensive language learning platform that provides a dynamic, customizable English curriculum with Hungarian translations. The application supports both demo mode for trying out features and Google authentication for unlimited personalized learning experiences with cloud synchronization.
 
 ### Key Highlights:
+- **Dark Mode Support**: Eye-friendly interface with automatic theme switching
 - **Full-Featured Demo Mode**: Try all features with 2 lessons (max 20 words each)
 - **Keyboard Shortcuts**: 11 productivity shortcuts for efficient navigation
+- **Tailwind CSS Design**: Modern, responsive UI built with utility-first CSS
 - **Dynamic Learning Path**: Create unlimited custom lessons (registered users)
 - **Dual Authentication**: Demo mode with localStorage and Google Sign-in with Firebase
 - **Real-time Sync**: Cloud-based storage with automatic saving
 - **Phonetic API**: Automatic IPA phonetic generation via Datamuse API
 - **Speech Synthesis**: Native pronunciation for all words with speed control
-- **Drag & Drop**: Intuitive word and lesson reordering with persistence
+- **Drag & Drop**: Intuitive word and lesson reordering with persistence (optimized for mobile)
 - **Responsive Design**: Optimized for mobile and desktop devices
 
 ## ✨ Features
 
 ### Core Features
+- 🌙 **Dark Mode** - Toggle dark theme with Ctrl/⌘+D, persisted preference
 - 📖 **Dynamic Lesson System** - Create unlimited custom lessons (registered users)
 - ⌨️ **Keyboard Shortcuts** - 11 shortcuts for rapid navigation and actions
+- 🎨 **Tailwind CSS UI** - Modern, responsive design with utility-first approach
 - 🎯 **Full-Featured Demo Mode** - Try all features with 2 lessons (max 20 words/lesson)
 - 🔊 **Text-to-Speech** - Native English pronunciation with adjustable speed (0.3x - 1.5x)
 - 🎵 **Automatic Phonetics** - IPA phonetic transcription via Datamuse API
@@ -57,9 +61,17 @@ Private Dictionary is a comprehensive language learning platform that provides a
 - 💾 **Auto-Save** - Automatic cloud synchronization for Google users, localStorage for demo
 - ✏️ **Lesson Management** - Rename and delete lessons (authenticated users)
 - 🗑️ **Word Management** - Add, delete, and organize words
-- 🖱️ **Drag & Drop** – Intuitive reordering with database/localStorage persistence
-- 🎚️ **Pronunciation Speed Control** – Adjustable speech synthesis speed (0.3x - 1.5x)
+- 🖱️ **Drag & Drop** - Intuitive reordering with optimized mobile touch support (100ms activation)
+- 🎚️ **Pronunciation Speed Control** - Adjustable speech synthesis speed (0.3x - 1.5x)
 - 🌐 **Offline Support** - Demo mode works offline with localStorage
+
+### Design Features
+- **Light & Dark Modes**: Automatic system preference detection with manual toggle
+- **Smooth Animations**: Fade-in, slide-in, and pulse effects
+- **Custom Scrollbars**: Styled scrollbars for both themes
+- **Focus Indicators**: Clear keyboard navigation feedback
+- **Toast Notifications**: Real-time feedback for user actions
+- **Mobile-Optimized Touch**: 100ms delay, 5px tolerance for better drag & drop
 
 ## ⌨️ Keyboard Shortcuts
 
@@ -73,19 +85,20 @@ Private Dictionary includes a comprehensive keyboard shortcut system for efficie
 | New Word | `Ctrl+E` | `⌘E` | Open add words modal |
 | Search | `Ctrl+F` | `⌘F` | Focus search input |
 | Save Status | `Ctrl+S` | `⌘S` | Show save notification |
+| Dark Mode | `Ctrl+D` | `⌘D` | Toggle dark/light theme |
 | Help | `Ctrl+K` | `⌘K` | Toggle shortcuts help |
 | Close | `ESC` | `ESC` | Close active modal |
 | **Navigation** | | | |
-| Next Lesson | `Ctrl+→` or `]` | `⌘→` or `]` | Navigate to next lesson |
-| Previous Lesson | `Ctrl+←` or `[` | `⌘←` or `[` | Navigate to previous lesson |
+| Next Lesson | `Ctrl+→` | `⌘→` | Navigate to next lesson |
+| Previous Lesson | `Ctrl+←` | `⌘←` | Navigate to previous lesson |
 | First Lesson | `Ctrl+Home` | `⌘Home` | Jump to first lesson |
 | Last Lesson | `Ctrl+End` | `⌘End` | Jump to last lesson |
 
 ### Features
 - **Cross-platform**: Automatic detection of Windows/Linux (Ctrl) vs macOS (⌘)
 - **Visual Feedback**: Toast notifications for all navigation actions
-- **Help Modal**: Press `Ctrl/⌘+K` to view all available shortcuts
-- **Floating Button**: Click the ⌨️ icon in the bottom-right corner for help
+- **Help Modal**: Press `Ctrl/⌘+K` to view all available shortcuts (desktop only)
+- **Floating Button**: Click the ⌨️ icon in the bottom-right corner for help (desktop only)
 
 ### Toast Notifications
 Every navigation action provides visual feedback:
@@ -105,12 +118,13 @@ Demo mode allows you to **try all features** of Private Dictionary without creat
 ### Demo Mode Features:
 ✅ **Full Feature Access**
 - Add, edit, and delete words
-- Drag & drop to reorder words
+- Drag & drop to reorder words (optimized touch support)
 - Rename lessons
 - Adjust pronunciation speed
 - Use text-to-speech
 - Access automatic phonetic generation
 - Use all keyboard shortcuts
+- Toggle dark mode
 
 ⚠️ **Demo Limitations**
 - Maximum **2 lessons** available
@@ -129,6 +143,7 @@ Demo mode allows you to **try all features** of Private Dictionary without creat
 | Delete Words | ✅ | ✅ |
 | Drag & Drop | ✅ | ✅ |
 | Keyboard Shortcuts | ✅ | ✅ |
+| Dark Mode | ✅ | ✅ |
 | Rename Lessons | ✅ | ✅ |
 | Delete Lessons | ❌ | ✅ |
 | Cross-device Sync | ❌ | ✅ |
@@ -144,6 +159,7 @@ Demo mode allows you to **try all features** of Private Dictionary without creat
 - Can modify, delete, and reorder words
 - Can rename lessons
 - Full keyboard shortcuts support
+- Dark mode support
 - Data persists in browser localStorage
 - Data cleared on logout
 - Perfect for trying the app or offline use
@@ -179,7 +195,8 @@ Demo mode allows you to **try all features** of Private Dictionary without creat
 - **Drag & Drop**: Reorder words within lessons
 - **Persistent Ordering**: Changes saved to database/localStorage
 - **Visual Feedback**: Real-time UI updates during drag operations
-- **Mobile Support**: Touch-friendly drag & drop on mobile devices
+- **Mobile Support**: Optimized touch-friendly drag & drop (100ms delay, 5px tolerance)
+- **Haptic Feedback**: Vibration feedback on mobile devices (when supported)
 
 #### Lesson Operations
 - **Create**: Add new lessons dynamically (authenticated users)
@@ -187,7 +204,7 @@ Demo mode allows you to **try all features** of Private Dictionary without creat
 - **Delete**: Remove empty lessons (authenticated users only)
 - **Navigate**: Quick lesson switching with keyboard shortcuts
 - **Progress Tracking**: Visual indicators for completed lessons
-- **Keyboard Navigation**: Use `Ctrl+→/←` or `[/]` to navigate between lessons
+- **Keyboard Navigation**: Use `Ctrl+→/←` to navigate between lessons
 
 ## 🚀 Demo
 
@@ -198,9 +215,10 @@ Demo mode allows you to **try all features** of Private Dictionary without creat
 3. Explore 2 fully-featured lessons
 4. Add up to 20 words per lesson
 5. Test all features: drag & drop, delete, rename, speech synthesis, keyboard shortcuts
-6. Your changes persist in localStorage
-7. Press `Ctrl/⌘+K` to see all keyboard shortcuts
-8. Logout clears demo data
+6. Toggle dark mode with the 🌙 button or `Ctrl/⌘+D`
+7. Your changes persist in localStorage
+8. Press `Ctrl/⌘+K` to see all keyboard shortcuts
+9. Logout clears demo data
 
 ### Full Features with Google
 
@@ -293,11 +311,16 @@ service cloud.firestore {
 ```
 
 ### Tailwind CSS Configuration
-The project uses Tailwind CSS for styling. Configuration file:
+The project uses Tailwind CSS v3.4.1 for styling with dark mode support:
+
 ```javascript
 // tailwind.config.js
-module.exports = {
-  content: ["./src/**/*.{js,jsx,ts,tsx}"],
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  darkMode: 'class',
   theme: {
     extend: {},
   },
@@ -309,13 +332,16 @@ module.exports = {
 The project uses Vite with production optimizations:
 ```javascript
 // vite.config.js
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
 export default defineConfig({
   plugins: [react()],
   build: {
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true, // Removes console.log in production
+        drop_console: true,
         drop_debugger: true
       }
     }
@@ -365,7 +391,7 @@ npm run build
 This will:
 - Create optimized production build
 - Remove all `console.log` statements
-- Minify and bundle assets
+- Minify and bundle assets with Tailwind CSS purging
 - Output to `dist/` directory
 
 ### Preview Production Build
@@ -385,15 +411,25 @@ npm run lint
 
 ### Key Features Usage
 
+#### Dark Mode
+- Toggle with the 🌙 button in the UI
+- Use `Ctrl/⌘+D` keyboard shortcut
+- Automatic system preference detection
+- Preference saved to localStorage
+
 #### Keyboard Shortcuts
-- Press `Ctrl/⌘+K` to view all available shortcuts
+- Press `Ctrl/⌘+K` to view all available shortcuts (desktop only)
 - Use `Ctrl/⌘+E` to quickly add new words
-- Navigate lessons with `Ctrl/⌘+→/←` or `[/]` keys
+- Navigate lessons with `Ctrl/⌘+→/←` keys
 - Press `ESC` to close any modal
 - See [docs/KEYBOARD_SHORTCUTS.md](docs/KEYBOARD_SHORTCUTS.md) for complete documentation
 
 #### Drag & Drop
-Simply click and hold a word or lesson, then drag it to its new position. Changes are automatically saved to database (authenticated) or localStorage (demo).
+- **Desktop**: Click and hold, then drag to new position
+- **Mobile**: Press and hold the ⋮⋮ handle for 100ms, then drag
+- Changes automatically saved to database (authenticated) or localStorage (demo)
+- Optimized touch sensors: 100ms delay, 5px tolerance
+- Haptic feedback on supported mobile devices
 
 #### Pronunciation Speed Control
 Use the slider in the word table to adjust playback speed from 0.3x (slow) to 1.5x (fast). Default speed is 0.7x. Speed preference is saved across sessions.
@@ -446,18 +482,15 @@ private-dictionary/
 │   │   └── phoneticHelper.js
 │   ├── data/
 │   │   └── dictionary.js
-│   ├── styles/
-│   │   └── styles.js
 │   ├── App.jsx
-│   ├── App.css
 │   ├── main.jsx
 │   └── index.css
-├── docs/Keyboard Shortcuts
-│         ├── KEYBOARD_SHORTCUTS.md
-│         ├── INSTALLATION.md
-│         ├── QUICK_REFERENCE.md
-│         ├── ARCHITECTURE.md
-│         └── keyboard-shortcuts-cheatsheet.html
+├── docs/
+│   ├── KEYBOARD_SHORTCUTS.md
+│   ├── INSTALLATION.md
+│   ├── QUICK_REFERENCE.md
+│   ├── ARCHITECTURE.md
+│   └── keyboard-shortcuts-cheatsheet.html
 ├── .env
 ├── .env.example
 ├── .gitignore
@@ -471,11 +504,11 @@ private-dictionary/
 ```
 
 ### Key Components
-- **App.jsx** - Main application logic, state management, auto-save, and keyboard shortcuts
+- **App.jsx** - Main application logic, dark mode state, keyboard shortcuts
 - **AuthContext.jsx** - Authentication state and methods (Google + Demo)
 - **AddWordsModal.jsx** - Word addition interface with API integration
 - **LessonContent.jsx** - Lesson display with edit/delete capabilities
-- **WordTable.jsx** - Word list with drag & drop, pronunciation, and deletion
+- **WordTable.jsx** - Word list with optimized drag & drop, pronunciation
 - **KeyboardShortcutsHelper.jsx** - Floating button and modal for keyboard shortcuts
 - **phoneticHelper.js** - Phonetic generation and Datamuse API integration
 
@@ -490,10 +523,10 @@ private-dictionary/
 
 ### Frontend
 - **React 19** - UI library with hooks
-- **Tailwind CSS** - Utility-first CSS framework
+- **Tailwind CSS 3.4.1** - Utility-first CSS framework with dark mode support
 - **Vite 7** - Build tool and dev server with terser optimization
 - **Lucide React** - Icon library
-- **@dnd-kit** - Drag and drop library
+- **@dnd-kit** - Drag and drop library with optimized touch sensors
 
 ### Backend & Services
 - **Firebase Authentication** - Google OAuth integration
@@ -508,6 +541,13 @@ private-dictionary/
 - **PostCSS** - CSS processing
 - **Autoprefixer** - CSS vendor prefixing
 
+### UI/UX Features
+- **Dark Mode** - System preference detection with manual toggle
+- **Custom Animations** - Fade-in, slide-in-up, pulse effects
+- **Responsive Design** - Mobile-first approach with Tailwind breakpoints
+- **Touch Optimization** - 100ms delay, 5px tolerance for mobile drag & drop
+- **Haptic Feedback** - Vibration on mobile devices (when supported)
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please follow these steps:
@@ -519,21 +559,23 @@ Contributions are welcome! Please follow these steps:
 5. Open a Pull Request
 
 ### Development Guidelines
-- Follow the existing code style
+- Follow the existing code style (Tailwind CSS utility classes)
 - Write meaningful commit messages using Conventional Commits
 - Add tests for new features
 - Update documentation as needed
 - Test both demo and authenticated modes
 - Ensure drag & drop persistence works correctly
 - Test keyboard shortcuts on both Windows and macOS
-- Test on mobile devices
+- Test on mobile devices (especially touch interactions)
+- Test both light and dark modes
 
 ### Conventional Commit Examples
 ```bash
-feat(shortcuts): add keyboard navigation
-fix(drag-drop): resolve position persistence issue
-docs(readme): update keyboard shortcuts section
-chore(deps): update dependencies
+feat(dark-mode): add dark mode toggle
+fix(mobile): optimize touch sensor activation delay
+docs(readme): update dark mode documentation
+style(tailwind): convert inline styles to utility classes
+chore(deps): update tailwindcss to v3.4.1
 ```
 
 ## 📝 Changelog
@@ -544,9 +586,6 @@ See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes.
 
 The following improvements are planned to enhance usability, learning efficiency, and overall user experience:
 
-### 🎯 Quick Wins
-- **Dark Mode** – Toggle with local storage persistence, optional automatic time-based switching
-
 ### 📊 Learning Aids
 - **Practice Mode** – Quiz cards with "show/hide answer" flow
 - **Daily Goal & Streaks** – Track words per day and visualize learning progress
@@ -554,10 +593,9 @@ The following improvements are planned to enhance usability, learning efficiency
 - **Spaced Repetition** – Smart review system based on learning algorithms
 
 ### 🎨 Visual Improvements
-- ✅ **Toast Notifications** – ✅ Implemented for navigation actions (v0.3.0)
-- **Smooth Animations** – Card hover transitions, page transitions
 - **Loading States** – Skeleton screens, optimistic updates
 - **Empty States** – Friendly SVG illustrations for no data / no results
+- **Progress Indicators** – Visual feedback for lesson completion
 
 ### 🔧 Usability
 - **Bulk Actions** – Multi-select for delete, copy, move
@@ -568,7 +606,6 @@ The following improvements are planned to enhance usability, learning efficiency
 ### 📱 Mobile Specific
 - **Swipe Gestures** – Left = delete, right = favorite, double-tap = pronounce
 - **PWA Support** – Offline mode, install prompt, app-like experience
-- **Haptic Feedback** – Vibration feedback on actions
 - **Pull to Refresh** – Sync data with gesture
 
 ### 🚀 Performance

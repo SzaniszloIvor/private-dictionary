@@ -1,10 +1,10 @@
-// src/components/ProgressSection/ProgressSection.jsx
-import React from 'react';
-import { styles } from '../../styles/styles';
+// src/components/ProgressSection/ProgressSection.jsx - TAILWIND
 
 const ProgressSection = ({ dictionary, isDemo }) => {
   const completedLessons = Object.keys(dictionary).length;
-  const totalWords = Object.values(dictionary).reduce((sum, lesson) => sum + lesson.words.length, 0);
+  const totalWords = Object.values(dictionary).reduce(
+    (sum, lesson) => sum + lesson.words.length, 0
+  );
   
   const maxLessons = isDemo ? 2 : completedLessons + 10; 
   const progress = isDemo 
@@ -12,80 +12,128 @@ const ProgressSection = ({ dictionary, isDemo }) => {
     : completedLessons > 0 ? 100 : 0; 
 
   return (
-    <div style={styles.progressSection}>
-      <div style={styles.progressStats}>
+    <div className="bg-gray-50 dark:bg-slate-800 
+                    p-5 border-b-2 
+                    border-gray-200 dark:border-slate-700
+                    transition-all duration-300">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
         {isDemo ? (
           <>
-            <div style={styles.statItem}>
-              <div style={styles.statNumber}>2</div>
-              <div style={styles.statLabel}>Demo órák</div>
+            <div className="bg-white dark:bg-slate-700 
+                          p-4 rounded-lg shadow-md
+                          transition-all duration-300">
+              <div className="text-3xl font-bold text-blue-500 dark:text-blue-400">
+                2
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Demo órák
+              </div>
             </div>
-            <div style={styles.statItem}>
-              <div style={styles.statNumber}>{completedLessons}</div>
-              <div style={styles.statLabel}>Elérhető</div>
+            <div className="bg-white dark:bg-slate-700 
+                          p-4 rounded-lg shadow-md
+                          transition-all duration-300">
+              <div className="text-3xl font-bold text-blue-500 dark:text-blue-400">
+                {completedLessons}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Elérhető
+              </div>
             </div>
           </>
         ) : (
           <>
-            <div style={styles.statItem}>
-              <div style={styles.statNumber}>{completedLessons}</div>
-              <div style={styles.statLabel}>Létrehozott órák</div>
+            <div className="bg-white dark:bg-slate-700 
+                          p-4 rounded-lg shadow-md
+                          transition-all duration-300">
+              <div className="text-3xl font-bold text-blue-500 dark:text-blue-400">
+                {completedLessons}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Létrehozott órák
+              </div>
             </div>
-            <div style={styles.statItem}>
-              <div style={styles.statNumber}>∞</div>
-              <div style={styles.statLabel}>Lehetséges órák</div>
+            <div className="bg-white dark:bg-slate-700 
+                          p-4 rounded-lg shadow-md
+                          transition-all duration-300">
+              <div className="text-3xl font-bold text-blue-500 dark:text-blue-400">
+                ∞
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Lehetséges órák
+              </div>
             </div>
           </>
         )}
-        <div style={styles.statItem}>
-          <div style={styles.statNumber}>{totalWords}</div>
-          <div style={styles.statLabel}>Összes szó</div>
+        
+        <div className="bg-white dark:bg-slate-700 
+                      p-4 rounded-lg shadow-md
+                      transition-all duration-300">
+          <div className="text-3xl font-bold text-blue-500 dark:text-blue-400">
+            {totalWords}
+          </div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            Összes szó
+          </div>
         </div>
-        <div style={styles.statItem}>
-          <div style={{
-            ...styles.statNumber,
-            fontSize: completedLessons === 0 && !isDemo ? '1.5em' : '2em'
-          }}>
+        
+        <div className="bg-white dark:bg-slate-700 
+                      p-4 rounded-lg shadow-md
+                      transition-all duration-300">
+          <div className={`font-bold text-blue-500 dark:text-blue-400
+                        ${completedLessons === 0 && !isDemo ? 'text-2xl' : 'text-3xl'}`}>
             {completedLessons === 0 && !isDemo 
               ? 'Kezdj el!' 
               : isDemo 
                 ? `${progress}%` 
                 : `${completedLessons} óra`}
           </div>
-          <div style={styles.statLabel}>
+          <div className="text-sm text-gray-600 dark:text-gray-400">
             {isDemo ? 'Demo haladás' : 'Saját haladás'}
           </div>
         </div>
       </div>
       
+      {/* Progress Bar (Demo only) */}
       {isDemo && (
         <>
-          <div style={styles.progressBar}>
-            <div style={{...styles.progressFill, width: `${progress}%`}} />
+          <div className="bg-gray-300 dark:bg-slate-700 
+                        rounded-full h-2 overflow-hidden mb-3
+                        transition-all duration-300">
+            <div 
+              className="bg-gradient-to-r from-blue-400 to-cyan-400
+                       dark:from-purple-600 dark:to-indigo-600
+                       h-full transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
           </div>
-          <div style={styles.progressInfo}>
-            <small>Demo módban csak 2 óra érhető el. Jelentkezz be a teljes funkcionalitásért!</small>
+          <div className="text-center mt-3 text-sm text-gray-600 dark:text-gray-400">
+            Demo módban csak 2 óra érhető el. Jelentkezz be a teljes funkcionalitásért!
           </div>
         </>
       )}
       
+      {/* Info Messages */}
       {!isDemo && completedLessons > 0 && (
-        <div style={styles.progressInfo}>
-          <small>Gratulálunk! {completedLessons} órát hoztál létre {totalWords} szóval. Folytasd a tanulást!</small>
+        <div className="text-center mt-3 text-sm text-gray-600 dark:text-gray-400">
+          Gratulálunk! {completedLessons} órát hoztál létre {totalWords} szóval. 
+          Folytasd a tanulást!
         </div>
       )}
       
       {!isDemo && completedLessons === 0 && (
-        <div style={{
-          ...styles.progressInfo,
-          background: '#fff3cd',
-          padding: '15px',
-          borderRadius: '8px',
-          border: '1px solid #ffc107',
-          marginTop: '15px'
-        }}>
-          <strong>👋 Üdvözlünk!</strong><br />
-          <small>Kezdd el építeni saját szótáradat! Kattints a "Szavak hozzáadása" gombra az első óra létrehozásához.</small>
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 
+                      border border-yellow-200 dark:border-yellow-700
+                      rounded-lg p-4 mt-4
+                      transition-all duration-300">
+          <strong className="text-gray-900 dark:text-gray-100">
+            👋 Üdvözlünk!
+          </strong>
+          <br />
+          <small className="text-gray-700 dark:text-gray-300">
+            Kezdd el építeni saját szótáradat! Kattints a "Szavak hozzáadása" 
+            gombra az első óra létrehozásához.
+          </small>
         </div>
       )}
     </div>

@@ -9,31 +9,66 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-}
-
-@layer components {
+  
+  /* CRITICAL: Disable default touch behaviors on draggable elements */
+  .touch-none {
+    touch-action: none !important;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* Allow normal touch behavior for interactive elements */
+  .touch-auto {
+    touch-action: auto !important;
+  }
 }
 
 @layer utilities {
+  /* Custom cursor styles for drag handles */
+  .cursor-grab {
+    cursor: grab;
+    cursor: -webkit-grab;
+  }
+  
+  .cursor-grabbing {
+    cursor: grabbing;
+    cursor: -webkit-grabbing;
+  }
 }
 
-/* ÚJ: Keyboard shortcuts animációk */
-@keyframes slideInRight {
+/* ============================================
+   Custom Animations
+   ============================================ */
+@keyframes fade-in {
+  from { 
+    opacity: 0; 
+  }
+  to { 
+    opacity: 1; 
+  }
+}
+
+@keyframes slide-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-right {
   from {
     transform: translateX(100%);
     opacity: 0;
   }
   to {
     transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
     opacity: 1;
   }
 }
@@ -47,14 +82,84 @@
   }
 }
 
+/* Apply animations */
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-slide-in-up {
+  animation: slide-in-up 0.4s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
 /* Notification pulse effect */
 .save-notification {
-  animation: slideInRight 0.3s ease-out, pulse 2s ease-in-out infinite;
+  animation: slide-in-right 0.3s ease-out, pulse 2s ease-in-out infinite;
 }
+
+/* ============================================
+   Global Styles
+   ============================================ */
 
 /* Focus ring for keyboard navigation */
 :focus-visible {
   outline: 3px solid #667eea;
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* Smooth scrolling for better UX */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Prevent iOS rubber band effect during drag */
+body.dragging {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+/* Optimize touch scrolling on mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ============================================
+   Scrollbar Styling
+   ============================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Dark mode scrollbar */
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-track {
+    background: #1f2937;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #4b5563;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
 }
