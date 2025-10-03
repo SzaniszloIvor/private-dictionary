@@ -1,13 +1,56 @@
-# Billentyűparancsok Telepítési Útmutató
+# Billentyűparancsok & Dark Mode Telepítési Útmutató
 
 ## Előfeltételek
 
 - React projekt (16.8+, hooks támogatás)
 - Működő Private Dictionary alkalmazás
+- Node.js 20.0.0+
+- npm vagy yarn
+
+## Verzió Információ
+
+- **Verzió**: 0.3.1
+- **React verzió**: 19.1.1+
+- **Tailwind CSS**: 3.4.1
+- **Utolsó frissítés**: 2025-10-04
 
 ## Telepítési Lépések
 
-### 1. Hook Létrehozása
+### 1. Tailwind CSS Telepítése (v0.3.0+)
+
+```bash
+npm install -D tailwindcss@3.4.1 postcss@8.4.35 autoprefixer@10.4.17
+npx tailwindcss init -p
+```
+
+**Konfiguráció:**
+
+```javascript
+// tailwind.config.js
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  darkMode: 'class',
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+```
+
+```javascript
+// postcss.config.js
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+```
+
+### 2. Keyboard Shortcuts Hook
 
 Hozd létre a `src/hooks/useKeyboardShortcuts.js` fájlt:
 
@@ -71,7 +114,67 @@ export const getShortcutDisplay = (shortcut) => {
 export default useKeyboardShortcuts;
 ```
 
-### 2. KeyboardShortcutsHelper Komponens
+### 3. Dark Mode Hook (v0.3.0+)
+
+Hozd létre a `src/hooks/useDarkMode.js` fájlt:
+
+```javascript
+// src/hooks/useDarkMode.js
+import { useState, useEffect } from 'react';
+
+export const useDarkMode = () => {
+  const [darkMode, setDarkMode] = useState(() => {
+    // Load from localStorage or system preference
+    const saved = localStorage.getItem('darkMode');
+    if (saved !== null) return saved === 'true';
+    return window.matchMedia && 
+           window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  useEffect(() => {
+    // Save to localStorage
+    localStorage.setItem('darkMode', darkMode);
+    
+    // Toggle dark class on HTML element
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
+  useEffect(() => {
+    // Listen to system preference changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const handleChange = (e) => {
+      // Only update if user hasn't set preference manually
+      const saved = localStorage.getItem('darkMode');
+      if (saved === null) {
+        setDarkMode(e.matches);
+      }
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    } else if (mediaQuery.addListener) {
+      mediaQuery.addListener(handleChange);
+      return () => mediaQuery.removeListener(handleChange);
+    }
+  }, []);
+
+  const toggleDarkMode = () => {
+    setDarkMode(prev => !prev);
+  };
+
+  return { darkMode, toggleDarkMode };
+};
+
+export default useDarkMode;
+```
+
+### 4. KeyboardShortcutsHelper Komponens (Tailwind v0.3.0+)
 
 Hozd létre a `src/components/KeyboardShortcutsHelper/KeyboardShortcutsHelper.jsx` fájlt:
 
@@ -85,196 +188,139 @@ const KeyboardShortcutsHelper = ({ isOpen, onOpen, onClose }) => {
     { combo: 'mod+e', description: 'Új szó hozzáadása', icon: '➕' },
     { combo: 'mod+f', description: 'Keresés fókuszálása', icon: '🔍' },
     { combo: 'mod+s', description: 'Mentési állapot megjelenítése', icon: '💾' },
+    { combo: 'mod+d', description: 'Sötét mód kapcsolása', icon: '🌙' },
     { combo: 'mod+k', description: 'Billentyűparancsok megjelenítése', icon: '⌨️' },
     { combo: 'mod+arrowright', description: 'Következő óra', icon: '➡️' },
     { combo: 'mod+arrowleft', description: 'Előző óra', icon: '⬅️' },
-    { combo: ']', description: 'Következő óra (alternatív)', icon: '➡️' },
-    { combo: '[', description: 'Előző óra (alternatív)', icon: '⬅️' },
     { combo: 'mod+home', description: 'Első óra', icon: '⏮️' },
     { combo: 'mod+end', description: 'Utolsó óra', icon: '⏭️' },
     { combo: 'escape', description: 'Modal bezárása', icon: '❌' }
   ];
 
-  const helperStyles = {
-    button: {
-      position: 'fixed',
-      bottom: '20px',
-      right: '20px',
-      width: '50px',
-      height: '50px',
-      borderRadius: '50%',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      color: 'white',
-      border: 'none',
-      fontSize: '24px',
-      cursor: 'pointer',
-      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      transition: 'all 0.3s ease',
-      zIndex: 999
-    },
-    modal: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      background: 'rgba(0, 0, 0, 0.7)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1001,
-      padding: '20px'
-    },
-    content: {
-      background: 'white',
-      borderRadius: '15px',
-      padding: '30px',
-      maxWidth: '500px',
-      width: '100%',
-      maxHeight: '80vh',
-      overflowY: 'auto',
-      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)'
-    },
-    header: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: '25px',
-      paddingBottom: '15px',
-      borderBottom: '2px solid #e9ecef'
-    },
-    title: {
-      fontSize: '24px',
-      fontWeight: 'bold',
-      color: '#495057',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '10px'
-    },
-    closeBtn: {
-      background: 'transparent',
-      border: 'none',
-      fontSize: '28px',
-      cursor: 'pointer',
-      color: '#6c757d',
-      padding: '0',
-      width: '32px',
-      height: '32px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    },
-    shortcutsList: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '15px'
-    },
-    shortcutItem: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '12px 15px',
-      background: '#f8f9fa',
-      borderRadius: '8px',
-      transition: 'all 0.2s ease'
-    },
-    shortcutLeft: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '12px',
-      flex: 1
-    },
-    icon: {
-      fontSize: '24px'
-    },
-    description: {
-      color: '#495057',
-      fontSize: '15px'
-    },
-    keys: {
-      display: 'flex',
-      gap: '4px',
-      alignItems: 'center'
-    },
-    key: {
-      background: 'white',
-      padding: '4px 10px',
-      borderRadius: '5px',
-      fontSize: '13px',
-      fontWeight: 'bold',
-      color: '#667eea',
-      border: '2px solid #667eea',
-      minWidth: '30px',
-      textAlign: 'center'
-    }
-  };
-
   return (
     <>
+      {/* Floating Action Button - ONLY on desktop */}
       <button
-        style={helperStyles.button}
         onClick={onOpen}
+        className="
+          hidden md:flex
+          fixed bottom-5 right-5 z-[999]
+          w-12 h-12 rounded-full
+          bg-gradient-to-r from-indigo-500 to-purple-600
+          dark:from-indigo-600 dark:to-purple-700
+          text-white text-2xl
+          items-center justify-center
+          shadow-lg hover:shadow-xl
+          hover:scale-110 active:scale-95
+          transition-all duration-300
+        "
         title="Billentyűparancsok (Ctrl/⌘+K)"
-        onMouseOver={(e) => {
-          e.currentTarget.style.transform = 'scale(1.1)';
-          e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
-        }}
-        onMouseOut={(e) => {
-          e.currentTarget.style.transform = 'scale(1)';
-          e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
-        }}
       >
         ⌨️
       </button>
 
+      {/* Modal Overlay */}
       {isOpen && (
         <div 
-          style={helperStyles.modal}
           onClick={onClose}
+          className="
+            fixed inset-0 z-[1001]
+            bg-black/70 dark:bg-black/85
+            flex items-center justify-center
+            p-5 animate-fade-in
+          "
         >
+          {/* Modal Content */}
           <div 
-            style={helperStyles.content}
             onClick={(e) => e.stopPropagation()}
+            className="
+              bg-white dark:bg-gray-800
+              rounded-2xl shadow-2xl
+              p-8 max-w-lg w-full
+              max-h-[80vh] overflow-y-auto
+              animate-slide-in-up
+            "
           >
-            <div style={helperStyles.header}>
-              <div style={helperStyles.title}>
+            {/* Header */}
+            <div className="
+              flex justify-between items-center
+              mb-6 pb-4
+              border-b-2 border-gray-200 dark:border-gray-700
+            ">
+              <div className="
+                text-2xl font-bold
+                text-gray-800 dark:text-gray-100
+                flex items-center gap-3
+              ">
                 ⌨️ Billentyűparancsok
               </div>
               <button
-                style={helperStyles.closeBtn}
                 onClick={onClose}
+                className="
+                  text-gray-600 dark:text-gray-400
+                  hover:text-gray-900 dark:hover:text-gray-100
+                  text-3xl font-bold
+                  w-8 h-8 flex items-center justify-center
+                  hover:scale-110 active:scale-95
+                  transition-transform duration-200
+                "
                 title="Bezárás (ESC)"
               >
                 ×
               </button>
             </div>
 
-            <div style={helperStyles.shortcutsList}>
+            {/* Shortcuts List */}
+            <div className="flex flex-col gap-3">
               {shortcuts.map((shortcut, index) => (
                 <div 
-                  key={index} 
-                  style={helperStyles.shortcutItem}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.background = '#e9ecef';
-                    e.currentTarget.style.transform = 'translateX(5px)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.background = '#f8f9fa';
-                    e.currentTarget.style.transform = 'translateX(0)';
-                  }}
+                  key={index}
+                  className="
+                    flex justify-between items-center
+                    p-3 rounded-lg
+                    bg-gray-50 dark:bg-gray-700/50
+                    hover:bg-gray-100 dark:hover:bg-gray-700
+                    hover:translate-x-1
+                    transition-all duration-200
+                    group
+                  "
                 >
-                  <div style={helperStyles.shortcutLeft}>
-                    <span style={helperStyles.icon}>{shortcut.icon}</span>
-                    <span style={helperStyles.description}>{shortcut.description}</span>
+                  {/* Left side: Icon + Description */}
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <span className="text-2xl flex-shrink-0">
+                      {shortcut.icon}
+                    </span>
+                    <span className="
+                      text-gray-800 dark:text-gray-200
+                      text-sm font-medium
+                      truncate
+                    ">
+                      {shortcut.description}
+                    </span>
                   </div>
-                  <div style={helperStyles.keys}>
+
+                  {/* Right side: Key combinations */}
+                  <div className="flex gap-1 items-center flex-shrink-0 ml-2">
                     {getShortcutDisplay(shortcut.combo).split('+').map((key, i, arr) => (
                       <React.Fragment key={i}>
-                        <span style={helperStyles.key}>{key}</span>
-                        {i < arr.length - 1 && <span style={{ color: '#6c757d' }}>+</span>}
+                        <kbd className="
+                          bg-white dark:bg-gray-900
+                          text-indigo-600 dark:text-indigo-400
+                          border-2 border-indigo-600 dark:border-indigo-400
+                          px-2.5 py-1 rounded
+                          text-xs font-bold
+                          min-w-[32px] text-center
+                          shadow-sm
+                          group-hover:shadow-md
+                          transition-shadow duration-200
+                        ">
+                          {key}
+                        </kbd>
+                        {i < arr.length - 1 && (
+                          <span className="text-gray-500 dark:text-gray-400 text-sm">
+                            +
+                          </span>
+                        )}
                       </React.Fragment>
                     ))}
                   </div>
@@ -282,16 +328,25 @@ const KeyboardShortcutsHelper = ({ isOpen, onOpen, onClose }) => {
               ))}
             </div>
 
-            <div style={{
-              marginTop: '25px',
-              padding: '15px',
-              background: 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)',
-              borderRadius: '8px',
-              fontSize: '13px',
-              color: '#155724'
-            }}>
-              💡 <strong>Tipp:</strong> Nyomd meg a <strong>{getShortcutDisplay('mod+k')}</strong> kombinációt 
-              bármikor a billentyűparancsok megjelenítéséhez!
+            {/* Footer Tip */}
+            <div className="
+              mt-6 p-4 rounded-lg
+              bg-gradient-to-r from-green-50 to-emerald-50
+              dark:from-green-900/20 dark:to-emerald-900/20
+              border border-green-200 dark:border-green-800
+              text-sm
+              text-green-800 dark:text-green-300
+            ">
+              💡 <strong>Tipp:</strong> Nyomd meg a{' '}
+              <kbd className="
+                bg-white dark:bg-gray-800
+                text-green-700 dark:text-green-400
+                border border-green-600 dark:border-green-500
+                px-2 py-0.5 rounded text-xs font-bold
+              ">
+                {getShortcutDisplay('mod+k')}
+              </kbd>{' '}
+              kombinációt bármikor a billentyűparancsok megjelenítéséhez!
             </div>
           </div>
         </div>
@@ -303,16 +358,54 @@ const KeyboardShortcutsHelper = ({ isOpen, onOpen, onClose }) => {
 export default KeyboardShortcutsHelper;
 ```
 
-### 3. App.jsx Módosítások
+### 5. DarkModeToggle Komponens (v0.3.0+)
+
+Hozd létre a `src/components/DarkModeToggle/DarkModeToggle.jsx` fájlt:
+
+```javascript
+// src/components/DarkModeToggle/DarkModeToggle.jsx
+import React from 'react';
+
+const DarkModeToggle = ({ darkMode, toggleDarkMode }) => {
+  return (
+    <button
+      onClick={toggleDarkMode}
+      className="fixed bottom-20 right-5 w-12 h-12 rounded-full 
+                 bg-gradient-to-br from-yellow-400 to-yellow-500
+                 dark:from-slate-700 dark:to-slate-800
+                 text-white text-2xl
+                 shadow-lg hover:shadow-xl
+                 transform hover:scale-110 hover:rotate-12
+                 transition-all duration-300
+                 flex items-center justify-center
+                 z-[998]
+                 animate-fade-in"
+      title={darkMode ? 'Váltás világos módra (Ctrl/⌘+D)' : 'Váltás sötét módra (Ctrl/⌘+D)'}
+      aria-label={darkMode ? 'Váltás világos módra' : 'Váltás sötét módra'}
+    >
+      {darkMode ? '🌙' : '☀️'}
+    </button>
+  );
+};
+
+export default DarkModeToggle;
+```
+
+### 6. App.jsx Integráció (v0.3.0+)
 
 Frissítsd az `src/App.jsx` fájlt:
 
 ```javascript
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
-import KeyboardShortcutsHelper from './components/KeyboardShortcutsHelper/KeyboardShortcutsHelper';
+import { useDarkMode } from './hooks/useDarkMode';
+import KeyboardShortcutsHelper from './components/KeyboardShortcutsHelper';
+import DarkModeToggle from './components/DarkModeToggle';
 
 const MainApp = () => {
+  // Dark mode
+  const { darkMode, toggleDarkMode } = useDarkMode();
+  
   // ... meglévő state-ek ...
   
   // Új state-ek
@@ -333,51 +426,86 @@ const MainApp = () => {
       e.preventDefault();
       e.stopPropagation();
       setShowAddModal(true);
-      showToast('➕ Új szó hozzáadása');
+      showToast('➕ Add new word');
     },
     'mod+f': (e) => {
       e.preventDefault();
       if (searchInputRef.current) {
         searchInputRef.current.focus();
         searchInputRef.current.select();
-        showToast('🔍 Keresés aktiválva');
+        showToast('🔍 Search activated');
       }
     },
-    // ... további shortcuts
-  }), [showAddModal, showShortcutsHelp, dictionary, currentLesson]);
+    'mod+d': (e) => {
+      e.preventDefault();
+      toggleDarkMode();
+      showToast(darkMode ? '☀️ Light mode' : '🌙 Dark mode');
+    },
+    'mod+k': (e) => {
+      e.preventDefault();
+      setShowShortcutsHelp(prev => !prev);
+    },
+    'mod+s': (e) => {
+      e.preventDefault();
+      setShowSaveNotification(true);
+    },
+    'mod+arrowright': (e) => {
+      e.preventDefault();
+      // Navigate to next lesson + showToast
+    },
+    'mod+arrowleft': (e) => {
+      e.preventDefault();
+      // Navigate to previous lesson + showToast
+    },
+    'mod+home': (e) => {
+      e.preventDefault();
+      // Navigate to first lesson + showToast
+    },
+    'mod+end': (e) => {
+      e.preventDefault();
+      // Navigate to last lesson + showToast
+    },
+    'escape': () => {
+      if (showAddModal) setShowAddModal(false);
+      else if (showShortcutsHelp) setShowShortcutsHelp(false);
+    }
+  }), [showAddModal, showShortcutsHelp, dictionary, currentLesson, darkMode, toggleDarkMode]);
   
   // Hook inicializálása
   useKeyboardShortcuts(shortcuts, !loading);
   
-  // Toast komponens
+  // Cleanup for SaveNotification
+  useEffect(() => {
+    if (showSaveNotification) {
+      const timer = setTimeout(() => {
+        setShowSaveNotification(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSaveNotification]);
+  
+  // Toast komponens (Tailwind)
   const ToastNotification = () => {
     if (!toastMessage) return null;
     
     return (
-      <div 
-        style={{
-          position: 'fixed',
-          bottom: '80px',
-          right: '20px',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: 'white',
-          padding: '12px 20px',
-          borderRadius: '8px',
-          boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
-          zIndex: 1000,
-          animation: 'slideInRight 0.3s ease-out',
-          fontSize: '14px',
-          fontWeight: '500',
-          maxWidth: '300px'
-        }}
-      >
-        {toastMessage}
+      <div className="fixed bottom-20 right-5 z-[1000]
+                    bg-gradient-to-r from-primary-600 to-primary-dark
+                    text-white px-5 py-3 rounded-lg
+                    shadow-lg animate-slide-in-right
+                    max-w-[300px]">
+        <div className="text-sm font-medium">
+          {toastMessage}
+        </div>
       </div>
     );
   };
   
   return (
-    <div>
+    <div className="max-w-7xl mx-auto my-5 
+                  bg-white dark:bg-slate-900 
+                  rounded-2xl shadow-2xl overflow-hidden
+                  transition-all duration-300">
       {/* ... meglévő komponensek ... */}
       
       <ToastNotification />
@@ -386,14 +514,15 @@ const MainApp = () => {
         onOpen={() => setShowShortcutsHelp(true)}
         onClose={() => setShowShortcutsHelp(false)}
       />
+      <DarkModeToggle darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
     </div>
   );
 };
 ```
 
-### 4. SearchControls Módosítás
+### 7. SearchControls Módosítás
 
-Adj hozzá ref támogatást a `SearchControls` komponenshez:
+Adj hozzá ref támogatást és Tailwind osztályokat:
 
 ```javascript
 const SearchControls = ({ 
@@ -404,25 +533,59 @@ const SearchControls = ({
   searchInputRef  // Új prop
 }) => {
   return (
-    <div>
+    <div className="p-5 bg-white dark:bg-slate-800 
+                  border-b border-gray-200 dark:border-slate-700
+                  flex flex-wrap gap-4 items-center
+                  transition-all duration-300">
       <input
         ref={searchInputRef}  // Ref hozzáadása
         type="text"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         placeholder="Keresés... (Ctrl/⌘+F)"
+        className="flex-1 min-w-[200px] px-4 py-3
+                 bg-white dark:bg-slate-700
+                 text-gray-900 dark:text-gray-100
+                 placeholder-gray-500 dark:placeholder-gray-400
+                 border-2 border-gray-300 dark:border-slate-600
+                 rounded-lg
+                 focus:ring-2 focus:ring-blue-500 dark:focus:ring-purple-500
+                 focus:border-transparent
+                 transition-all duration-200
+                 text-base"
       />
     </div>
   );
 };
 ```
 
-### 5. CSS Animációk
+### 8. CSS/Tailwind Beállítások
 
-Add hozzá az `src/index.css` fájlhoz:
+Frissítsd az `src/index.css` fájlt:
 
 ```css
-@keyframes slideInRight {
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-right {
   from {
     transform: translateX(100%);
     opacity: 0;
@@ -433,37 +596,142 @@ Add hozzá az `src/index.css` fájlhoz:
   }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
-.save-notification {
-  animation: slideInRight 0.3s ease-out;
+/* Apply animations */
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
 }
+
+.animate-slide-in-up {
+  animation: slide-in-up 0.4s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+/* Touch optimizations */
+@layer base {
+  .touch-none {
+    touch-action: none !important;
+    user-select: none;
+  }
+  
+  .touch-auto {
+    touch-action: auto !important;
+  }
+}
+
+/* Focus styles */
+:focus-visible {
+  outline: 3px solid #667eea;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Dark mode scrollbar */
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-track {
+    background: #1f2937;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #4b5563;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
+}
+```
+
+### 9. Vite Build Konfiguráció
+
+Frissítsd a `vite.config.js` fájlt:
+
+```javascript
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  build: {
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      }
+    }
+  }
+})
 ```
 
 ## Tesztelés
 
 ### 1. Alapvető Tesztek
 
-- Nyomd meg `Ctrl+E` (vagy `⌘E` macOS-en) → Új szó modal megnyílik
-- Nyomd meg `Ctrl+F` → Keresés fókuszálódik
-- Nyomd meg `Ctrl+K` → Súgó megjelenik
-- Nyomd meg `ESC` → Modal bezáródik
+- ✅ `Ctrl+E` (vagy `⌘E` macOS-en) → Új szó modal megnyílik
+- ✅ `Ctrl+F` → Keresés fókuszálódik
+- ✅ `Ctrl+D` → Dark mode vált
+- ✅ `Ctrl+K` → Súgó megjelenik (csak desktop)
+- ✅ `ESC` → Modal bezáródik
 
 ### 2. Navigációs Tesztek
 
-- Nyomd meg `Ctrl+→` vagy `]` → Következő óra
-- Nyomd meg `Ctrl+←` vagy `[` → Előző óra
-- Nyomd meg `Ctrl+Home` → Első óra
-- Nyomd meg `Ctrl+End` → Utolsó óra
+- ✅ `Ctrl+→` → Következő óra
+- ✅ `Ctrl+←` → Előző óra
+- ✅ `Ctrl+Home` → Első óra
+- ✅ `Ctrl+End` → Utolsó óra
 
 ### 3. Toast Tesztek
 
-- Minden navigációs parancs után jelenik-e meg a toast?
-- A toast 2 másodperc után eltűnik?
-- A toast animáció smooth?
+- ✅ Minden navigációs parancs után jelenik-e meg a toast?
+- ✅ A toast 2 másodperc után eltűnik?
+- ✅ A toast animáció smooth?
+- ✅ Dark mode-ban is jól látható?
+
+### 4. Dark Mode Tesztek
+
+- ✅ `Ctrl+D` váltja a dark mode-ot?
+- ✅ localStorage-ban tárolódik?
+- ✅ Oldal frissítés után megmarad?
+- ✅ Rendszer preferencia érzékelése működik?
+- ✅ Minden komponens dark mode-ban is jól néz ki?
+
+### 5. Mobil Tesztek
+
+- ✅ Keyboard shortcuts FAB rejtett mobilon?
+- ✅ Dark mode toggle látható mobilon?
+- ✅ Toast notifications jól jelennek meg?
+- ✅ Touch optimalizáció működik? (drag & drop)
 
 ## Hibaelhárítás
 
@@ -472,20 +740,123 @@ Add hozzá az `src/index.css` fájlhoz:
 **Ellenőrzés:**
 ```javascript
 console.log('Shortcuts enabled:', !loading);
+console.log('Dark mode:', darkMode);
 ```
 
 Ha `false`, akkor a hook le van tiltva.
 
 ### Toast nem jelenik meg
 
-Ellenőrizd, hogy a `ToastNotification` komponens renderelve van-e.
+Ellenőrizd:
+- `ToastNotification` komponens renderelve van?
+- Tailwind animációk betöltődtek?
+- z-index érték helyes? (`z-[1000]`)
+
+### Dark mode nem vált
+
+Ellenőrizd:
+- localStorage írható? (privacy mode)
+- `<html>` elem elérhető?
+- Tailwind `darkMode: 'class'` konfiguráció helyes?
+- `useDarkMode` hook helyesen importálva?
+
+### Tailwind osztályok nem működnek
+
+Ellenőrizd:
+- `tailwind.config.js` content path helyes?
+- `@tailwind` direktívák az `index.css`-ben?
+- PostCSS konfiguráció helyes?
+- Build után CSS purging működik?
 
 ### Billentyűparancs ütközés
 
-Ha egy parancs nem működik, lehet hogy a böngésző alapértelmezett viselkedése ütközik. Használj alternatív kombinációt.
+Ha egy parancs nem működik, lehet hogy a böngésző alapértelmezett viselkedése ütközik. Használj alternatív kombinációt vagy add hozzá `preventDefault()`-et.
 
-## Verzió Információ
+## Production Build
 
-- **Verzió**: 1.0.1
-- **React verzió**: 16.8+
-- **Utolsó frissítés**: 2025-10-02
+```bash
+# Build
+npm run build
+
+# Preview
+npm run preview
+```
+
+**Ellenőrzőlista:**
+- ✅ Console.log üzenetek eltávolítva
+- ✅ Tailwind CSS purging működik (~70% méretcsökkentés)
+- ✅ Dark mode működik production-ben
+- ✅ Keyboard shortcuts működnek
+- ✅ localStorage persistence működik
+
+## Migrációs Útmutató v0.2.0 → v0.3.1
+
+### Eltávolítandó:
+
+1. **Inline styles helyett Tailwind**:
+   ```javascript
+   // ELŐTTE
+   style={{ background: 'white', padding: '20px' }}
+   
+   // UTÁNA
+   className="bg-white p-5"
+   ```
+
+2. **Alternatív navigációs parancsok**:
+   - ❌ `]` és `[` billentyűk eltávolítva
+   - ✅ Csak `Ctrl+→/←` működik
+
+3. **`src/styles/styles.js` fájl**:
+   - Törölhető, már nem szükséges
+
+### Hozzáadandó:
+
+1. **Dark mode support**:
+   - `useDarkMode` hook
+   - `DarkModeToggle` komponens
+   - `Ctrl+D` shortcut
+
+2. **Tailwind CSS**:
+   - Konfiguráció fájlok
+   - Custom animációk
+   - Dark mode osztályok
+
+3. **Mobil optimalizáció**:
+   - `hidden md:flex` a FAB-ra
+   - Touch sensor optimalizáció (150ms/5px)
+
+## Függőségek
+
+```json
+{
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1",
+    "postcss": "^8.4.35",
+    "autoprefixer": "^10.4.17",
+    "vite": "^7.1.6"
+  }
+}
+```
+
+## Kapcsolódó Dokumentáció
+
+- [KEYBOARD_SHORTCUTS.md](./KEYBOARD_SHORTCUTS.md) - Teljes dokumentáció
+- [CHANGELOG.md](../../CHANGELOG.md) - Verzió történet
+- [README.md](../../README.md) - Projekt README
+
+## Támogatás
+
+Ha problémákba ütközöl:
+1. Ellenőrizd a [Hibaelhárítás](#hibaelhárítás) szekciót
+2. Nézd meg a [CHANGELOG.md](../../CHANGELOG.md) fájlt
+3. Ellenőrizd a browser konzolt hibákért
+
+---
+
+**Verzió**: 0.3.0  
+**Utolsó frissítés**: 2025-10-04  
+**Szerző**: Private Dictionary Team

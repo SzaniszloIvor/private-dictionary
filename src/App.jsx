@@ -367,7 +367,7 @@ const MainApp = () => {
     }
   };
 
-  const reorderWords = (lessonNumber, newWordOrder) => {
+   const reorderWords = (lessonNumber, newWordOrder) => {
     const updatedDictionary = { ...dictionary };
     const lessonKey = lessonNumber.toString();
     

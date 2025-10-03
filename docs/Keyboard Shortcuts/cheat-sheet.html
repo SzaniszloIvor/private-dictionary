@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Keyboard Shortcuts - Cheat Sheet</title>
+  <title>Keyboard Shortcuts - Cheat Sheet v0.3.0</title>
   <style>
     * {
       margin: 0;
@@ -38,6 +38,18 @@
     .header p {
       font-size: 1.2em;
       opacity: 0.9;
+    }
+    
+    .version-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.9em;
+      font-weight: bold;
+      margin-top: 10px;
+      backdrop-filter: blur(10px);
     }
     
     .platform-toggle {
@@ -150,6 +162,29 @@
       margin-top: 8px;
     }
     
+    .new-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.7em;
+      font-weight: bold;
+      margin-left: 8px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.05);
+        opacity: 0.9;
+      }
+    }
+    
     .footer {
       text-align: center;
       color: white;
@@ -177,6 +212,41 @@
       gap: 8px;
     }
     
+    .whats-new {
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 30px;
+      backdrop-filter: blur(10px);
+      color: white;
+    }
+    
+    .whats-new h3 {
+      font-size: 1.5em;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .whats-new ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    
+    .whats-new li {
+      padding: 8px 0;
+      display: flex;
+      align-items: start;
+      gap: 10px;
+    }
+    
+    .whats-new li::before {
+      content: "✨";
+      flex-shrink: 0;
+    }
+    
     @media print {
       body {
         background: white;
@@ -187,7 +257,7 @@
         color: #667eea;
       }
       
-      .platform-toggle {
+      .platform-toggle, .whats-new {
         display: none;
       }
       
@@ -217,6 +287,18 @@
     <div class="header">
       <h1>⌨️ Keyboard Shortcuts</h1>
       <p>Private Dictionary - Teljes Referencia</p>
+      <span class="version-badge">v0.3.0 - 2025-10-04</span>
+    </div>
+    
+    <!-- What's New Section -->
+    <div class="whats-new">
+      <h3>🎉 Újdonságok v0.3.0-ban</h3>
+      <ul>
+        <li><strong>Dark Mode:</strong> Új Ctrl/⌘+D billentyűparancs a világos/sötét mód váltásához</li>
+        <li><strong>Tailwind CSS:</strong> Teljes UI újratervezés modern utility-first megközelítéssel</li>
+        <li><strong>Mobilon jobb drag & drop:</strong> Gyorsabb aktiválás (100ms) és érzékenyebb érintés (5px)</li>
+        <li><strong>Egyszerűsített navigáció:</strong> Az alternatív ] és [ billentyűk eltávolítva a tisztább használatért</li>
+      </ul>
     </div>
     
     <div class="platform-toggle">
@@ -270,6 +352,23 @@
         </div>
         
         <div class="card">
+          <div class="card-icon">🌙</div>
+          <div class="card-title">
+            Sötét mód kapcsolása
+            <span class="new-badge">ÚJ</span>
+          </div>
+          <div class="card-description">
+            Váltás a világos és sötét téma között. A beállítás automatikusan mentésre kerül.
+          </div>
+          <div class="keys">
+            <span class="key mod-key">Ctrl</span>
+            <span class="key separator">+</span>
+            <span class="key">D</span>
+          </div>
+          <span class="toast-badge">Toast: 🌙 Sötét mód / ☀️ Világos mód</span>
+        </div>
+        
+        <div class="card">
           <div class="card-icon">⌨️</div>
           <div class="card-title">Billentyűparancsok súgó</div>
           <div class="card-description">
@@ -310,10 +409,6 @@
             <span class="key separator">+</span>
             <span class="key">→</span>
           </div>
-          <div class="keys" style="margin-top: 10px;">
-            <span style="color: #6c757d; font-size: 0.9em;">vagy</span>
-            <span class="key">]</span>
-          </div>
           <span class="toast-badge">Toast: ➡️ [óra címe]</span>
         </div>
         
@@ -327,10 +422,6 @@
             <span class="key mod-key">Ctrl</span>
             <span class="key separator">+</span>
             <span class="key">←</span>
-          </div>
-          <div class="keys" style="margin-top: 10px;">
-            <span style="color: #6c757d; font-size: 0.9em;">vagy</span>
-            <span class="key">[</span>
           </div>
           <span class="toast-badge">Toast: ⬅️ [óra címe]</span>
         </div>
@@ -373,6 +464,10 @@
           <span>A billentyűparancsok felgyorsítják a munkát</span>
         </li>
         <li>
+          <span>🌙</span>
+          <span>Használd a Ctrl/⌘+D-t a szembarát sötét mód bekapcsolásához</span>
+        </li>
+        <li>
           <span>🎨</span>
           <span>Minden navigációs parancshoz toast visszajelzés tartozik</span>
         </li>
@@ -387,6 +482,10 @@
         <li>
           <span>⚠️</span>
           <span>Ctrl+N nem használható (böngésző ütközés) → használd Ctrl+E-t</span>
+        </li>
+        <li>
+          <span>🎯</span>
+          <span>A Ctrl/⌘+K bármikor megjeleníti a súgót</span>
         </li>
       </ul>
     </div>

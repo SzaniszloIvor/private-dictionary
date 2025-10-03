@@ -20,6 +20,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.1] - 2025-10-04
+
+### Fixed
+- **Mobile & Desktop Drag & Drop UX Improvements**
+  - Fixed mobile drag & drop not working properly with only small icon draggable.
+  - Entire card/row now draggable instead of just the handle icon (⋮⋮).
+  - Buttons (🔊, ⋮, 🗑️) now protected with `stopPropagation` on both touch and mouse events.
+  - Optimized touch sensor: `delay: 150ms` (was 100ms), `tolerance: 5px` (was 8px).
+  - Drag handle icon (⋮⋮) now visual indicator only with `pointer-events-none`.
+  - Buttons use `touch-auto pointer-events-auto` to prevent drag activation.
+  - Desktop rows fully draggable with `cursor-grab/cursor-grabbing` visual feedback.
+  - Demo mode protection: drag disabled with `disabled: isDemo` prop.
+
+### Changed
+- **WordTable Component**
+  - `SortableCard`: Entire card area now draggable on mobile (not just handle).
+  - `SortableRow`: Entire row draggable on desktop (except Actions column).
+  - `handleButtonInteraction` helper added for all buttons to prevent drag conflicts.
+  - Updated usage hint: "Hold any card (on the text) and drag to new position".
+
+### Technical Details
+- Touch sensor activation: 150ms delay with 5px tolerance for better accuracy.
+- Buttons protected with `onTouchStart`, `onTouchEnd`, and `onClick` handlers.
+- Haptic feedback preserved on drag start (50ms) and end ([30,50,30]ms).
+- All changes tested on mobile (iOS/Android) and desktop browsers.
+
+---
+
 ## [0.3.0] - 2025-10-04
 
 ### Added
@@ -302,7 +330,8 @@ For developers updating from v0.2.0:
 
 ---
 
-[Unreleased]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/SzaniszloIvor/private-dictionary/releases/tag/v0.1.0

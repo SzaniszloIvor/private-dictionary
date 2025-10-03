@@ -31,14 +31,17 @@ const SortableRow = ({ word, index, isDemo, speak, speechRate, deleteWord, handl
     isDragging
   } = useSortable({ 
     id: `${word.english}-${index}`,
-    disabled: false
+    disabled: isDemo
   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    cursor: !isDemo ? 'move' : 'default'
+  };
+
+  const handleButtonInteraction = (e) => {
+    e.stopPropagation();
   };
 
   return (
@@ -46,11 +49,12 @@ const SortableRow = ({ word, index, isDemo, speak, speechRate, deleteWord, handl
       ref={setNodeRef} 
       style={style} 
       {...attributes} 
-      {...listeners}
+      {...(!isDemo && listeners)}
       className={`
         border-b border-gray-200 dark:border-gray-700
         hover:bg-gray-50 dark:hover:bg-gray-800
         transition-colors duration-200
+        ${!isDemo ? 'cursor-grab active:cursor-grabbing' : ''}
         ${index % 2 === 0 ? 'bg-gray-50 dark:bg-gray-900' : 'bg-white dark:bg-gray-800'}
       `}
     >
@@ -66,25 +70,28 @@ const SortableRow = ({ word, index, isDemo, speak, speechRate, deleteWord, handl
       <td className="px-4 py-4 text-center">
         <div className="flex gap-2 justify-center">
           <button
+            onClick={handleButtonInteraction}
+            onMouseDown={(e) => {
+              handleButtonInteraction(e);
+              speak(word.english);
+            }}
             className="
               bg-gradient-to-r from-red-400 to-red-500 dark:from-red-500 dark:to-red-600
               text-white rounded-full w-8 h-8 
               hover:shadow-lg hover:scale-110
               transition-all duration-300
               flex items-center justify-center
+              pointer-events-auto
             "
-            onClick={(e) => {
-              e.stopPropagation();
-              speak(word.english);
-            }}
             title={`Kiejtés (${speechRate}x)`}
           >
             🔊
           </button>
           {!isDemo && deleteWord && (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={handleButtonInteraction}
+              onMouseDown={(e) => {
+                handleButtonInteraction(e);
                 handleDeleteWord(index);
               }}
               className="
@@ -93,6 +100,7 @@ const SortableRow = ({ word, index, isDemo, speak, speechRate, deleteWord, handl
                 hover:shadow-lg hover:scale-110
                 transition-all duration-300
                 flex items-center justify-center
+                pointer-events-auto
               "
               title="Törlés"
             >
@@ -116,14 +124,13 @@ const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, to
     isDragging
   } = useSortable({ 
     id: `${word.english}-${index}`,
-    disabled: false
+    disabled: isDemo
   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    cursor: !isDemo ? 'grab' : 'default',
     ...(isDragging && {
       transform: 'scale(1.05)',
       zIndex: 999
@@ -132,27 +139,34 @@ const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, to
 
   const isExpanded = expandedRows.has(index);
 
+  const handleButtonInteraction = (e) => {
+    e.stopPropagation();
+  };
+
   return (
     <div 
       ref={setNodeRef} 
       style={style}
-      {...attributes} 
-      {...listeners}
+      {...attributes}
+      {...(!isDemo && listeners)}
       className={`
         rounded-lg mb-2 p-3 relative
         shadow-md hover:shadow-lg
         transition-all duration-300
+        ${!isDemo ? 'cursor-grab active:cursor-grabbing touch-none' : ''}
         ${index % 2 === 0 
           ? 'bg-gray-50 dark:bg-gray-900' 
           : 'bg-white dark:bg-gray-800'}
         ${isDragging ? 'shadow-2xl border-2 border-indigo-500 dark:border-indigo-400' : ''}
       `}
     >
-      {/* Drag handle visual indicator on mobile */}
+      {/* Drag handle - most csak vizuális jelzés */}
       {!isDemo && (
         <div className="
           absolute left-1 top-1/2 -translate-y-1/2
-          text-xl text-indigo-500 dark:text-indigo-400 opacity-50
+          text-2xl text-indigo-500 dark:text-indigo-400
+          pointer-events-none
+          select-none
         ">
           ⋮⋮
         </div>
@@ -173,8 +187,10 @@ const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, to
         
         <div className="flex gap-2 items-center">
           <button
+            onTouchStart={handleButtonInteraction}
+            onTouchEnd={handleButtonInteraction}
             onClick={(e) => {
-              e.stopPropagation();
+              handleButtonInteraction(e);
               speak(word.english);
             }}
             className="
@@ -184,6 +200,7 @@ const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, to
               flex items-center justify-center
               shadow-md hover:shadow-lg
               active:scale-95 transition-transform
+              touch-auto pointer-events-auto
             "
             title={`Kiejtés (${speechRate}x)`}
           >
@@ -191,8 +208,10 @@ const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, to
           </button>
           
           <button
+            onTouchStart={handleButtonInteraction}
+            onTouchEnd={handleButtonInteraction}
             onClick={(e) => {
-              e.stopPropagation();
+              handleButtonInteraction(e);
               toggleExpanded(index);
             }}
             className={`
@@ -202,6 +221,7 @@ const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, to
               flex items-center justify-center
               shadow-md hover:shadow-lg
               transition-all duration-300
+              touch-auto pointer-events-auto
               ${isExpanded ? 'rotate-180' : 'rotate-0'}
             `}
             title="Több opció"
@@ -220,8 +240,10 @@ const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, to
         ">
           {!isDemo && (
             <button
+              onTouchStart={handleButtonInteraction}
+              onTouchEnd={handleButtonInteraction}
               onClick={(e) => {
-                e.stopPropagation();
+                handleButtonInteraction(e);
                 handleDeleteWord(index);
               }}
               className="
@@ -230,6 +252,7 @@ const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, to
                 rounded-md text-sm
                 hover:bg-red-600 dark:hover:bg-red-700
                 transition-colors duration-200
+                touch-auto pointer-events-auto
               "
             >
               🗑️ Törlés
@@ -267,8 +290,8 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 200,
-        tolerance: 8,
+        delay: 150,
+        tolerance: 5,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -387,15 +410,17 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
           <div className="
             bg-blue-50 dark:bg-blue-900/30 
             border border-blue-300 dark:border-blue-700
-            rounded-lg p-2 mx-2 mb-2
-            text-xs text-gray-700 dark:text-gray-300
-            flex items-center gap-2
+            rounded-lg p-3 mx-2 mb-2
+            text-sm text-gray-700 dark:text-gray-300
             animate-fade-in
           ">
-            <span className="text-lg">👆</span>
-            <span>
-              <strong>Tipp:</strong> Tartsd nyomva egy kártyát, majd húzd az új pozícióba!
-            </span>
+            <div className="flex items-start gap-3">
+              <span className="text-2xl flex-shrink-0">👆</span>
+              <div>
+                <strong className="block mb-1">💡 Tipp: Átrendezés mobilon</strong>
+                <span>Tartsd nyomva <strong className="text-indigo-600 dark:text-indigo-400">bármelyik kártyát</strong> (a szövegen), majd húzd az új pozícióba! A gombokra kattintva azok működése aktiválódik.</span>
+              </div>
+            </div>
           </div>
         )}
 
