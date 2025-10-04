@@ -7,7 +7,7 @@ A modern, interactive English-Hungarian dictionary application designed for pers
 ![Firebase](https://img.shields.io/badge/Firebase-12.x-FFCA28?style=flat&logo=firebase)
 ![Vite](https://img.shields.io/badge/Vite-7.x-646CFF?style=flat&logo=vite)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
-![Version](https://img.shields.io/badge/Version-0.3.0-blue.svg)
+![Version](https://img.shields.io/badge/Version-0.4.0-blue.svg)
 
 ## 📋 Table of Contents
 
@@ -65,6 +65,24 @@ Private Dictionary is a comprehensive language learning platform that provides a
 - 🎚️ **Pronunciation Speed Control** - Adjustable speech synthesis speed (0.3x - 1.5x)
 - 🌐 **Offline Support** - Demo mode works offline with localStorage
 
+### Practice Mode Features
+- 🎴 **Flashcard Learning** - Interactive 3D flip cards with smooth animations
+- 🎲 **Multiple Modes**:
+  - **Sequential**: Practice in original order
+  - **Random**: Shuffle cards for varied practice
+  - **Reverse**: Hungarian → English direction
+- 🏆 **Gamification System**:
+  - 5-star performance rating
+  - Achievement badges (Speed Demon, Perfectionist, Marathon Learner, Quick Learner, Dedicated)
+  - Confetti celebrations on completion
+  - Dynamic encouraging messages
+  - Motivational quotes
+- 📊 **Progress Tracking**: Visual progress bar with card indicators
+- ⌨️ **Keyboard Shortcuts**: Space (flip), ←/→ (navigate), Esc (exit)
+- 📱 **Swipe Gestures**: Left/right swipe navigation on mobile
+- 📈 **Session Statistics**: Time spent, cards viewed, flip count, completion percentage
+- 🎯 **Milestone Notifications**: Encouragement at 25%, 50%, 75% progress
+
 ### Design Features
 - **Light & Dark Modes**: Automatic system preference detection with manual toggle
 - **Smooth Animations**: Fade-in, slide-in, and pulse effects
@@ -72,6 +90,20 @@ Private Dictionary is a comprehensive language learning platform that provides a
 - **Focus Indicators**: Clear keyboard navigation feedback
 - **Toast Notifications**: Real-time feedback for user actions
 - **Mobile-Optimized Touch**: 100ms delay, 5px tolerance for better drag & drop
+
+## 🎨 Planned UI Enhancements
+
+The following improvements are planned to enhance usability, learning efficiency, and overall user experience:
+
+### 📊 Learning Aids
+- ✅ **Practice Mode** – Quiz cards with "show/hide answer" flow (COMPLETED v0.4.0)
+  - 3D flip cards with smooth animations
+  - Sequential, Random, and Reverse modes
+  - Gamification with stars, badges, and confetti
+  - Session statistics and progress tracking
+- **Daily Goal & Streaks** – Track words per day and visualize learning progress
+- **Favorites** – Mark difficult or favorite words for quick access
+- **Spaced Repetition** – Smart review system based on learning algorithms
 
 ## ⌨️ Keyboard Shortcuts
 
@@ -468,6 +500,17 @@ private-dictionary/
 │   │   │   └── AddWordsModal.jsx
 │   │   ├── KeyboardShortcutsHelper/
 │   │   │   └── KeyboardShortcutsHelper.jsx
+│   │   ├── DarkModeToggle/
+│   │   │   └── DarkModeToggle.jsx
+│   │   ├── PracticeMode/
+│   │   │   ├── PracticeModeModal.jsx
+│   │   │   ├── FlashCard.jsx
+│   │   │   ├── PracticeControls.jsx
+│   │   │   ├── PracticeProgress.jsx
+│   │   │   ├── PracticeSettings.jsx
+│   │   │   ├── PracticeResults.jsx
+│   │   │   ├── ConfettiReward.jsx
+│   │   │   └── StarRating.jsx
 │   │   └── LoginScreen/
 │   │       └── LoginScreen.jsx
 │   ├── contexts/
@@ -477,9 +520,14 @@ private-dictionary/
 │   ├── hooks/
 │   │   ├── useSpeechSynthesis.js
 │   │   ├── useLocalStorage.js
-│   │   └── useKeyboardShortcuts.js
+│   │   ├── useKeyboardShortcuts.js
+│   │   ├── useDarkMode.js
+│   │   ├── usePracticeMode.js
+│   │   └── useSwipeGesture.js
 │   ├── utils/
-│   │   └── phoneticHelper.js
+│   │   ├── phoneticHelper.js
+│   │   ├── practiceHelper.js
+│   │   └── rewardHelper.js
 │   ├── data/
 │   │   └── dictionary.js
 │   ├── App.jsx
@@ -507,17 +555,24 @@ private-dictionary/
 - **App.jsx** - Main application logic, dark mode state, keyboard shortcuts
 - **AuthContext.jsx** - Authentication state and methods (Google + Demo)
 - **AddWordsModal.jsx** - Word addition interface with API integration
-- **LessonContent.jsx** - Lesson display with edit/delete capabilities
+- **LessonContent.jsx** - Lesson display with edit/delete capabilities and practice mode entry
 - **WordTable.jsx** - Word list with optimized drag & drop, pronunciation
 - **KeyboardShortcutsHelper.jsx** - Floating button and modal for keyboard shortcuts
+- **PracticeModeModal.jsx** - Complete practice mode orchestrator with gamification
+- **FlashCard.jsx** - 3D flip card component for practice mode
+- **ConfettiReward.jsx** - Canvas-based confetti animation for celebrations
 - **phoneticHelper.js** - Phonetic generation and Datamuse API integration
 
 ### Key Utilities
 - **firebase.js** - Firebase initialization and CRUD operations
 - **phoneticHelper.js** - Datamuse API integration and IPA conversion
+- **practiceHelper.js** - Practice mode utilities (shuffle, stats, time formatting)
+- **rewardHelper.js** - Gamification logic (stars, badges, messages)
 - **useSpeechSynthesis.js** - Browser speech synthesis hook with speed control
 - **useLocalStorage.js** - Local storage management hook (demo mode)
 - **useKeyboardShortcuts.js** - Custom hook for keyboard shortcut handling
+- **usePracticeMode.js** - Practice session state management
+- **useSwipeGesture.js** - Mobile swipe detection for card navigation
 
 ## 🔧 Technologies
 

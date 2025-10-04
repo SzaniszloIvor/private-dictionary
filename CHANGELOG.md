@@ -20,6 +20,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.4.0] - 2025-10-05
+
+### Added
+- **Practice Mode** - Interactive flashcard learning system with gamification
+  - Sequential, Random, and Reverse practice modes
+  - 3D flip card animations with smooth 600ms transitions
+  - Show/Hide answer toggle with Space bar shortcut
+  - Keyboard navigation: ←/→ arrows, Space, Escape
+  - Swipe gestures for mobile (left/right navigation)
+  - Progress tracking with visual progress bar and dots
+  - Session statistics (cards viewed, time spent, flip count)
+  - **Reward System** - Complete gamification experience:
+    - Confetti animation on session completion (epic mode for 5-star performances)
+    - 5-star rating system based on completion and speed
+    - Dynamic encouraging messages (5 achievement levels)
+    - Badge system: Speed Demon ⚡, Perfectionist 🎯, Marathon Learner 🏃, Quick Learner 🧠, Dedicated 💪
+    - Milestone toast notifications at 25%, 50%, 75% progress
+    - Random motivational quotes on results screen
+    - Animated star reveal with sequential bounce effects
+  - Practice results summary screen with detailed analytics
+  - Auto-play pronunciation integration
+  - Full dark mode support with gradient themes
+  - Responsive design optimized for mobile and desktop
+  - ARIA labels for accessibility
+  - "Practice" button added to each lesson (only visible when lesson has words)
+  - Auto-completion detection (shows results when all cards viewed)
+
+### Changed
+- **Keyboard Shortcuts**: Extended with practice mode controls (arrows, space, escape)
+- **LessonContent**: New practice mode entry point with gradient green button
+- **README.md**: Updated with comprehensive Practice Mode documentation
+- **Project Structure**: Added PracticeMode components, hooks, and utilities
+
+### Technical Details
+- **New Components** (8 files):
+  - `src/components/PracticeMode/PracticeModeModal.jsx` - Main orchestrator (~220 lines)
+  - `src/components/PracticeMode/FlashCard.jsx` - 3D flip card (~80 lines)
+  - `src/components/PracticeMode/PracticeControls.jsx` - Navigation (~70 lines)
+  - `src/components/PracticeMode/PracticeProgress.jsx` - Progress bar (~50 lines)
+  - `src/components/PracticeMode/PracticeSettings.jsx` - Mode selection (~90 lines)
+  - `src/components/PracticeMode/PracticeResults.jsx` - Results screen (~200 lines)
+  - `src/components/PracticeMode/ConfettiReward.jsx` - Canvas animation (~100 lines)
+  - `src/components/PracticeMode/StarRating.jsx` - Star component (~40 lines)
+
+- **New Hooks** (2 files):
+  - `src/hooks/usePracticeMode.js` - Practice logic (~100 lines)
+  - `src/hooks/useSwipeGesture.js` - Mobile swipe detection (~40 lines)
+
+- **New Utilities** (2 files):
+  - `src/utils/practiceHelper.js` - Helper functions (~60 lines)
+  - `src/utils/rewardHelper.js` - Gamification logic (~100 lines)
+
+- **CSS Updates**:
+  - Added FlashCard 3D flip animation styles to `index.css`
+  - `.perspective-1000`, `.flip-card-inner`, `.flip-card-front/back` classes
+
+### Performance
+- Canvas-based confetti animation with 60fps target
+- Optimized particle count: 100 (normal), 150 (high), 200 (epic)
+- Smooth 600ms 3D flip transitions
+- Efficient swipe detection with 50px threshold
+- Auto-cleanup of animations and timers
+
+### Accessibility
+- ARIA labels for all interactive elements
+- Keyboard-only navigation support
+- Focus indicators on all buttons
+- Screen reader friendly progress announcements
+- Semantic HTML structure
+
+---
+
 ## [0.3.3] - 2025-10-04
 
 ### Fixed
@@ -406,7 +478,10 @@ For developers updating from v0.2.0:
 
 ---
 
-[Unreleased]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.3.3...v0.4.0
+[0.3.3]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.3.2...v0.3.3
+[0.3.2]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.1.0...v0.2.0

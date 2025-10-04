@@ -599,7 +599,7 @@ const MainApp = () => {
                    transform hover:scale-105
                    transition-all duration-300"
         >
-          📚 Add Words
+          📚 Szavak hozzáadása
         </button>
         {isDemo && (
           <p className={`mt-3 text-gray-600 dark:text-gray-400 

@@ -6,7 +6,7 @@ const KeyboardShortcutsHelper = ({ isOpen, onOpen, onClose }) => {
   const shortcuts = [
     { combo: 'mod+e', description: 'Új szó hozzáadása', icon: '➕' },
     { combo: 'mod+f', description: 'Keresés fókuszálása', icon: '🔍' },
-    { combo: 'mod+s', description: 'Mentési állapot megjelenítése', icon: '💾' },
+    { combo: 'mod+s', description: 'Automatikus mentés', icon: '💾' },
     { combo: 'mod+d', description: 'Sötét mód kapcsolása', icon: '🌙' },
     { combo: 'mod+k', description: 'Billentyűparancsok megjelenítése', icon: '⌨️' },
     { combo: 'mod+arrowright', description: 'Következő óra', icon: '➡️' },

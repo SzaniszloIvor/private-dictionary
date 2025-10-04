@@ -1,6 +1,7 @@
-// src/components/LessonContent/LessonContent.jsx - TAILWIND VERZIÓ
+// src/components/LessonContent/LessonContent.jsx
 import React, { useState } from 'react';
 import WordTable from '../WordTable/WordTable';
+import PracticeModeModal from '../PracticeMode/PracticeModeModal';
 
 const LessonContent = ({ 
   lesson, 
@@ -13,6 +14,7 @@ const LessonContent = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [newTitle, setNewTitle] = useState(lesson?.title || '');
+  const [showPracticeModal, setShowPracticeModal] = useState(false);
 
   const handleRename = () => {
     if (newTitle.trim() && newTitle !== lesson.title) {
@@ -102,6 +104,27 @@ const LessonContent = ({
           </div>
           
           <div className="flex gap-2">
+            {/* Practice Button */}
+            {lesson.words.length > 0 && (
+              <button
+                onClick={() => setShowPracticeModal(true)}
+                className="px-4 py-2 rounded-lg font-medium text-sm
+                         bg-gradient-to-r from-green-500 to-emerald-500
+                         dark:from-green-600 dark:to-emerald-600
+                         hover:from-green-600 hover:to-emerald-600
+                         dark:hover:from-green-700 dark:hover:to-emerald-700
+                         text-white
+                         transition-all duration-200
+                         shadow-md hover:shadow-lg
+                         flex items-center gap-2"
+                title="Gyakorlás flashcard módban"
+              >
+                <span>🎯</span>
+                <span>Gyakorlás</span>
+              </button>
+            )}
+            
+            {/* Rename Button */}
             <button
               onClick={() => setIsEditing(true)}
               className="px-4 py-2 rounded-lg font-medium text-sm
@@ -115,6 +138,7 @@ const LessonContent = ({
               ✏️ Átnevezés
             </button>
             
+            {/* Delete Button */}
             {lesson.words.length === 0 && (
               <button
                 onClick={handleDelete}
@@ -175,12 +199,14 @@ const LessonContent = ({
           </div>
         )}
         
+        {/* Word Count Badge */}
         <div className="inline-block bg-blue-500 dark:bg-purple-600 
                       text-white px-4 py-1 rounded-full text-sm">
           {lesson.words.length} szó
           {isDemo && ` / 20 max`}
         </div>
         
+        {/* Demo Warning */}
         {isDemo && lesson.words.length === 0 && (
           <div className="mt-4 p-3 
                         bg-yellow-50 dark:bg-yellow-900/20 
@@ -214,6 +240,16 @@ const LessonContent = ({
             Használd a "Szavak hozzáadása" gombot az első szavak felvételéhez!
           </p>
         </div>
+      )}
+      
+      {/* Practice Mode Modal */}
+      {lesson && lesson.words.length > 0 && (
+        <PracticeModeModal
+          isOpen={showPracticeModal}
+          onClose={() => setShowPracticeModal(false)}
+          words={lesson.words}
+          lessonTitle={lesson.title}
+        />
       )}
     </div>
   );
