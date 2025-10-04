@@ -20,7 +20,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.3] - 2025-10-04
+
+### Fixed
+- **Mobile Drag & Drop UX Critical Fix**
+  - Fixed mobile scroll being blocked when touching word cards
+  - Increased TouchSensor activation delay from 150ms to 1000ms (1 second) for better scroll vs drag distinction
+  - Removed `touch-none` CSS class from mobile word cards that was preventing natural scrolling
+  - Disabled PointerSensor on mobile devices to prevent conflict with TouchSensor
+  - Mobile users can now scroll freely by touching anywhere on the screen, including word cards
+  - Drag activation requires 1 second hold + 5px movement tolerance
+
+### Changed
+- **WordTable Component**
+  - Platform-specific sensor configuration: PointerSensor for desktop only, TouchSensor for mobile only
+  - Removed cursor-grab classes from mobile cards (desktop-only feature)
+  - Updated mobile drag instruction: "Hold any card for 1 second, then drag to new position"
+
+### Technical Details
+- **Sensor Configuration (WordTable.jsx)**
+  - Desktop: PointerSensor with 8px distance activation
+  - Mobile: TouchSensor with 1000ms delay + 5px tolerance
+  - KeyboardSensor remains active on both platforms
+  - Conditional sensor initialization based on `isMobile` state
+
+- **CSS Changes**
+  - Removed `touch-none` and `cursor-grab` classes from SortableCard component
+  - Natural touch scrolling restored on all mobile elements
+  - Buttons retain `touch-auto pointer-events-auto` for immediate response
+
+### UX Improvements
+- Mobile scrolling now works naturally on word cards
+- Accidental drag operations prevented by 1 second hold requirement
+- Clear separation between scroll (quick swipe) and drag (long press) gestures
+- Desktop drag & drop unchanged: immediate activation with 8px movement
+
+### Breaking Changes
+- **BREAKING**: Mobile drag activation delay increased from 150ms to 1000ms
+  - Users must hold cards for 1 full second before dragging
+  - Trade-off: Better scroll UX vs slightly slower drag activation
+
 ## [0.3.2] - 2025-10-04
+
+---
 
 ### Changed
 - **Mobile UI Improvements**

@@ -153,14 +153,13 @@ const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, to
         rounded-lg mb-2 p-3 relative
         shadow-md hover:shadow-lg
         transition-all duration-300
-        ${!isDemo ? 'cursor-grab active:cursor-grabbing touch-none' : ''}
         ${index % 2 === 0 
           ? 'bg-gray-50 dark:bg-gray-900' 
           : 'bg-white dark:bg-gray-800'}
         ${isDragging ? 'shadow-2xl border-2 border-indigo-500 dark:border-indigo-400' : ''}
       `}
     >
-      {/* Drag handle - most csak vizuális jelzés */}
+      {/* Drag handle - visual indicator only */}
       {!isDemo && (
         <div className="
           absolute left-1 top-1/2 -translate-y-1/2
@@ -281,23 +280,34 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
     originalIndex: index
   }));
 
-  // Separate sensors for desktop and mobile
+  // ========================================
+  // KRITIKUS: SENSOR CONFIGURATION - 1000ms DELAY
+  // ========================================
   const sensors = useSensors(
+  // DESKTOP: PointerSensor with distance
+  ...(!isMobile ? [
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 8,
       },
-    }),
+    })
+  ] : []),
+  
+  // MOBIL: CTouchSensor with delay
+  ...(isMobile ? [
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 250,
-        tolerance: 10,
+        delay: 1000,
+        tolerance: 5,
       },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
     })
-  );
+  ] : []),
+  
+  //Keyboard support
+  useSensor(KeyboardSensor, {
+    coordinateGetter: sortableKeyboardCoordinates,
+  })
+);
 
   const handleDeleteWord = (index) => {
     if (window.confirm('Biztosan törölni szeretnéd ezt a szót?')) {
@@ -418,7 +428,7 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
               <span className="text-2xl flex-shrink-0">👆</span>
               <div>
                 <strong className="block mb-1">💡 Tipp: Átrendezés mobilon</strong>
-                <span>Tartsd nyomva <strong className="text-indigo-600 dark:text-indigo-400">bármelyik kártyát</strong> (a szövegen), majd húzd az új pozícióba! A gombokra kattintva azok működése aktiválódik.</span>
+                <span>Tartsd nyomva <strong className="text-indigo-600 dark:text-indigo-400">1 másodpercig</strong> bármelyik kártyát, majd húzd az új pozícióba!</span>
               </div>
             </div>
           </div>
@@ -468,7 +478,7 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
     );
   }
 
-  // Desktop view
+  // Desktop view (unchanged)
   return (
     <>
       {/* Speed control bar for desktop */}
