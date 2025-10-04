@@ -290,8 +290,8 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 150,
-        tolerance: 5,
+        delay: 250,
+        tolerance: 10,
       },
     }),
     useSensor(KeyboardSensor, {

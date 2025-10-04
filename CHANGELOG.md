@@ -20,6 +20,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.2] - 2025-10-04
+
+### Changed
+- **Mobile UI Improvements**
+  - Moved Dark Mode toggle from FAB to top navigation bar on mobile
+  - Moved Keyboard Shortcuts button from FAB to top navigation bar on mobile
+  - All control buttons now grouped together in header (Profile, Dark Mode, Shortcuts, Logout)
+  - Desktop: FAB buttons remain unchanged (bottom-right corner)
+  - Mobile: Cleaner UI with fewer floating elements
+
+### Technical Details
+- **DarkModeToggle Component**
+  - Added `isMobile` prop to switch between FAB (desktop) and compact button (mobile)
+  - Mobile button: 9x9 size with shadow-md
+  - Desktop button: 12x12 FAB with shadow-lg and hover effects
+  
+- **App.jsx User Navigation Bar**
+  - Mobile: 3 action buttons (Dark Mode, Shortcuts, Logout) aligned right
+  - Desktop: Unchanged layout
+  - FAB buttons rendered only on desktop (`!isMobile` condition)
+  
+- **KeyboardShortcutsHelper**
+  - FAB button hidden on mobile (existing: `hidden md:flex`)
+  - Modal accessible from top menu bar button on mobile
+  - Modal works on both mobile and desktop
+
+### UX Improvements
+- Mobile users can now access dark mode and shortcuts from natural top position
+- Better ergonomics: top buttons easier to reach than bottom FABs on mobile
+- Consistent control grouping: all user actions in one place
+- Desktop experience unchanged: FAB buttons still available for power users
+
+---
+
 ## [0.3.1] - 2025-10-04
 
 ### Fixed

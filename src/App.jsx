@@ -433,8 +433,10 @@ const MainApp = () => {
         ${isMobile ? 'p-3 flex flex-col gap-2' : 'px-5 py-3 flex justify-between items-center'}
       `}>
         {isMobile ? (
+          // ===== MOBILE LAYOUT =====
           <>
             <div className="flex justify-between items-center">
+              {/* Left: Profile info */}
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 {currentUser.photoURL && (
                   <img 
@@ -456,15 +458,46 @@ const MainApp = () => {
                   </span>
                 )}
               </div>
-              <button
-                onClick={logout}
-                className="px-3 py-1.5 bg-red-500 hover:bg-red-600 
-                         text-white rounded-md text-xs font-medium
-                         transition-colors duration-200 whitespace-nowrap"
-              >
-                Logout
-              </button>
+              
+              {/* Right: Action buttons */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {/* Dark Mode Toggle - Mobile */}
+                <DarkModeToggle 
+                  darkMode={darkMode} 
+                  toggleDarkMode={toggleDarkMode}
+                  isMobile={true}
+                />
+                
+                {/* Keyboard Shortcuts - Mobile */}
+                <button
+                  onClick={() => setShowShortcutsHelp(true)}
+                  className="w-9 h-9 rounded-full 
+                           bg-gradient-to-r from-indigo-500 to-purple-600
+                           dark:from-indigo-600 dark:to-purple-700
+                           text-white text-xl
+                           flex items-center justify-center
+                           hover:scale-110 active:scale-95
+                           transition-transform duration-200
+                           shadow-md"
+                  title="Keyboard shortcuts"
+                  aria-label="Show keyboard shortcuts"
+                >
+                  ⌨️
+                </button>
+                
+                {/* Logout Button */}
+                <button
+                  onClick={logout}
+                  className="px-3 py-1.5 bg-red-500 hover:bg-red-600 
+                           text-white rounded-md text-xs font-medium
+                           transition-colors duration-200 whitespace-nowrap"
+                >
+                  Logout
+                </button>
+              </div>
             </div>
+            
+            {/* Last saved info */}
             {lastSaved && !isDemo && (
               <div className="text-xs text-gray-600 dark:text-gray-400">
                 Saved: {lastSaved.toLocaleTimeString()}
@@ -472,6 +505,7 @@ const MainApp = () => {
             )}
           </>
         ) : (
+          // ===== DESKTOP LAYOUT (unchanged) =====
           <>
             <div className="flex items-center gap-3">
               {currentUser.photoURL && (
@@ -590,12 +624,22 @@ const MainApp = () => {
       />
       <SaveNotification />
       <ToastNotification />
+      
+      {/* Keyboard Shortcuts Modal - Always available */}
       <KeyboardShortcutsHelper 
         isOpen={showShortcutsHelp}
         onOpen={() => setShowShortcutsHelp(true)}
         onClose={() => setShowShortcutsHelp(false)}
       />
-      <DarkModeToggle darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+      
+      {/* FAB Buttons - Desktop ONLY */}
+      {!isMobile && (
+        <DarkModeToggle 
+          darkMode={darkMode} 
+          toggleDarkMode={toggleDarkMode}
+          isMobile={false}
+        />
+      )}
     </div>
   );
 };

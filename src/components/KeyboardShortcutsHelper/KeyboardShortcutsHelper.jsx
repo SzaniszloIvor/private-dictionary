@@ -18,7 +18,7 @@ const KeyboardShortcutsHelper = ({ isOpen, onOpen, onClose }) => {
 
   return (
     <>
-      {/* Floating Action Button - ONLY on desktop */}
+      {/* Floating Action Button - DESKTOP ONLY */}
       <button
         onClick={onOpen}
         className="
@@ -38,7 +38,7 @@ const KeyboardShortcutsHelper = ({ isOpen, onOpen, onClose }) => {
         ⌨️
       </button>
 
-      {/* Modal Overlay */}
+      {/* Modal Overlay - AVAILABLE ON BOTH MOBILE & DESKTOP */}
       {isOpen && (
         <div 
           onClick={onClose}
