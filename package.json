@@ -1,8 +1,30 @@
 {
   "name": "private-dictionary",
   "private": true,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "type": "module",
+  "license": "UNLICENSED",
+  "author": {
+    "name": "Szaniszló Ivor",
+    "email": "info@ivor.hu",
+    "url": "https://github.com/SzaniszloIvor"
+  },
+  "description": "Modern English-Hungarian dictionary with pronunciation practice and speech recognition",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SzaniszloIvor/private-dictionary.git"
+  },
+  "keywords": [
+    "dictionary",
+    "english-learning",
+    "pronunciation-practice",
+    "speech-recognition",
+    "flashcards",
+    "language-learning",
+    "react",
+    "firebase",
+    "tailwindcss"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",

@@ -3,14 +3,16 @@ import React, { useState, useEffect } from 'react';
 import ConfettiReward from './ConfettiReward';
 import StarRating from './StarRating';
 import { calculateReward, getMotivationalQuote } from '../../utils/rewardHelper';
+import PronunciationResults from './PronunciationResults';
 
-const PracticeResults = ({ stats, onRestart, onClose }) => {
+const PracticeResults = ({ stats, mode, onRestart, onClose }) => {
   const [showConfetti, setShowConfetti] = useState(false);
-  const reward = calculateReward(stats);
+  
+  // Calculate reward with mode detection
+  const reward = calculateReward(stats, mode);
   const quote = getMotivationalQuote();
 
   useEffect(() => {
-    // Trigger confetti after a short delay
     const timer = setTimeout(() => {
       setShowConfetti(true);
     }, 300);
@@ -18,6 +20,19 @@ const PracticeResults = ({ stats, onRestart, onClose }) => {
     return () => clearTimeout(timer);
   }, []);
 
+  // Use specialized component for pronunciation mode
+  if (mode === 'pronunciation') {
+    return (
+      <PronunciationResults
+        stats={stats}
+        reward={reward}
+        onRestart={onRestart}
+        onClose={onClose}
+      />
+    );
+  }
+
+  // Original flashcard results (existing code)
   return (
     <>
       <ConfettiReward active={showConfetti} intensity={reward.confettiIntensity} />

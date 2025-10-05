@@ -1,13 +1,13 @@
 # 🎧 Private Dictionary
 
-A modern, interactive English-Hungarian dictionary application designed for personalized language learning with dynamic lesson management, comprehensive keyboard shortcuts, and dark mode support.
+A modern, interactive English-Hungarian dictionary application designed for personalized language learning with dynamic lesson management, comprehensive keyboard shortcuts, pronunciation practice, and dark mode support.
 
 ![React](https://img.shields.io/badge/React-19.1.1-61DAFB?style=flat&logo=react)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.1-06B6D4?style=flat&logo=tailwindcss)
 ![Firebase](https://img.shields.io/badge/Firebase-12.x-FFCA28?style=flat&logo=firebase)
 ![Vite](https://img.shields.io/badge/Vite-7.x-646CFF?style=flat&logo=vite)
-![License](https://img.shields.io/badge/License-MIT-green.svg)
-![Version](https://img.shields.io/badge/Version-0.4.0-blue.svg)
+![License](https://img.shields.io/badge/License-All_Rights_Reserved-red.svg)
+![Version](https://img.shields.io/badge/Version-0.5.0-blue.svg)
 
 ## 📋 Table of Contents
 
@@ -23,9 +23,8 @@ A modern, interactive English-Hungarian dictionary application designed for pers
 - [API Integration](#-api-integration)
 - [Project Structure](#-project-structure)
 - [Technologies](#-technologies)
-- [Contributing](#-contributing)
+- [By invitation only](#-by-invitation-only)
 - [Changelog](#-changelog)
-- [Planned UI Enhancements](#-planned-ui-enhancements)
 - [License](#-license)
 - [Contact](#-contact)
 
@@ -34,6 +33,8 @@ A modern, interactive English-Hungarian dictionary application designed for pers
 Private Dictionary is a comprehensive language learning platform that provides a dynamic, customizable English curriculum with Hungarian translations. The application supports both demo mode for trying out features and Google authentication for unlimited personalized learning experiences with cloud synchronization.
 
 ### Key Highlights:
+- **Pronunciation Practice**: Real-time speech recognition with instant feedback (Chrome/Edge)
+- **Practice Modes**: Flashcards, pronunciation, and gamification system
 - **Dark Mode Support**: Eye-friendly interface with automatic theme switching
 - **Full-Featured Demo Mode**: Try all features with 2 lessons (max 20 words each)
 - **Keyboard Shortcuts**: 11 productivity shortcuts for efficient navigation
@@ -67,21 +68,43 @@ Private Dictionary is a comprehensive language learning platform that provides a
 
 ### Practice Mode Features
 - 🎴 **Flashcard Learning** - Interactive 3D flip cards with smooth animations
+- 🎤 **Pronunciation Practice** - Real-time speech recognition with scoring (Chrome/Edge only)
+  - Live waveform visualization during recording
+  - Pronunciation accuracy scoring (0-100%)
+  - Instant feedback with phonetic tips
+  - Word difficulty indicators (Easy/Medium/Hard)
+  - Context-aware pronunciation coaching
 - 🎲 **Multiple Modes**:
   - **Sequential**: Practice in original order
   - **Random**: Shuffle cards for varied practice
   - **Reverse**: Hungarian → English direction
+  - **Pronunciation**: Speech recognition with real-time feedback
 - 🏆 **Gamification System**:
   - 5-star performance rating
-  - Achievement badges (Speed Demon, Perfectionist, Marathon Learner, Quick Learner, Dedicated)
+  - 12 achievement badges (7 pronunciation-specific)
   - Confetti celebrations on completion
   - Dynamic encouraging messages
   - Motivational quotes
+  - Pronunciation streaks and mastery tracking
 - 📊 **Progress Tracking**: Visual progress bar with card indicators
-- ⌨️ **Keyboard Shortcuts**: Space (flip), ←/→ (navigate), Esc (exit)
-- 📱 **Swipe Gestures**: Left/right swipe navigation on mobile
-- 📈 **Session Statistics**: Time spent, cards viewed, flip count, completion percentage
+- ⌨️ **Keyboard Shortcuts**: Space (flip/record), ←/→ (navigate), Esc (exit)
+- 📱 **Swipe Gestures**: Left/right swipe navigation on mobile (flashcards only)
+- 📈 **Session Statistics**: 
+  - Time spent, cards viewed, flip count, completion percentage
+  - Average pronunciation accuracy and perfect score count
+  - Attempts per word and score breakdown
 - 🎯 **Milestone Notifications**: Encouragement at 25%, 50%, 75% progress
+
+### Pronunciation Practice Features
+- 🎤 **Real-time Speech Recognition** - Web Speech API integration (Chrome/Edge)
+- 📊 **Accuracy Scoring** - 0-100% similarity scoring with Levenshtein algorithm
+- 🌊 **Waveform Visualizer** - Animated audio bars during recording
+- 💡 **Smart Tips** - Context-aware pronunciation coaching (TH, R, W, V sounds)
+- 🎯 **Difficulty Levels** - Automatic word difficulty calculation (Easy/Medium/Hard)
+- 🏆 **7 New Badges**: Perfect Speaker, Native-like, Pronunciation Master, Perfect Streak, One Shot Wonder, Persistent Learner, Pronunciation Champion
+- ⚠️ **Enhanced Error Handling** - Browser-specific troubleshooting with detailed tips
+- ♿ **Full Accessibility** - WCAG 2.1 AA compliant with keyboard and screen reader support
+- 📱 **Mobile Optimized** - Touch-friendly controls with haptic feedback
 
 ### Design Features
 - **Light & Dark Modes**: Automatic system preference detection with manual toggle
@@ -90,20 +113,6 @@ Private Dictionary is a comprehensive language learning platform that provides a
 - **Focus Indicators**: Clear keyboard navigation feedback
 - **Toast Notifications**: Real-time feedback for user actions
 - **Mobile-Optimized Touch**: 100ms delay, 5px tolerance for better drag & drop
-
-## 🎨 Planned UI Enhancements
-
-The following improvements are planned to enhance usability, learning efficiency, and overall user experience:
-
-### 📊 Learning Aids
-- ✅ **Practice Mode** – Quiz cards with "show/hide answer" flow (COMPLETED v0.4.0)
-  - 3D flip cards with smooth animations
-  - Sequential, Random, and Reverse modes
-  - Gamification with stars, badges, and confetti
-  - Session statistics and progress tracking
-- **Daily Goal & Streaks** – Track words per day and visualize learning progress
-- **Favorites** – Mark difficult or favorite words for quick access
-- **Spaced Repetition** – Smart review system based on learning algorithms
 
 ## ⌨️ Keyboard Shortcuts
 
@@ -125,20 +134,17 @@ Private Dictionary includes a comprehensive keyboard shortcut system for efficie
 | Previous Lesson | `Ctrl+←` | `⌘←` | Navigate to previous lesson |
 | First Lesson | `Ctrl+Home` | `⌘Home` | Jump to first lesson |
 | Last Lesson | `Ctrl+End` | `⌘End` | Jump to last lesson |
+| **Practice Mode** | | | |
+| Flip Card | `Space` | `Space` | Flip flashcard or toggle recording |
+| Navigate | `←` `→` | `←` `→` | Previous/Next card (flashcards only) |
+| Exit | `ESC` | `ESC` | Close practice mode |
 
 ### Features
 - **Cross-platform**: Automatic detection of Windows/Linux (Ctrl) vs macOS (⌘)
 - **Visual Feedback**: Toast notifications for all navigation actions
 - **Help Modal**: Press `Ctrl/⌘+K` to view all available shortcuts (desktop only)
 - **Floating Button**: Click the ⌨️ icon in the bottom-right corner for help (desktop only)
-
-### Toast Notifications
-Every navigation action provides visual feedback:
-- `➡️ 2. óra címe` - When navigating to next lesson
-- `⬅️ 1. óra címe` - When navigating to previous lesson
-- `⏮️ 1. óra címe` - When jumping to first lesson
-- `⏭️ 5. óra címe` - When jumping to last lesson
-- `⚠️ Ez az első/utolsó óra` - When at boundaries
+- **Practice Mode**: Context-aware shortcuts (Space for flip or record)
 
 For complete documentation, see [docs/KEYBOARD_SHORTCUTS.md](docs/KEYBOARD_SHORTCUTS.md)
 
@@ -155,6 +161,7 @@ Demo mode allows you to **try all features** of Private Dictionary without creat
 - Adjust pronunciation speed
 - Use text-to-speech
 - Access automatic phonetic generation
+- Practice with flashcards and pronunciation mode (Chrome/Edge)
 - Use all keyboard shortcuts
 - Toggle dark mode
 
@@ -171,6 +178,8 @@ Demo mode allows you to **try all features** of Private Dictionary without creat
 |---------|-----------|-------------------|
 | Number of Lessons | 2 | Unlimited |
 | Words per Lesson | 20 | Unlimited |
+| Flashcard Practice | ✅ | ✅ |
+| Pronunciation Practice | ✅ (Chrome/Edge) | ✅ (Chrome/Edge) |
 | Add/Edit Words | ✅ | ✅ |
 | Delete Words | ✅ | ✅ |
 | Drag & Drop | ✅ | ✅ |
@@ -181,6 +190,8 @@ Demo mode allows you to **try all features** of Private Dictionary without creat
 | Cross-device Sync | ❌ | ✅ |
 | Data Persistence | localStorage | Firebase Cloud |
 | Offline Mode | ✅ | ❌ (requires connection) |
+
+## 📁 Project Structure
 
 ### Authentication Modes
 
@@ -483,25 +494,15 @@ private-dictionary/
 ├── src/
 │   ├── components/
 │   │   ├── Header/
-│   │   │   └── Header.jsx
 │   │   ├── ProgressSection/
-│   │   │   └── ProgressSection.jsx
 │   │   ├── SearchControls/
-│   │   │   └── SearchControls.jsx
 │   │   ├── LessonNavigation/
-│   │   │   └── LessonNavigation.jsx
 │   │   ├── LessonContent/
-│   │   │   └── LessonContent.jsx
 │   │   ├── WordTable/
-│   │   │   └── WordTable.jsx
 │   │   ├── SearchResults/
-│   │   │   └── SearchResults.jsx
 │   │   ├── AddWordsModal/
-│   │   │   └── AddWordsModal.jsx
 │   │   ├── KeyboardShortcutsHelper/
-│   │   │   └── KeyboardShortcutsHelper.jsx
 │   │   ├── DarkModeToggle/
-│   │   │   └── DarkModeToggle.jsx
 │   │   ├── PracticeMode/
 │   │   │   ├── PracticeModeModal.jsx
 │   │   │   ├── FlashCard.jsx
@@ -510,15 +511,23 @@ private-dictionary/
 │   │   │   ├── PracticeSettings.jsx
 │   │   │   ├── PracticeResults.jsx
 │   │   │   ├── ConfettiReward.jsx
-│   │   │   └── StarRating.jsx
+│   │   │   ├── StarRating.jsx
+│   │   │   ├── PronunciationCard.jsx
+│   │   │   ├── MicrophoneButton.jsx
+│   │   │   ├── PronunciationFeedback.jsx
+│   │   │   ├── WaveformVisualizer.jsx
+│   │   │   ├── ErrorDisplay.jsx
+│   │   │   ├── PronunciationTips.jsx
+│   │   │   └── PronunciationResults.jsx
+│   │   ├── ErrorBoundary.jsx
 │   │   └── LoginScreen/
-│   │       └── LoginScreen.jsx
 │   ├── contexts/
 │   │   └── AuthContext.jsx
 │   ├── services/
 │   │   └── firebase.js
 │   ├── hooks/
 │   │   ├── useSpeechSynthesis.js
+│   │   ├── useSpeechRecognition.js
 │   │   ├── useLocalStorage.js
 │   │   ├── useKeyboardShortcuts.js
 │   │   ├── useDarkMode.js
@@ -526,6 +535,7 @@ private-dictionary/
 │   │   └── useSwipeGesture.js
 │   ├── utils/
 │   │   ├── phoneticHelper.js
+│   │   ├── pronunciationHelper.js
 │   │   ├── practiceHelper.js
 │   │   └── rewardHelper.js
 │   ├── data/
@@ -552,27 +562,60 @@ private-dictionary/
 ```
 
 ### Key Components
+
+#### Practice Mode (v0.4.0 + v0.5.0)
+- **PracticeModeModal.jsx** - Main practice orchestrator, mode selection and session management
+- **FlashCard.jsx** - 3D flip card component for flashcard practice
+- **PracticeControls.jsx** - Navigation controls (previous/next/flip buttons)
+- **PracticeProgress.jsx** - Visual progress bar with card indicators
+- **PracticeSettings.jsx** - Mode selection (Sequential, Random, Reverse, Pronunciation)
+- **PracticeResults.jsx** - Results screen with statistics and badges
+- **ConfettiReward.jsx** - Canvas-based confetti animation for celebrations
+- **StarRating.jsx** - Animated star rating component (1-5 stars)
+
+#### Pronunciation Practice (v0.5.0)
+- **PronunciationCard.jsx** - Main pronunciation practice UI with speech recognition
+- **MicrophoneButton.jsx** - Audio recording control with visual feedback
+- **PronunciationFeedback.jsx** - Score display with accessibility (ARIA)
+- **WaveformVisualizer.jsx** - Real-time audio visualization (Canvas API)
+- **ErrorDisplay.jsx** - Enhanced error messages with browser-specific tips
+- **PronunciationTips.jsx** - Context-aware phonetic coaching system
+- **PronunciationResults.jsx** - Pronunciation-specific results screen
+- **ErrorBoundary.jsx** - Application-wide error recovery component
+
+#### Core Components
 - **App.jsx** - Main application logic, dark mode state, keyboard shortcuts
 - **AuthContext.jsx** - Authentication state and methods (Google + Demo)
 - **AddWordsModal.jsx** - Word addition interface with API integration
 - **LessonContent.jsx** - Lesson display with edit/delete capabilities and practice mode entry
 - **WordTable.jsx** - Word list with optimized drag & drop, pronunciation
 - **KeyboardShortcutsHelper.jsx** - Floating button and modal for keyboard shortcuts
-- **PracticeModeModal.jsx** - Complete practice mode orchestrator with gamification
-- **FlashCard.jsx** - 3D flip card component for practice mode
-- **ConfettiReward.jsx** - Canvas-based confetti animation for celebrations
-- **phoneticHelper.js** - Phonetic generation and Datamuse API integration
+- **DarkModeToggle.jsx** - Dark mode toggle component
 
 ### Key Utilities
-- **firebase.js** - Firebase initialization and CRUD operations
-- **phoneticHelper.js** - Datamuse API integration and IPA conversion
-- **practiceHelper.js** - Practice mode utilities (shuffle, stats, time formatting)
-- **rewardHelper.js** - Gamification logic (stars, badges, messages)
+
+#### Practice Mode Utilities
+- **usePracticeMode.js** - Practice session state management (word progression, flips, timer)
+- **useSwipeGesture.js** - Mobile swipe detection for card navigation
+- **practiceHelper.js** - Practice utilities (shuffle, stats calculation, time formatting)
+- **rewardHelper.js** - Gamification logic (stars, badges, messages, confetti intensity)
+
+#### Pronunciation Utilities (v0.5.0)
+- **useSpeechRecognition.js** - Web Speech API hook with 10s auto-stop timeout
+- **pronunciationHelper.js** - Complete pronunciation system:
+  - Scoring algorithm (Levenshtein distance)
+  - Feedback generation (5 performance levels)
+  - Error handling (6 error types with browser-specific tips)
+  - Advanced tips (phonetic analysis for TH, R, W, V sounds)
+  - Difficulty calculation (Easy/Medium/Hard)
+
+#### Core Utilities
 - **useSpeechSynthesis.js** - Browser speech synthesis hook with speed control
 - **useLocalStorage.js** - Local storage management hook (demo mode)
 - **useKeyboardShortcuts.js** - Custom hook for keyboard shortcut handling
-- **usePracticeMode.js** - Practice session state management
-- **useSwipeGesture.js** - Mobile swipe detection for card navigation
+- **useDarkMode.js** - Dark mode state management with localStorage persistence
+- **phoneticHelper.js** - Datamuse API integration and IPA conversion
+- **firebase.js** - Firebase initialization and CRUD operations
 
 ## 🔧 Technologies
 
@@ -602,10 +645,16 @@ private-dictionary/
 - **Responsive Design** - Mobile-first approach with Tailwind breakpoints
 - **Touch Optimization** - 100ms delay, 5px tolerance for mobile drag & drop
 - **Haptic Feedback** - Vibration on mobile devices (when supported)
+- **Canvas Animations** - Waveform visualizer and confetti effects
+- **WCAG 2.1 AA** - Full accessibility compliance (v0.5.0)
 
-## 🤝 Contributing
+### Browser Support (Pronunciation Mode)
+- ✅ **Chrome 80+** - Full support (recommended)
+- ✅ **Edge 80+** - Full support (recommended)
+- ⚠️ **Safari 14+** - Limited (warning shown)
+- ❌ **Firefox** - Not supported (clear message)
 
-Contributions are welcome! Please follow these steps:
+## 🤝 By invitation only
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
@@ -623,6 +672,8 @@ Contributions are welcome! Please follow these steps:
 - Test keyboard shortcuts on both Windows and macOS
 - Test on mobile devices (especially touch interactions)
 - Test both light and dark modes
+- Test pronunciation mode on Chrome/Edge browsers
+- Ensure accessibility standards (WCAG 2.1 AA)
 
 ### Conventional Commit Examples
 ```bash
@@ -642,7 +693,6 @@ See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes.
 The following improvements are planned to enhance usability, learning efficiency, and overall user experience:
 
 ### 📊 Learning Aids
-- **Practice Mode** – Quiz cards with "show/hide answer" flow
 - **Daily Goal & Streaks** – Track words per day and visualize learning progress
 - **Favorites** – Mark difficult or favorite words for quick access
 - **Spaced Repetition** – Smart review system based on learning algorithms
@@ -675,7 +725,11 @@ The following improvements are planned to enhance usability, learning efficiency
 
 ## 📜 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+**© 2025 Szaniszló Ivor. All Rights Reserved.**
+
+This software and associated documentation files (the "Software") are the proprietary property of Szaniszló Ivor. Unauthorized copying, modification, distribution, or use of this Software, via any medium, is strictly prohibited without express written permission from the copyright holder.
+
+For licensing inquiries, please contact: info@ivor.hu
 
 ## 📞 Contact
 

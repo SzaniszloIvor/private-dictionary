@@ -10,6 +10,8 @@ import FlashCard from './FlashCard';
 import PracticeControls from './PracticeControls';
 import PracticeProgress from './PracticeProgress';
 import PracticeResults from './PracticeResults';
+import PronunciationCard from './PronunciationCard';
+import ErrorBoundary from '../ErrorBoundary';
 
 const PracticeModeModal = ({ isOpen, onClose, words, lessonTitle }) => {
   const [practiceMode, setPracticeMode] = useState(null);
@@ -17,6 +19,11 @@ const PracticeModeModal = ({ isOpen, onClose, words, lessonTitle }) => {
   const [toastMessage, setToastMessage] = useState('');
   
   const { speak } = useSpeechSynthesis();
+
+  const [pronunciationStats, setPronunciationStats] = useState({
+    scores: [],
+    attempts: []
+  });
   
   const {
     practiceWords,
@@ -40,9 +47,9 @@ const PracticeModeModal = ({ isOpen, onClose, words, lessonTitle }) => {
     setTimeout(() => setToastMessage(''), duration);
   };
 
-  // Milestone notifications
+  // Milestone notifications (only for non-pronunciation modes)
   useEffect(() => {
-    if (!practiceMode || practiceWords.length === 0) return;
+    if (!practiceMode || practiceWords.length === 0 || practiceMode === 'pronunciation') return;
     
     const progressPercent = Math.floor(progress);
     
@@ -58,13 +65,23 @@ const PracticeModeModal = ({ isOpen, onClose, words, lessonTitle }) => {
     }
   }, [progress, milestonesShown, setMilestonesShown, practiceMode, practiceWords.length]);
 
-  // Swipe gestures for mobile
+  // Swipe gestures for mobile (not for pronunciation mode)
   const swipeHandlers = useSwipeGesture(
-    () => goToNext(), // Swipe left = next
-    () => goToPrevious() // Swipe right = previous
+    () => practiceMode !== 'pronunciation' && goToNext(),
+    () => practiceMode !== 'pronunciation' && goToPrevious()
   );
 
-  // Keyboard shortcuts
+  // Handle pronunciation next
+  const handlePronunciationNext = (result) => {
+    setPronunciationStats(prev => ({
+      scores: [...prev.scores, result.score],
+      attempts: [...prev.attempts, result.attempts]
+    }));
+    
+    goToNext();
+  };
+
+  // Keyboard shortcuts (disabled for pronunciation mode)
   const shortcuts = useMemo(() => ({
     'arrowright': (e) => {
       e.preventDefault();
@@ -83,12 +100,18 @@ const PracticeModeModal = ({ isOpen, onClose, words, lessonTitle }) => {
     }
   }), [goToNext, goToPrevious, toggleFlip]);
 
-  useKeyboardShortcuts(shortcuts, isOpen && practiceMode !== null && !showResults);
+  const isPronunciationMode = practiceMode === 'pronunciation';
+  
+  useKeyboardShortcuts(
+    shortcuts, 
+    isOpen && practiceMode !== null && !showResults && !isPronunciationMode
+  );
 
   // Start practice with selected mode
   const handleStartPractice = (mode) => {
     setPracticeMode(mode);
     setShowResults(false);
+    setPronunciationStats({ scores: [], attempts: [] });
   };
 
   // Finish practice and show results
@@ -108,25 +131,56 @@ const PracticeModeModal = ({ isOpen, onClose, words, lessonTitle }) => {
   const handleRestart = () => {
     setPracticeMode(null);
     setShowResults(false);
+    setPronunciationStats({
+      scores: [],
+      attempts: []
+    });
   };
 
   // Close modal
   const handleClose = () => {
     setPracticeMode(null);
     setShowResults(false);
+    setPronunciationStats({
+      scores: [],
+      attempts: []
+    });
     onClose();
   };
 
-  // Auto-finish when all cards viewed
+  // Auto-finish when all cards completed
   useEffect(() => {
-    if (practiceMode && viewedCards.size === practiceWords.length && practiceWords.length > 0 && !showResults) {
-      // Small delay before showing results
-      const timer = setTimeout(() => {
-        handleFinish();
-      }, 500);
-      return () => clearTimeout(timer);
+    if (!practiceMode || showResults || practiceWords.length === 0) return;
+    
+    let timer;
+    
+    // Pronunciation mode: check if reached last card + 1
+    if (practiceMode === 'pronunciation') {
+      if (currentIndex >= practiceWords.length) {
+        timer = setTimeout(() => {
+          handleFinish();
+        }, 500);
+      }
+    } 
+    // Other modes: check if all cards viewed
+    else {
+      if (viewedCards.size === practiceWords.length) {
+        timer = setTimeout(() => {
+          handleFinish();
+        }, 500);
+      }
     }
-  }, [viewedCards.size, practiceWords.length, practiceMode, showResults]);
+    
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [
+    viewedCards.size, 
+    currentIndex,
+    practiceWords.length, 
+    practiceMode, 
+    showResults
+  ]);
 
   if (!isOpen) return null;
 
@@ -139,6 +193,7 @@ const PracticeModeModal = ({ isOpen, onClose, words, lessonTitle }) => {
   }) : null;
 
   return (
+    <ErrorBoundary>
     <>
       {/* Modal Overlay */}
       <div
@@ -153,7 +208,7 @@ const PracticeModeModal = ({ isOpen, onClose, words, lessonTitle }) => {
         {/* Modal Content */}
         <div
           onClick={(e) => e.stopPropagation()}
-          {...(practiceMode && !showResults ? swipeHandlers : {})}
+          {...(practiceMode && !showResults && !isPronunciationMode ? swipeHandlers : {})}
           className="
             bg-white dark:bg-gray-800
             rounded-2xl shadow-2xl
@@ -193,7 +248,10 @@ const PracticeModeModal = ({ isOpen, onClose, words, lessonTitle }) => {
             </h2>
             {practiceMode && !showResults && (
               <p className="text-center text-sm mt-2 opacity-90">
-                Card {currentIndex + 1} of {practiceWords.length}
+                {isPronunciationMode 
+                  ? `${currentIndex + 1} / ${practiceWords.length} szó`
+                  : `Card ${currentIndex + 1} of ${practiceWords.length}`
+                }
               </p>
             )}
           </div>
@@ -211,14 +269,58 @@ const PracticeModeModal = ({ isOpen, onClose, words, lessonTitle }) => {
             {/* Results Screen */}
             {showResults && stats && (
               <PracticeResults
-                stats={stats}
+                stats={{
+                  ...stats,
+                  ...(isPronunciationMode && {
+                    pronunciationStats
+                  })
+                }}
+                mode={practiceMode}
                 onRestart={handleRestart}
                 onClose={handleClose}
               />
             )}
 
-            {/* Practice Screen */}
-            {practiceMode && !showResults && currentWord && (
+            {/* Pronunciation Mode */}
+            {isPronunciationMode && !showResults && currentWord && (
+              <div className="space-y-6">
+                <PronunciationCard
+                  word={currentWord}
+                  onNext={handlePronunciationNext}
+                  onSkip={goToNext}
+                  autoPlayAudio={true}
+                />
+                
+                {/* Progress Indicator */}
+                <PracticeProgress
+                  currentIndex={currentIndex}
+                  totalCards={practiceWords.length}
+                  viewedCards={new Set(pronunciationStats.scores.map((_, i) => i))}
+                />
+
+                {/* Manual Finish Button */}
+                {pronunciationStats.scores.length > 0 && (
+                  <div className="text-center">
+                    <button
+                      onClick={handleFinish}
+                      className="
+                        px-6 py-3 rounded-lg
+                        bg-green-500 dark:bg-green-600
+                        hover:bg-green-600 dark:hover:bg-green-700
+                        text-white font-medium
+                        transition-all duration-200
+                        hover:scale-105
+                      "
+                    >
+                      ✓ Befejezés ({pronunciationStats.scores.length}/{practiceWords.length})
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Other Practice Modes (Sequential, Random, Reverse) */}
+            {practiceMode && !isPronunciationMode && !showResults && currentWord && (
               <div className="space-y-6">
                 <FlashCard
                   word={currentWord}
@@ -282,6 +384,7 @@ const PracticeModeModal = ({ isOpen, onClose, words, lessonTitle }) => {
         </div>
       )}
     </>
+    </ErrorBoundary>
   );
 };
 

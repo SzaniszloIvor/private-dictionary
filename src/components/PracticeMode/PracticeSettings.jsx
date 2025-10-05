@@ -1,7 +1,12 @@
-// src/components/PracticeMode/PracticeSettings.jsx
+// src/components/PracticeMode/PracticeSettings.jsx frissítés
 import React from 'react';
 
 const PracticeSettings = ({ onStart, onCancel }) => {
+  // Check if speech recognition is supported
+  const isSpeechRecognitionSupported = 
+    typeof window !== 'undefined' && 
+    ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+
   const modes = [
     {
       id: 'sequential',
@@ -23,7 +28,16 @@ const PracticeSettings = ({ onStart, onCancel }) => {
       icon: '🔄',
       description: 'Magyar → Angol',
       color: 'from-green-500 to-emerald-400'
-    }
+    },
+    // NEW: Pronunciation mode
+    ...(isSpeechRecognitionSupported ? [{
+      id: 'pronunciation',
+      name: 'Kiejtésgyakorlás',
+      icon: '🎤',
+      description: 'Gyakorold a kiejtést mikrofonnal',
+      color: 'from-red-500 to-pink-500',
+      badge: 'ÚJ' // Optional badge
+    }] : [])
   ];
 
   return (
@@ -40,13 +54,13 @@ const PracticeSettings = ({ onStart, onCancel }) => {
       </div>
 
       {/* Mode Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {modes.map((mode) => (
           <button
             key={mode.id}
             onClick={() => onStart(mode.id)}
             className="
-              group p-6 rounded-xl
+              group p-6 rounded-xl relative
               bg-white dark:bg-gray-800
               border-2 border-gray-200 dark:border-gray-700
               hover:border-transparent
@@ -55,6 +69,19 @@ const PracticeSettings = ({ onStart, onCancel }) => {
               transition-all duration-300
             "
           >
+            {/* NEW Badge */}
+            {mode.badge && (
+              <div className="
+                absolute top-2 right-2
+                bg-red-500 text-white
+                px-2 py-1 rounded-full
+                text-xs font-bold
+                animate-pulse
+              ">
+                {mode.badge}
+              </div>
+            )}
+
             {/* Icon with gradient background */}
             <div className={`
               w-20 h-20 mx-auto mb-4 rounded-full
@@ -80,6 +107,27 @@ const PracticeSettings = ({ onStart, onCancel }) => {
         ))}
       </div>
 
+      {/* Browser compatibility warning */}
+      {!isSpeechRecognitionSupported && (
+        <div className="
+          mb-6 p-4 rounded-lg
+          bg-orange-50 dark:bg-orange-900/20
+          border border-orange-300 dark:border-orange-700
+          text-orange-800 dark:text-orange-200
+          text-left
+        ">
+          <div className="font-bold mb-2 flex items-center gap-2">
+            <span>⚠️</span>
+            <span>Kiejtésgyakorlás nem elérhető</span>
+          </div>
+          <div className="text-sm">
+            A hangfelismerés nem támogatott ebben a böngészőben.
+            A kiejtésgyakorló funkció használatához <strong>Chrome</strong> vagy 
+            <strong> Edge</strong> böngészőt ajánlunk.
+          </div>
+        </div>
+      )}
+
       {/* Info Box */}
       <div className="
         bg-blue-50 dark:bg-blue-900/20
@@ -95,7 +143,7 @@ const PracticeSettings = ({ onStart, onCancel }) => {
           <li>• Kattints a kártyára a válasz megjelenítéséhez</li>
           <li>• Használd a billentyűzet nyilakat (←/→) navigáláshoz</li>
           <li>• Nyomd meg a Szóközt a kártya megfordításához</li>
-          <li>• Kövesd a haladásod az alsó pontokkal</li>
+          <li>• <strong>ÚJ:</strong> Gyakorold a kiejtést mikrofonnal valós időben! 🎤</li>
           <li>• Teljesítsd mind a kártyát csillagokért és jelvényekért!</li>
         </ul>
       </div>
