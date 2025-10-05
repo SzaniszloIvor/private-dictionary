@@ -7,7 +7,7 @@ A modern, interactive English-Hungarian dictionary application designed for pers
 ![Firebase](https://img.shields.io/badge/Firebase-12.x-FFCA28?style=flat&logo=firebase)
 ![Vite](https://img.shields.io/badge/Vite-7.x-646CFF?style=flat&logo=vite)
 ![License](https://img.shields.io/badge/License-All_Rights_Reserved-red.svg)
-![Version](https://img.shields.io/badge/Version-0.5.0-blue.svg)
+![Version](https://img.shields.io/badge/Version-0.5.1-blue.svg)
 
 ## 📋 Table of Contents
 
@@ -42,7 +42,7 @@ Private Dictionary is a comprehensive language learning platform that provides a
 - **Dynamic Learning Path**: Create unlimited custom lessons (registered users)
 - **Dual Authentication**: Demo mode with localStorage and Google Sign-in with Firebase
 - **Real-time Sync**: Cloud-based storage with automatic saving
-- **Phonetic API**: Automatic IPA phonetic generation via Datamuse API
+- **Phonetic API**: IPA phonetic transcription now uses [DictionaryAPI](https://dictionaryapi.dev/) for more accurate results (replacing Datamuse API)
 - **Speech Synthesis**: Native pronunciation for all words with speed control
 - **Drag & Drop**: Intuitive word and lesson reordering with persistence (optimized for mobile)
 - **Responsive Design**: Optimized for mobile and desktop devices
@@ -61,7 +61,7 @@ Private Dictionary is a comprehensive language learning platform that provides a
 - 📱 **Responsive Design** - Works seamlessly on all devices
 - 💾 **Auto-Save** - Automatic cloud synchronization for Google users, localStorage for demo
 - ✏️ **Lesson Management** - Rename and delete lessons (authenticated users)
-- 🗑️ **Word Management** - Add, delete, and organize words
+- 🗑️ **Word Management** - Add, delete, edit and organize words
 - 🖱️ **Drag & Drop** - Intuitive reordering with optimized mobile touch support (100ms activation)
 - 🎚️ **Pronunciation Speed Control** - Adjustable speech synthesis speed (0.3x - 1.5x)
 - 🌐 **Offline Support** - Demo mode works offline with localStorage
@@ -97,6 +97,10 @@ Private Dictionary is a comprehensive language learning platform that provides a
 
 ### Pronunciation Practice Features
 - 🎤 **Real-time Speech Recognition** - Web Speech API integration (Chrome/Edge)
+- 🔊 **Forced English Voice** - Explicitly sets `utterance.lang = 'en-US'` to prevent browser using non-English voices
+- 🗂️ **Voice Selection Priority** - en-US > en-GB > any English variant
+- ♻️ **Improved Fallbacks** - Handles missing or unavailable English voices gracefully
+- 📝 **Enhanced Maintainability** - Detailed inline comments added for critical code paths
 - 📊 **Accuracy Scoring** - 0-100% similarity scoring with Levenshtein algorithm
 - 🌊 **Waveform Visualizer** - Animated audio bars during recording
 - 💡 **Smart Tips** - Context-aware pronunciation coaching (TH, R, W, V sounds)
@@ -228,8 +232,9 @@ Demo mode allows you to **try all features** of Private Dictionary without creat
 - **Keyboard Shortcut**: Press `Ctrl/⌘+E` to quickly open the add words modal
 
 #### Phonetic Generation
-- **Primary Source**: Datamuse API for accurate IPA transcription
-- **ARPAbet Conversion**: Converts ARPAbet to IPA notation
+- **Old API**: Datamuse (replaced in v0.5.1)
+- **New API**: [DictionaryAPI](https://dictionaryapi.dev/) for precise IPA transcription
+- **Benefits**: More accurate phonetic results and consistent pronunciation across word list and practice mode
 - **Fallback Algorithm**: Local generation for common patterns
 - **Batch Processing**: Automatic phonetics for bulk imports
 - **Manual Override**: Edit phonetics manually if needed

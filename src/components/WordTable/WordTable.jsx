@@ -1,6 +1,7 @@
-// src/components/WordTable/WordTable.jsx
+// src/components/WordTable/WordTable.jsx - WITH INLINE EDIT + API
 import React, { useState } from 'react';
 import { useSpeechSynthesis } from '../../hooks/useSpeechSynthesis';
+import { generatePhonetic } from '../../utils/phoneticHelper';
 import {
   DndContext,
   closestCenter,
@@ -21,7 +22,23 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 // Sortable row component for desktop
-const SortableRow = ({ word, index, isDemo, speak, speechRate, deleteWord, handleDeleteWord }) => {
+const SortableRow = ({ 
+  word, 
+  index, 
+  isDemo, 
+  speak, 
+  speechRate, 
+  deleteWord, 
+  handleDeleteWord,
+  isEditing,
+  editForm,
+  onStartEdit,
+  onSaveEdit,
+  onCancelEdit,
+  onEditChange,
+  isGeneratingPhonetic,
+  onGeneratePhonetic
+}) => {
   const {
     attributes,
     listeners,
@@ -31,7 +48,7 @@ const SortableRow = ({ word, index, isDemo, speak, speechRate, deleteWord, handl
     isDragging
   } = useSortable({ 
     id: `${word.english}-${index}`,
-    disabled: isDemo
+    disabled: isDemo || isEditing
   });
 
   const style = {
@@ -43,6 +60,106 @@ const SortableRow = ({ word, index, isDemo, speak, speechRate, deleteWord, handl
   const handleButtonInteraction = (e) => {
     e.stopPropagation();
   };
+
+  if (isEditing) {
+    return (
+      <tr className="border-b border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20">
+        <td className="px-4 py-4">
+          <input
+            type="text"
+            value={editForm.english}
+            onChange={(e) => onEditChange('english', e.target.value)}
+            className="
+              w-full px-3 py-2 rounded
+              border-2 border-blue-500 dark:border-blue-400
+              bg-white dark:bg-gray-700
+              text-gray-900 dark:text-gray-100
+              focus:outline-none
+            "
+          />
+        </td>
+        <td className="px-4 py-4">
+          <div className="flex gap-2 items-center">
+            <input
+              type="text"
+              value={editForm.phonetic}
+              onChange={(e) => onEditChange('phonetic', e.target.value)}
+              className="
+                flex-1 px-3 py-2 rounded
+                border-2 border-blue-500 dark:border-blue-400
+                bg-white dark:bg-gray-700
+                text-red-500 dark:text-red-400
+                focus:outline-none
+              "
+            />
+            <button
+              onClick={onGeneratePhonetic}
+              disabled={isGeneratingPhonetic || !editForm.english}
+              className={`
+                px-3 py-2 rounded text-sm font-medium
+                text-white whitespace-nowrap
+                transition-all duration-200
+                ${isGeneratingPhonetic || !editForm.english
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:shadow-lg hover:scale-105'}
+              `}
+              title="Fonetika lekérése a Dictionary API-ból"
+            >
+              {isGeneratingPhonetic ? '⏳' : '🪄 API'}
+            </button>
+          </div>
+        </td>
+        <td className="px-4 py-4">
+          <input
+            type="text"
+            value={editForm.hungarian}
+            onChange={(e) => onEditChange('hungarian', e.target.value)}
+            className="
+              w-full px-3 py-2 rounded
+              border-2 border-blue-500 dark:border-blue-400
+              bg-white dark:bg-gray-700
+              text-gray-900 dark:text-gray-100
+              focus:outline-none
+            "
+          />
+        </td>
+        <td className="px-4 py-4 text-center">
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={onSaveEdit}
+              disabled={isGeneratingPhonetic}
+              className="
+                bg-green-500 hover:bg-green-600
+                dark:bg-green-600 dark:hover:bg-green-700
+                text-white rounded-full w-8 h-8
+                transition-colors duration-200
+                flex items-center justify-center
+                disabled:opacity-50 disabled:cursor-not-allowed
+              "
+              title="Mentés"
+            >
+              ✓
+            </button>
+            <button
+              onClick={onCancelEdit}
+              disabled={isGeneratingPhonetic}
+              className="
+                bg-gray-500 hover:bg-gray-600
+                dark:bg-gray-600 dark:hover:bg-gray-700
+                text-white rounded-full w-8 h-8
+                transition-colors duration-200
+                flex items-center justify-center
+                disabled:opacity-50 disabled:cursor-not-allowed
+              "
+              title="Mégse"
+            >
+              ✗
+            </button>
+          </div>
+        </td>
+      </tr>
+    );
+  }
 
   return (
     <tr 
@@ -87,25 +204,46 @@ const SortableRow = ({ word, index, isDemo, speak, speechRate, deleteWord, handl
           >
             🔊
           </button>
-          {!isDemo && deleteWord && (
-            <button
-              onClick={handleButtonInteraction}
-              onMouseDown={(e) => {
-                handleButtonInteraction(e);
-                handleDeleteWord(index);
-              }}
-              className="
-                bg-red-500 dark:bg-red-600 text-white rounded-full w-8 h-8
-                hover:bg-red-600 dark:hover:bg-red-700
-                hover:shadow-lg hover:scale-110
-                transition-all duration-300
-                flex items-center justify-center
-                pointer-events-auto
-              "
-              title="Törlés"
-            >
-              🗑️
-            </button>
+          {!isDemo && (
+            <>
+              <button
+                onClick={handleButtonInteraction}
+                onMouseDown={(e) => {
+                  handleButtonInteraction(e);
+                  onStartEdit(index);
+                }}
+                className="
+                  bg-blue-500 hover:bg-blue-600
+                  dark:bg-blue-600 dark:hover:bg-blue-700
+                  text-white rounded-full w-8 h-8
+                  hover:shadow-lg hover:scale-110
+                  transition-all duration-300
+                  flex items-center justify-center
+                  pointer-events-auto
+                "
+                title="Szerkesztés"
+              >
+                ✏️
+              </button>
+              <button
+                onClick={handleButtonInteraction}
+                onMouseDown={(e) => {
+                  handleButtonInteraction(e);
+                  handleDeleteWord(index);
+                }}
+                className="
+                  bg-red-500 dark:bg-red-600 text-white rounded-full w-8 h-8
+                  hover:bg-red-600 dark:hover:bg-red-700
+                  hover:shadow-lg hover:scale-110
+                  transition-all duration-300
+                  flex items-center justify-center
+                  pointer-events-auto
+                "
+                title="Törlés"
+              >
+                🗑️
+              </button>
+            </>
           )}
         </div>
       </td>
@@ -114,7 +252,24 @@ const SortableRow = ({ word, index, isDemo, speak, speechRate, deleteWord, handl
 };
 
 // Sortable card component for mobile
-const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, toggleExpanded, handleDeleteWord }) => {
+const SortableCard = ({ 
+  word, 
+  index, 
+  isDemo, 
+  speak, 
+  speechRate, 
+  expandedRows, 
+  toggleExpanded, 
+  handleDeleteWord,
+  isEditing,
+  editForm,
+  onStartEdit,
+  onSaveEdit,
+  onCancelEdit,
+  onEditChange,
+  isGeneratingPhonetic,
+  onGeneratePhonetic
+}) => {
   const {
     attributes,
     listeners,
@@ -124,7 +279,7 @@ const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, to
     isDragging
   } = useSortable({ 
     id: `${word.english}-${index}`,
-    disabled: isDemo
+    disabled: isDemo || isEditing
   });
 
   const style = {
@@ -143,6 +298,116 @@ const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, to
     e.stopPropagation();
   };
 
+  if (isEditing) {
+    return (
+      <div className="
+        rounded-lg mb-2 p-4
+        bg-blue-50 dark:bg-blue-900/20
+        border-2 border-blue-500 dark:border-blue-400
+        space-y-3
+      ">
+        <div>
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+            Angol szó:
+          </label>
+          <input
+            type="text"
+            value={editForm.english}
+            onChange={(e) => onEditChange('english', e.target.value)}
+            className="
+              w-full px-3 py-2 rounded
+              border-2 border-blue-500 dark:border-blue-400
+              bg-white dark:bg-gray-700
+              text-gray-900 dark:text-gray-100
+              focus:outline-none
+            "
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+            Fonetika:
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={editForm.phonetic}
+              onChange={(e) => onEditChange('phonetic', e.target.value)}
+              className="
+                flex-1 px-3 py-2 rounded
+                border-2 border-blue-500 dark:border-blue-400
+                bg-white dark:bg-gray-700
+                text-red-500 dark:text-red-400
+                focus:outline-none
+              "
+            />
+            <button
+              onClick={onGeneratePhonetic}
+              disabled={isGeneratingPhonetic || !editForm.english}
+              className={`
+                px-3 py-2 rounded text-sm font-medium
+                text-white whitespace-nowrap
+                transition-all duration-200
+                ${isGeneratingPhonetic || !editForm.english
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:shadow-lg'}
+              `}
+              title="Fonetika lekérése a Dictionary API-ból"
+            >
+              {isGeneratingPhonetic ? '⏳' : '🪄 API'}
+            </button>
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+            Magyar jelentés:
+          </label>
+          <input
+            type="text"
+            value={editForm.hungarian}
+            onChange={(e) => onEditChange('hungarian', e.target.value)}
+            className="
+              w-full px-3 py-2 rounded
+              border-2 border-blue-500 dark:border-blue-400
+              bg-white dark:bg-gray-700
+              text-gray-900 dark:text-gray-100
+              focus:outline-none
+            "
+          />
+        </div>
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={onSaveEdit}
+            disabled={isGeneratingPhonetic}
+            className="
+              flex-1 px-4 py-2 rounded-lg
+              bg-green-500 hover:bg-green-600
+              dark:bg-green-600 dark:hover:bg-green-700
+              text-white font-medium
+              transition-colors duration-200
+              disabled:opacity-50 disabled:cursor-not-allowed
+            "
+          >
+            ✓ Mentés
+          </button>
+          <button
+            onClick={onCancelEdit}
+            disabled={isGeneratingPhonetic}
+            className="
+              flex-1 px-4 py-2 rounded-lg
+              bg-gray-500 hover:bg-gray-600
+              dark:bg-gray-600 dark:hover:bg-gray-700
+              text-white font-medium
+              transition-colors duration-200
+              disabled:opacity-50 disabled:cursor-not-allowed
+            "
+          >
+            ✗ Mégse
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div 
       ref={setNodeRef} 
@@ -159,7 +424,6 @@ const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, to
         ${isDragging ? 'shadow-2xl border-2 border-indigo-500 dark:border-indigo-400' : ''}
       `}
     >
-      {/* Drag handle - visual indicator only */}
       {!isDemo && (
         <div className="
           absolute left-1 top-1/2 -translate-y-1/2
@@ -230,7 +494,6 @@ const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, to
         </div>
       </div>
       
-      {/* Expanded options */}
       {isExpanded && (
         <div className="
           mt-3 pt-3 border-t border-gray-200 dark:border-gray-700
@@ -238,24 +501,44 @@ const SortableCard = ({ word, index, isDemo, speak, speechRate, expandedRows, to
           animate-fade-in
         ">
           {!isDemo && (
-            <button
-              onTouchStart={handleButtonInteraction}
-              onTouchEnd={handleButtonInteraction}
-              onClick={(e) => {
-                handleButtonInteraction(e);
-                handleDeleteWord(index);
-              }}
-              className="
-                flex-1 min-w-[100px] px-3 py-2
-                bg-red-500 dark:bg-red-600 text-white
-                rounded-md text-sm
-                hover:bg-red-600 dark:hover:bg-red-700
-                transition-colors duration-200
-                touch-auto pointer-events-auto
-              "
-            >
-              🗑️ Törlés
-            </button>
+            <>
+              <button
+                onTouchStart={handleButtonInteraction}
+                onTouchEnd={handleButtonInteraction}
+                onClick={(e) => {
+                  handleButtonInteraction(e);
+                  onStartEdit(index);
+                }}
+                className="
+                  flex-1 min-w-[100px] px-3 py-2
+                  bg-blue-500 dark:bg-blue-600 text-white
+                  rounded-md text-sm font-medium
+                  hover:bg-blue-600 dark:hover:bg-blue-700
+                  transition-colors duration-200
+                  touch-auto pointer-events-auto
+                "
+              >
+                ✏️ Szerkesztés
+              </button>
+              <button
+                onTouchStart={handleButtonInteraction}
+                onTouchEnd={handleButtonInteraction}
+                onClick={(e) => {
+                  handleButtonInteraction(e);
+                  handleDeleteWord(index);
+                }}
+                className="
+                  flex-1 min-w-[100px] px-3 py-2
+                  bg-red-500 dark:bg-red-600 text-white
+                  rounded-md text-sm font-medium
+                  hover:bg-red-600 dark:hover:bg-red-700
+                  transition-colors duration-200
+                  touch-auto pointer-events-auto
+                "
+              >
+                🗑️ Törlés
+              </button>
+            </>
           )}
         </div>
       )}
@@ -269,6 +552,9 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
   const [activeId, setActiveId] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [localWords, setLocalWords] = useState(words);
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [editForm, setEditForm] = useState({ english: '', phonetic: '', hungarian: '' });
+  const [isGeneratingPhonetic, setIsGeneratingPhonetic] = useState(false);
   
   React.useEffect(() => {
     setLocalWords(words);
@@ -280,34 +566,28 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
     originalIndex: index
   }));
 
-  // ========================================
-  // KRITIKUS: SENSOR CONFIGURATION - 1000ms DELAY
-  // ========================================
   const sensors = useSensors(
-  // DESKTOP: PointerSensor with distance
-  ...(!isMobile ? [
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
+    ...(!isMobile ? [
+      useSensor(PointerSensor, {
+        activationConstraint: {
+          distance: 8,
+        },
+      })
+    ] : []),
+    
+    ...(isMobile ? [
+      useSensor(TouchSensor, {
+        activationConstraint: {
+          delay: 1000,
+          tolerance: 5,
+        },
+      })
+    ] : []),
+    
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
     })
-  ] : []),
-  
-  // MOBIL: CTouchSensor with delay
-  ...(isMobile ? [
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 1000,
-        tolerance: 5,
-      },
-    })
-  ] : []),
-  
-  //Keyboard support
-  useSensor(KeyboardSensor, {
-    coordinateGetter: sortableKeyboardCoordinates,
-  })
-);
+  );
 
   const handleDeleteWord = (index) => {
     if (window.confirm('Biztosan törölni szeretnéd ezt a szót?')) {
@@ -325,10 +605,68 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
     setExpandedRows(newExpanded);
   };
 
+  const handleStartEdit = (index) => {
+    setEditingIndex(index);
+    setEditForm({
+      english: localWords[index].english,
+      phonetic: localWords[index].phonetic,
+      hungarian: localWords[index].hungarian
+    });
+  };
+
+  const handleGeneratePhonetic = async () => {
+    if (!editForm.english.trim()) {
+      alert('⚠️ Először add meg az angol szót!');
+      return;
+    }
+
+    setIsGeneratingPhonetic(true);
+    try {
+      const phonetic = await generatePhonetic(editForm.english.trim());
+      setEditForm(prev => ({ ...prev, phonetic }));
+    } catch (error) {
+      console.error('Phonetic generation error:', error);
+      alert('❌ Hiba történt a fonetika generálása során!');
+    } finally {
+      setIsGeneratingPhonetic(false);
+    }
+  };
+
+  const handleSaveEdit = () => {
+    if (!editForm.english.trim() || !editForm.hungarian.trim()) {
+      alert('⚠️ Az angol és magyar mezők kötelezőek!');
+      return;
+    }
+
+    const updatedWords = [...localWords];
+    updatedWords[editingIndex] = {
+      english: editForm.english.trim(),
+      phonetic: editForm.phonetic.trim(),
+      hungarian: editForm.hungarian.trim()
+    };
+    
+    setLocalWords(updatedWords);
+    
+    if (onReorderWords && lessonNumber) {
+      onReorderWords(lessonNumber, updatedWords);
+    }
+    
+    setEditingIndex(null);
+    setEditForm({ english: '', phonetic: '', hungarian: '' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingIndex(null);
+    setEditForm({ english: '', phonetic: '', hungarian: '' });
+  };
+
+  const handleEditChange = (field, value) => {
+    setEditForm(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
     
-    // Haptic feedback on mobile (if supported)
     if (navigator.vibrate) {
       navigator.vibrate(50);
     }
@@ -354,7 +692,6 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
           onReorderWords(lessonNumber, newOrder);
         }
         
-        // Haptic feedback for successful move
         if (navigator.vibrate) {
           navigator.vibrate([30, 50, 30]);
         }
@@ -372,11 +709,9 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Mobile view
   if (isMobile) {
     return (
       <>
-        {/* Speed control bar for mobile */}
         <div className="
           bg-gradient-to-r from-gray-50 to-gray-100 
           dark:from-gray-800 dark:to-gray-900
@@ -415,7 +750,6 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
           </div>
         </div>
 
-        {/* Usage hint for mobile drag & drop */}
         {!isDemo && localWords.length > 1 && (
           <div className="
             bg-blue-50 dark:bg-blue-900/30 
@@ -456,12 +790,19 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
                   expandedRows={expandedRows}
                   toggleExpanded={toggleExpanded}
                   handleDeleteWord={handleDeleteWord}
+                  isEditing={editingIndex === index}
+                  editForm={editForm}
+                  onStartEdit={handleStartEdit}
+                  onSaveEdit={handleSaveEdit}
+                  onCancelEdit={handleCancelEdit}
+                  onEditChange={handleEditChange}
+                  isGeneratingPhonetic={isGeneratingPhonetic}
+                  onGeneratePhonetic={handleGeneratePhonetic}
                 />
               ))}
             </SortableContext>
           </div>
           
-          {/* DragOverlay for better visual feedback on mobile */}
           <DragOverlay>
             {activeId ? (
               <div className="
@@ -478,10 +819,8 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
     );
   }
 
-  // Desktop view (unchanged)
   return (
     <>
-      {/* Speed control bar for desktop */}
       <div className="
         bg-gradient-to-r from-gray-50 to-gray-100 
         dark:from-gray-800 dark:to-gray-900
@@ -544,7 +883,7 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
                 <th className="px-4 py-4 text-left text-lg font-bold">Angol szó</th>
                 <th className="px-4 py-4 text-left text-lg font-bold">Fonetika</th>
                 <th className="px-4 py-4 text-left text-lg font-bold">Magyar jelentés</th>
-                <th className="px-4 py-4 text-center text-lg font-bold w-[120px]">
+                <th className="px-4 py-4 text-center text-lg font-bold w-[150px]">
                   Műveletek
                 </th>
               </tr>
@@ -564,6 +903,14 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
                     speechRate={speechRate}
                     deleteWord={deleteWord}
                     handleDeleteWord={handleDeleteWord}
+                    isEditing={editingIndex === index}
+                    editForm={editForm}
+                    onStartEdit={handleStartEdit}
+                    onSaveEdit={handleSaveEdit}
+                    onCancelEdit={handleCancelEdit}
+                    onEditChange={handleEditChange}
+                    isGeneratingPhonetic={isGeneratingPhonetic}
+                    onGeneratePhonetic={handleGeneratePhonetic}
                   />
                 ))}
               </SortableContext>

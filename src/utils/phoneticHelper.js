@@ -36,13 +36,13 @@ const convertArpabetToIPA = (arpabet) => {
   return ipa;
 };
 
-// Speciális karakterek tisztítása API hívás előtt
+// Clean special characters before API call
 const cleanWordForAPI = (word) => {
-  // Eltávolítjuk a speciális karaktereket, de megtartjuk az aposztrófot és kötőjelet
+  // Remove special characters, but keep apostrophes and hyphens
   return word
     .toLowerCase()
-    .replace(/[?!.,;:]/g, '') // Írásjelek eltávolítása
-    .replace(/'/g, "'") // Smart quote helyett normál aposztróf
+    .replace(/[?!.,;:]/g, '') // Remove punctuation
+    .replace(/'/g, "'") // Replace smart quote with normal apostrophe
     .trim();
 };
 
@@ -50,7 +50,7 @@ export const fetchPhoneticFromAPI = async (word) => {
   if (!word) return '';
   
   try {
-    // Ha kötőjeles összetett szó, külön dolgozzuk fel a részeket
+    // If hyphenated compound word, process parts separately
     if (word.includes('-') && !word.startsWith('-') && !word.endsWith('-')) {
       const parts = word.split('-');
       const phoneticParts = [];
@@ -59,21 +59,23 @@ export const fetchPhoneticFromAPI = async (word) => {
         const cleanedPart = cleanWordForAPI(part);
         if (cleanedPart) {
           const response = await fetch(
-            `https://api.datamuse.com/words?sp=${encodeURIComponent(cleanedPart)}&md=r&max=1`
+            `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(cleanedPart)}`
           );
           
           if (response.ok) {
             const data = await response.json();
-            if (data && data.length > 0 && data[0].tags) {
-              const pronTag = data[0].tags.find(tag => tag.startsWith('pron:'));
-              if (pronTag) {
-                const arpabet = pronTag.substring(5);
-                phoneticParts.push(convertArpabetToIPA(arpabet));
+            if (data && data.length > 0 && data[0].phonetics && data[0].phonetics.length > 0) {
+              // Find first phonetic entry that contains text
+              const phoneticEntry = data[0].phonetics.find(p => p.text);
+              if (phoneticEntry && phoneticEntry.text) {
+                // Remove / / delimiters if present
+                const phonetic = phoneticEntry.text.replace(/^\/|\/$/g, '');
+                phoneticParts.push(phonetic);
                 continue;
               }
             }
           }
-          // Ha nincs API eredmény az adott részhez
+          // If no API result for this part, use fallback
           phoneticParts.push(generateAdvancedPhonetic(cleanedPart));
         }
       }
@@ -81,47 +83,47 @@ export const fetchPhoneticFromAPI = async (word) => {
       return phoneticParts.join('-');
     }
     
-    // Normál szó feldolgozása
+    // Process normal word
     const cleanedWord = cleanWordForAPI(word);
     
     const response = await fetch(
-      `https://api.datamuse.com/words?sp=${encodeURIComponent(cleanedWord)}&md=r&max=1`
+      `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(cleanedWord)}`
     );
     
     if (!response.ok) {
-      throw new Error('API hiba');
+      throw new Error('API error');
     }
     
     const data = await response.json();
     
-    if (data && data.length > 0 && data[0].tags) {
-      const pronTag = data[0].tags.find(tag => tag.startsWith('pron:'));
-      
-      if (pronTag) {
-        const arpabet = pronTag.substring(5);
-        return convertArpabetToIPA(arpabet);
+    if (data && data.length > 0 && data[0].phonetics && data[0].phonetics.length > 0) {
+      // Find first phonetic entry that contains text
+      const phoneticEntry = data[0].phonetics.find(p => p.text);
+      if (phoneticEntry && phoneticEntry.text) {
+        // Remove / / delimiters if present
+        return phoneticEntry.text.replace(/^\/|\/$/g, '');
       }
     }
     
-    // Ha nincs API eredmény, használjunk fejlettebb lokális generálást
+    // If no API result, use advanced local generation
     return generateAdvancedPhonetic(word);
     
   } catch (error) {
-    console.error('Fonetika API hiba:', error);
+    console.error('Phonetic API error:', error);
     return generateAdvancedPhonetic(word);
   }
 };
 
-// Fejlettebb lokális fonetika generálás
+// Advanced local phonetic generation
 const generateAdvancedPhonetic = (word) => {
   if (!word) return '';
   
   let phonetic = word.toLowerCase();
   
-  // Speciális karakterek eltávolítása (kivéve kötőjel)
+  // Remove special characters (except hyphens)
   phonetic = phonetic.replace(/[?!.,;:]/g, '');
   
-  // Ha kötőjeles összetett szó, külön dolgozzuk fel
+  // If hyphenated compound word, process separately
   if (phonetic.includes('-') && !phonetic.startsWith('-') && !phonetic.endsWith('-')) {
     const parts = phonetic.split('-');
     const phoneticParts = parts.map(part => generateSingleWordPhonetic(part.trim()));
@@ -131,11 +133,11 @@ const generateAdvancedPhonetic = (word) => {
   return generateSingleWordPhonetic(phonetic);
 };
 
-// Egyetlen szó fonetikájának generálása
+// Generate phonetics for a single word
 const generateSingleWordPhonetic = (word) => {
   let phonetic = word;
   
-  // Gyakori összevonások kezelése
+  // Handle common contractions
   const contractions = {
     "don't": 'doʊnt',
     "won't": 'woʊnt',
@@ -167,14 +169,14 @@ const generateSingleWordPhonetic = (word) => {
     "they'd": 'ðeɪd'
   };
   
-  // Ellenőrizzük, hogy összevonás-e
+  // Check if it's a contraction
   for (const [contraction, ipa] of Object.entries(contractions)) {
     if (phonetic === contraction) {
       return ipa;
     }
   }
   
-  // Gyakori szavak közvetlen IPA átírással
+  // Common words with direct IPA transcription
   const commonWords = {
     'the': 'ðə',
     'be': 'biː',
@@ -263,14 +265,14 @@ const generateSingleWordPhonetic = (word) => {
     'all': 'ɔːl'
   };
   
-  // Ha gyakori szó, használjuk a közvetlen átírást
+  // If common word, use direct transcription
   if (commonWords[phonetic]) {
     return commonWords[phonetic];
   }
   
-  // Összetett szabályok alkalmazása
+  // Apply complex rules
   
-  // Végződések
+  // Endings
   phonetic = phonetic.replace(/tion$/g, 'ʃən');
   phonetic = phonetic.replace(/sion$/g, 'ʒən');
   phonetic = phonetic.replace(/ture$/g, 'tʃər');
@@ -286,7 +288,7 @@ const generateSingleWordPhonetic = (word) => {
   phonetic = phonetic.replace(/able$/g, 'əbəl');
   phonetic = phonetic.replace(/ible$/g, 'əbəl');
   
-  // Mássalhangzó csoportok
+  // Consonant clusters
   phonetic = phonetic.replace(/ph/g, 'f');
   phonetic = phonetic.replace(/gh/g, '');
   phonetic = phonetic.replace(/ch/g, 'tʃ');
@@ -298,7 +300,7 @@ const generateSingleWordPhonetic = (word) => {
   phonetic = phonetic.replace(/wr/g, 'r');
   phonetic = phonetic.replace(/kn/g, 'n');
   
-  // Magánhangzó kombinációk
+  // Vowel combinations
   phonetic = phonetic.replace(/ee/g, 'iː');
   phonetic = phonetic.replace(/ea/g, 'iː');
   phonetic = phonetic.replace(/ie/g, 'iː');
@@ -314,7 +316,7 @@ const generateSingleWordPhonetic = (word) => {
   phonetic = phonetic.replace(/ue/g, 'uː');
   phonetic = phonetic.replace(/ew/g, 'juː');
   
-  // Egyszerű magánhangzók
+  // Simple vowels
   phonetic = phonetic.replace(/a/g, 'æ');
   phonetic = phonetic.replace(/e/g, 'e');
   phonetic = phonetic.replace(/i/g, 'ɪ');
@@ -325,20 +327,20 @@ const generateSingleWordPhonetic = (word) => {
   return phonetic;
 };
 
-// Mondat szintű fonetika generálás
+// Sentence-level phonetic generation
 export const generatePhonetic = async (text) => {
   if (!text) return '';
   
   const cleanedText = text.toLowerCase().trim();
   
-  // Ha mondat (több szó), akkor szavanként dolgozzuk fel
+  // If sentence (multiple words), process word by word
   if (cleanedText.includes(' ')) {
-    // Szavakra bontás, de megőrizzük az összevonásokat és kötőjeles szavakat
+    // Split into words, but preserve contractions and hyphenated words
     const words = cleanedText.split(/\s+/);
     const phoneticParts = [];
     
     for (const word of words) {
-      // Tisztítjuk a szót, de megtartjuk a kötőjelet
+      // Clean the word, but keep hyphens
       const cleanWord = word.replace(/[?!.,;:]/g, '');
       if (cleanWord) {
         const phonetic = await fetchPhoneticFromAPI(cleanWord);
@@ -349,17 +351,17 @@ export const generatePhonetic = async (text) => {
     return phoneticParts.join(' ');
   }
   
-  // Egyetlen szó esetén
+  // Single word case
   return fetchPhoneticFromAPI(cleanedText);
 };
 
-// Szinkron verzió fallback-hez
+// Synchronous version for fallback
 export const generatePhoneticSync = (text) => {
   if (!text) return '';
   
   const cleanedText = text.toLowerCase().trim();
   
-  // Ha mondat, szavanként dolgozzuk fel
+  // If sentence, process word by word
   if (cleanedText.includes(' ')) {
     const words = cleanedText.split(/\s+/);
     const phoneticParts = words.map(word => {

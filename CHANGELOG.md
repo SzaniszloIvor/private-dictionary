@@ -24,7 +24,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.5.0] - 2025-10-06
+## [0.5.1] - 06/10/2025
+
+### Fixed
+- **Mobile view layout for added words**
+  - Fixed the English word input being too small in mobile view.
+  - Phonetic transcription now displays correctly below the word instead of overflowing the container.
+
+- **Word list pronunciation**
+  - Previously, clicking the speaker icon in the list used Hungarian pronunciation while the practice mode used English.
+  - Now, the English pronunciation is used consistently in both the word list and practice mode.
+
+- **Word editing in list**
+  - Words added to the list could previously only be deleted.
+  - Now users can edit words after adding them, allowing corrections for mistakes.
+
+- **Phonetic transcription API**
+  - The previous Datamuse API did not provide accurate phonetics.
+  - Replaced with [DictionaryAPI](https://dictionaryapi.dev/) for more precise phonetic results.
+
+### Technical Details
+- **Modified Files**
+  - `src/components/AddWordsModal.jsx` – Mobile input and phonetic layout fixes
+  - `src/components/WordTable.jsx` – Word list pronunciation update and word editing added
+  - `src/hooks/useSpeechSynthesis.jsx` – Unified speech synthesis for word list and practice mode
+  - `src/helpers/phoneticHelper.js` – Integrated DictionaryAPI for phonetic data
+
+### Impact
+This update improves the mobile user experience, ensures consistent English pronunciation across the app, and enhances word list management with editable entries and more accurate phonetics.
+
+### Browser Compatibility
+- Tested on Chrome, Edge, Safari
+- Mobile and desktop layouts are responsive and consistent
+- English voice synthesis works reliably across all supported platforms
+
+---
+
+## [0.5.0] - 06/10/2025
 
 ### Added
 - **🎤 Pronunciation Practice Mode** - Complete speech recognition system with Web Speech API
@@ -135,7 +171,7 @@ GitHub: @SzaniszloIvor
 
 ---
 
-## [0.4.0] - 2025-10-05
+## [0.4.0] - 05/10/2025
 
 ### Added
 - **Practice Mode** - Interactive flashcard learning system with gamification
@@ -207,7 +243,7 @@ GitHub: @SzaniszloIvor
 
 ---
 
-## [0.3.3] - 2025-10-04
+## [0.3.3] - 04/10/2025
 
 ### Fixed
 - **Mobile Drag & Drop UX Critical Fix**
@@ -247,7 +283,7 @@ GitHub: @SzaniszloIvor
   - Users must hold cards for 1 full second before dragging
   - Trade-off: Better scroll UX vs slightly slower drag activation
 
-## [0.3.2] - 2025-10-04
+## [0.3.2] - 04/10/2025
 
 ---
 
@@ -283,7 +319,7 @@ GitHub: @SzaniszloIvor
 
 ---
 
-## [0.3.1] - 2025-10-04
+## [0.3.1] - 04/10/2025
 
 ### Fixed
 - **Mobile & Desktop Drag & Drop UX Improvements**
@@ -311,7 +347,7 @@ GitHub: @SzaniszloIvor
 
 ---
 
-## [0.3.0] - 2025-10-04
+## [0.3.0] - 04/10/2025
 
 ### Added
 - **Dark Mode Support**
@@ -444,7 +480,7 @@ For developers updating from v0.2.0:
 
 ---
 
-## [0.2.0] - 2025-10-02
+## [0.2.0] - 02/10/2025
 
 ### Added
 - **Comprehensive Keyboard Shortcuts System**
@@ -572,7 +608,7 @@ For developers updating from v0.2.0:
 
 ---
 
-## [0.1.0] - 2025-09-30
+## [0.1.0] - 30/09/2025
 
 ### Added
 - **Drag & Drop for Words and Lessons**
@@ -593,7 +629,8 @@ For developers updating from v0.2.0:
 
 ---
 
-[Unreleased]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.3.3...v0.4.0
 [0.3.3]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.3.2...v0.3.3

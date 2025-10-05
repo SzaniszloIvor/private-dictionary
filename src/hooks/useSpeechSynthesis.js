@@ -34,17 +34,46 @@ export const useSpeechSynthesis = () => {
       return;
     }
 
+    // Cancel any ongoing speech
     speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
+    
+    // CRITICAL: Always set language to English
+    utterance.lang = 'en-US';
     
     utterance.rate = options.rate || speechRate;
     utterance.pitch = options.pitch || 1;
     utterance.volume = options.volume || 1;
 
-    const englishVoice = voices.find(voice => voice.lang.startsWith('en'));
-    if (englishVoice) {
-      utterance.voice = englishVoice;
+    // Try to find the best English voice
+    // Priority: 1) en-US, 2) en-GB, 3) any en-* voice
+    let selectedVoice = null;
+    
+    if (voices.length > 0) {
+      // Try US English first
+      selectedVoice = voices.find(voice => 
+        voice.lang === 'en-US' || voice.lang === 'en_US'
+      );
+      
+      // Try British English
+      if (!selectedVoice) {
+        selectedVoice = voices.find(voice => 
+          voice.lang === 'en-GB' || voice.lang === 'en_GB'
+        );
+      }
+      
+      // Try any English voice
+      if (!selectedVoice) {
+        selectedVoice = voices.find(voice => 
+          voice.lang.startsWith('en')
+        );
+      }
+      
+      // Set the voice if found
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
     }
 
     utterance.onstart = () => setSpeaking(true);

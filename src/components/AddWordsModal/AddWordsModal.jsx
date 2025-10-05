@@ -399,11 +399,10 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, get
               </label>
             </div>
           </div>
-
           {/* Single word mode */}
           {addMode === 'single' ? (
             <div>
-              <div className="flex gap-4 mb-4">
+              <div className="flex flex-col md:flex-row gap-4 mb-4">
                 <div className="flex-1">
                   <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">
                     Angol szó:
@@ -427,7 +426,7 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, get
                   <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">
                     Fonetika:
                   </label>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <input
                       type="text"
                       className="
@@ -448,7 +447,7 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, get
                       className={`
                         px-4 py-3 rounded-lg
                         text-white font-medium
-                        min-w-[100px]
+                        sm:min-w-[100px]
                         transition-all duration-200
                         ${isGenerating 
                           ? 'bg-gray-500 cursor-wait' 
@@ -459,7 +458,7 @@ const AddWordsModal = ({ isOpen, onClose, dictionary, setDictionary, isDemo, get
                     </button>
                   </div>
                   <small className="block mt-1 text-xs text-gray-600 dark:text-gray-400">
-                    Pontos kiejtés a Datamuse API-ból
+                    Pontos kiejtés a Dictionary API-ból
                   </small>
                 </div>
               </div>
