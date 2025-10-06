@@ -358,7 +358,7 @@ const PracticeModeModal = ({ isOpen, onClose, words, lessonTitle }) => {
                         hover:scale-105
                       "
                     >
-                      ✓ Finish Practice
+                      ✓ Gyakorlás befejezése
                     </button>
                   </div>
                 )}

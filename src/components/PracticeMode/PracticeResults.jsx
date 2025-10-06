@@ -130,7 +130,7 @@ const PracticeResults = ({ stats, mode, onRestart, onClose }) => {
             rounded-xl p-6 mb-6
           ">
             <h3 className="font-bold text-xl mb-4 text-gray-800 dark:text-gray-100">
-              🎖️ Badges Earned
+              🎖️ Elnyert jelvények
             </h3>
 
             <div className="flex flex-wrap justify-center gap-4">
@@ -193,7 +193,7 @@ const PracticeResults = ({ stats, mode, onRestart, onClose }) => {
               transition-all duration-300
             "
           >
-            ✓ Finish
+            ✓ Befejezés
           </button>
         </div>
       </div>

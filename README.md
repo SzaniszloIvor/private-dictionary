@@ -698,34 +698,49 @@ See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes.
 The following improvements are planned to enhance usability, learning efficiency, and overall user experience:
 
 ### 📊 Learning Aids
-- **Daily Goal & Streaks** – Track words per day and visualize learning progress
-- **Favorites** – Mark difficult or favorite words for quick access
-- **Spaced Repetition** – Smart review system based on learning algorithms
+- **Daily Goal & Streaks** – Track words per day and visualize learning progress  
+- **Favorites** – Mark difficult or favorite words for quick access  
+- **Spaced Repetition** – Smart review system based on learning algorithms  
+- **OpenAI API Integration** – Supports (prioritized for Private Dictionary):  
+  1. Querying Hungarian meanings  
+  2. Practicing spelling (iPad integration)  
+  3. Generating example sentences  
+  4. Explaining grammar rules  
+  5. Vocabulary expansion (personalized word lists with synonyms, idioms, and usage examples)  
+  6. Adding words via image recognition (photo-based word capture)  
+  7. Adaptive quizzes and mini-games (fill-in-the-blank, multiple choice, error correction)  
+  8. Pronunciation feedback (analyzing learner's spoken sentences)  
+  9. Writing assistance (short texts, emails, exercises with grammar and style corrections)  
+  10. Personalized learning plans (based on learner's strengths and weaknesses)  
+  11. Context-aware sentence generation (e.g., situational examples like travel, school, restaurant)  
+  12. Contextual translations with synonyms, antonyms, and word collocations  
+  13. Conversation simulations (interactive chatbot for practicing dialogues)  
+  14. Cultural and usage tips (formal/informal usage, slang, idioms, collocations)
 
 ### 🎨 Visual Improvements
-- **Loading States** – Skeleton screens, optimistic updates
-- **Empty States** – Friendly SVG illustrations for no data / no results
-- **Progress Indicators** – Visual feedback for lesson completion
+- **Loading States** – Skeleton screens, optimistic updates  
+- **Empty States** – Friendly SVG illustrations for no data / no results  
+- **Progress Indicators** – Visual feedback for lesson completion  
 
 ### 🔧 Usability
-- **Bulk Actions** – Multi-select for delete, copy, move
-- **Import/Export** – CSV, JSON backup/restore, Anki deck export, printable flashcards
-- **Smart Search** – Fuzzy search with suggestions and typo tolerance
-- **Lesson Categories** – Organize lessons by topic/difficulty
+- **Bulk Actions** – Multi-select for delete, copy, move  
+- **Import/Export** – CSV, JSON backup/restore, Anki deck export, printable flashcards  
+- **Smart Search** – Fuzzy search with suggestions and typo tolerance  
+- **Lesson Categories** – Organize lessons by topic/difficulty  
 
 ### 📱 Mobile Specific
-- **Swipe Gestures** – Left = delete, right = favorite, double-tap = pronounce
-- **PWA Support** – Offline mode, install prompt, app-like experience
-- **Pull to Refresh** – Sync data with gesture
+- **Swipe Gestures** – Left = delete, right = favorite, double-tap = pronounce  
+- **PWA Support** – Offline mode, install prompt, app-like experience  
+- **Pull to Refresh** – Sync data with gesture  
 
 ### 🚀 Performance
-- **Virtual Scrolling** – Efficient rendering of large word lists (1000+ words)
-- **Lazy Loading** – Lessons, images, and code splitting
-- **Service Worker** – Advanced offline capabilities and caching
+- **Virtual Scrolling** – Efficient rendering of large word lists (1000+ words)  
+- **Lazy Loading** – Lessons, images, and code splitting  
+- **Service Worker** – Advanced offline capabilities and caching  
 
 ### 🌐 Internationalization
-- **Multi-language Support** – Interface localization
-- **Additional Language Pairs** – Beyond English-Hungarian
+- **Multi-language Support** – Interface localization  
+- **Additional Language Pairs** – Beyond English-Hungarian  
 - **Custom Phonetic Systems** – Support for different notation systems
 
 ## 📜 License

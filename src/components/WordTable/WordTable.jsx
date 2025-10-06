@@ -187,8 +187,7 @@ const SortableRow = ({
       <td className="px-4 py-4 text-center">
         <div className="flex gap-2 justify-center">
           <button
-            onClick={handleButtonInteraction}
-            onMouseDown={(e) => {
+            onClick={(e) => {
               handleButtonInteraction(e);
               speak(word.english);
             }}
@@ -207,8 +206,7 @@ const SortableRow = ({
           {!isDemo && (
             <>
               <button
-                onClick={handleButtonInteraction}
-                onMouseDown={(e) => {
+                onClick={(e) => {
                   handleButtonInteraction(e);
                   onStartEdit(index);
                 }}
@@ -226,8 +224,7 @@ const SortableRow = ({
                 ✏️
               </button>
               <button
-                onClick={handleButtonInteraction}
-                onMouseDown={(e) => {
+                onClick={(e) => {
                   handleButtonInteraction(e);
                   handleDeleteWord(index);
                 }}

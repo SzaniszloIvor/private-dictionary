@@ -24,6 +24,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.5.2] - 06/10/2025
+
+### Added
+- **Pronunciation Practice Meaning Toggle**
+  - Added "Jelentés megjelenítése" (Show Meaning) button in pronunciation practice mode
+  - Button positioned below microphone, above helper text for better UX flow
+  - Hungarian translation displayed in green card with smooth animation
+  - Automatic hiding when navigating to next word
+  - Toggle functionality: "Jelentés megjelenítése" ↔ "Jelentés elrejtése"
+
+### Fixed
+- **CRITICAL: Desktop drag & drop bug on word deletion**
+  - Fixed drag-and-drop activation when canceling delete confirmation dialog
+  - Replaced `onMouseDown` events with `onClick` for delete, edit, and play buttons
+  - Issue: When clicking "Mégse" (Cancel) in delete dialog, `onMouseUp` event never fired, causing permanent drag state
+  - Solution: Using `onClick` ensures complete click cycle before dialog appears
+  - Affected buttons: 🔊 Play audio, ✏️ Edit word, 🗑️ Delete word (desktop view only)
+
+### Technical Details
+- **Modified Files**
+  - `src/components/WordTable/WordTable.jsx` – Fixed button event handlers (~30 lines)
+  - `src/components/PracticeMode/PronunciationCard.jsx` – Added meaning toggle feature (~50 lines)
+
+### Impact
+This update eliminates frustrating drag-and-drop lock on desktop when canceling delete operations and improves learning experience by allowing quick meaning reference during pronunciation practice.
+
+### Browser Compatibility
+- Tested on Chrome, Edge, Safari
+- Desktop and mobile layouts work consistently
+- All interactive elements respond correctly to user input
+
+---
+
+
 ## [0.5.1] - 06/10/2025
 
 ### Fixed

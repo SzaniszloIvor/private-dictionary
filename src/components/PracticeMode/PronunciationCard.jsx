@@ -23,6 +23,7 @@ const PronunciationCard = ({
   const [hasEvaluated, setHasEvaluated] = useState(false);
   const [showTips, setShowTips] = useState(false);
   const [hasPlayedAudio, setHasPlayedAudio] = useState(false);
+  const [showMeaning, setShowMeaning] = useState(false);
   
   const { speak } = useSpeechSynthesis();
   const {
@@ -47,11 +48,12 @@ const PronunciationCard = ({
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [word?.english, autoPlayAudio, hasPlayedAudio]);
+  }, [word?.english, autoPlayAudio, hasPlayedAudio, speak]);
 
-  // Reset hasPlayedAudio when word changes
+  // Reset hasPlayedAudio and meaning when word changes
   useEffect(() => {
     setHasPlayedAudio(false);
+    setShowMeaning(false);
   }, [word?.english]);
 
   // Evaluate pronunciation when transcript changes
@@ -82,13 +84,18 @@ const PronunciationCard = ({
     setShowTips(false);
   };
 
+  const toggleMeaning = () => {
+    setShowMeaning(prev => !prev);
+  };
+
   const handleNext = () => {
     resetTranscript();
     setScore(null);
     setAttempts(0);
     setHasEvaluated(false);
     setShowTips(false);
-    setHasPlayedAudio(false); // Reset audio flag
+    setHasPlayedAudio(false);
+    setShowMeaning(false);
     onNext({ score, attempts: attempts || 1 });
   };
 
@@ -98,7 +105,8 @@ const PronunciationCard = ({
     setAttempts(0);
     setHasEvaluated(false);
     setShowTips(false);
-    setHasPlayedAudio(false); // ✅ Reset audio flag
+    setHasPlayedAudio(false);
+    setShowMeaning(false);
     onSkip();
   };
 
@@ -199,6 +207,50 @@ const PronunciationCard = ({
           onStart={startListening}
           onStop={stopListening}
         />
+      )}
+
+      {/* Hungarian Meaning Toggle - Below Microphone, Above Helper Text */}
+      {isSupported && score === null && !error && (
+        <div className="text-center">
+          <button
+            onClick={toggleMeaning}
+            className="
+              px-6 py-3 rounded-lg
+              bg-gradient-to-r from-indigo-500 to-purple-600
+              dark:from-indigo-600 dark:to-purple-700
+              hover:from-indigo-600 hover:to-purple-700
+              dark:hover:from-indigo-700 dark:hover:to-purple-800
+              text-white font-medium
+              transition-all duration-300
+              hover:scale-105 active:scale-95
+              shadow-md hover:shadow-lg
+              flex items-center justify-center gap-2
+              mx-auto
+            "
+          >
+            <span className="text-xl">💡</span>
+            <span>{showMeaning ? 'Jelentés elrejtése' : 'Jelentés megjelenítése'}</span>
+          </button>
+
+          {/* Hungarian Meaning Display */}
+          {showMeaning && (
+            <div className="
+              mt-4 p-6 rounded-xl
+              bg-gradient-to-br from-green-500 to-emerald-600
+              dark:from-green-600 dark:to-emerald-700
+              border-2 border-green-400 dark:border-green-500
+              animate-slide-in-up
+              shadow-lg
+            ">
+              <div className="text-center text-white">
+                <div className="text-sm opacity-90 mb-2">Magyar jelentés:</div>
+                <div className="text-3xl md:text-4xl font-bold">
+                  {word.hungarian}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Live Transcript */}
