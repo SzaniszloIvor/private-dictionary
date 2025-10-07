@@ -698,7 +698,6 @@ See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes.
 The following improvements are planned to enhance usability, learning efficiency, and overall user experience:
 
 ### 📊 Learning Aids
-- **Daily Goal & Streaks** – Track words per day and visualize learning progress  
 - **Favorites** – Mark difficult or favorite words for quick access  
 - **Spaced Repetition** – Smart review system based on learning algorithms  
 - **OpenAI API Integration** – Supports (prioritized for Private Dictionary):  

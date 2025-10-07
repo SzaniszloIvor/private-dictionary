@@ -1,7 +1,15 @@
-// src/App.jsx - COMPLETE TAILWIND INTEGRATION
+// src/App.jsx - COMPLETE TAILWIND INTEGRATION + TEST MODE FIX
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginScreen from './components/LoginScreen/LoginScreen';
+
+// ============================================
+// TEST MODE: Conditionally import test component
+// ============================================
+const DailyProgressTest = import.meta.env.VITE_ENABLE_TEST_MODE === 'true' 
+  ? React.lazy(() => import('./components/Test/DailyProgressTest'))
+  : null;
+
 import Header from './components/Header/Header';
 import ProgressSection from './components/ProgressSection/ProgressSection';
 import SearchControls from './components/SearchControls/SearchControls';
@@ -644,7 +652,9 @@ const MainApp = () => {
   );
 };
 
-// === APP ROOT ===
+// ============================================
+// APP ROOT
+// ============================================
 const App = () => {
   return (
     <AuthProvider>
@@ -653,10 +663,16 @@ const App = () => {
   );
 };
 
-// === AUTH WRAPPER ===
+// ============================================
+// AUTH WRAPPER - WITH TEST MODE SUPPORT
+// ============================================
 const AuthWrapper = () => {
   const { currentUser, loading } = useAuth();
+  
+  // ✅ TEST MODE CHECK
+  const isTestMode = import.meta.env.VITE_ENABLE_TEST_MODE === 'true';
 
+  // Loading state
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen
@@ -669,6 +685,38 @@ const AuthWrapper = () => {
     );
   }
 
+  // ✅ TEST MODE: Render test component instead of normal app
+  if (isTestMode && DailyProgressTest) {
+    console.log('🧪 Test Mode Enabled - Loading DailyProgressTest component');
+    
+    return (
+      <>
+        {/* Test Mode Banner */}
+        <div className="fixed top-0 left-0 right-0 z-[9999]
+                      bg-red-600 text-white text-center py-2 font-bold
+                      shadow-lg">
+          🧪 TEST MODE ACTIVE - Component Testing Environment
+        </div>
+        
+        {/* Test Component with Suspense */}
+        <div className="pt-12">
+          <React.Suspense fallback={
+            <div className="flex justify-center items-center min-h-screen
+                          bg-gradient-to-br from-primary-600 to-primary-dark">
+              <div className="text-center text-white">
+                <div className="text-6xl mb-4 animate-bounce">🧪</div>
+                <h2 className="text-2xl font-bold">Loading Test Component...</h2>
+              </div>
+            </div>
+          }>
+            <DailyProgressTest />
+          </React.Suspense>
+        </div>
+      </>
+    );
+  }
+
+  // ✅ NORMAL MODE: Render login or main app
   return currentUser ? <MainApp /> : <LoginScreen />;
 };
 

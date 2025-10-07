@@ -1,7 +1,7 @@
 {
   "name": "private-dictionary",
   "private": true,
-  "version": "0.5.2",
+  "version": "0.6.0",
   "type": "module",
   "license": "UNLICENSED",
   "author": {
@@ -29,7 +29,11 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:on": "node scripts/toggle-test-mode.js on",
+    "test:off": "node scripts/toggle-test-mode.js off",
+    "test:status": "node scripts/toggle-test-mode.js status",
+    "test:dev": "npm run test:on && npm run dev"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
