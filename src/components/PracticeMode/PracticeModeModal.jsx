@@ -12,11 +12,13 @@ import PracticeProgress from './PracticeProgress';
 import PracticeResults from './PracticeResults';
 import PronunciationCard from './PronunciationCard';
 import ErrorBoundary from '../ErrorBoundary';
+import { useDailyProgress } from '../../hooks/useDailyProgress';
 
 const PracticeModeModal = ({ isOpen, onClose, words, lessonTitle }) => {
   const [practiceMode, setPracticeMode] = useState(null);
   const [showResults, setShowResults] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const { updateSessionStats } = useDailyProgress();
   
   const { speak } = useSpeechSynthesis();
 
@@ -114,13 +116,41 @@ const PracticeModeModal = ({ isOpen, onClose, words, lessonTitle }) => {
     setPronunciationStats({ scores: [], attempts: [] });
   };
 
-  // Finish practice and show results
+  // Finish practice
   const handleFinish = () => {
     const stats = calculateStats({
       totalCards: practiceWords.length,
       viewedCards,
       startTime,
       flips
+    });
+    
+    // UPDATED: Session data with pronunciation mode
+    const sessionData = {
+      wordsLearned: practiceMode === 'pronunciation' 
+        ? pronunciationStats.scores.length
+        : viewedCards.size,
+      wordsReviewed: flips,
+      timeSpentMinutes: stats.timeInMinutes,
+      practiceSessionsCompleted: 1,
+      lessonNumber: parseInt(lessonTitle?.match(/\d+/)?.[0]) || null
+    };
+    
+    // Add pronunciation stats if pronunciation mode
+    if (practiceMode === 'pronunciation' && pronunciationStats) {
+      sessionData.pronunciationAttempts = pronunciationStats.attempts.length;
+      
+      // Calculate average score
+      const avgScore = pronunciationStats.scores.length > 0
+        ? pronunciationStats.scores.reduce((a,b) => a+b, 0) / pronunciationStats.scores.length
+        : 0;
+      
+      sessionData.avgPronunciationScore = avgScore;
+    }
+    
+    // Update daily stats (fire and forget, don't block UI)
+    updateSessionStats(sessionData).catch(err => {
+      console.error('Failed to update daily stats:', err);
     });
     
     setShowResults(true);

@@ -28,6 +28,7 @@ export const useDailyProgress = () => {
   const [dailyGoal, setDailyGoal] = useState(10);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [goalJustAchieved, setGoalJustAchieved] = useState(false);
 
   // ============================================
   // LOAD TODAY'S STATS & SETTINGS
@@ -112,6 +113,14 @@ export const useDailyProgress = () => {
         const today = getTodayDateString();
         const newWordsLearned = todayStats.wordsLearned + count;
         const goalAchieved = newWordsLearned >= dailyGoal;
+
+        const wasGoalAchieved = todayStats?.goalAchieved || false;
+        const newGoalAchieved = newWordsLearned >= dailyGoal;
+
+        if (!wasGoalAchieved && newGoalAchieved) {
+          setGoalJustAchieved(true);
+          setTimeout(() => setGoalJustAchieved(false), 3000);
+        }
         
         const updates = {
           wordsLearned: newWordsLearned,
@@ -183,6 +192,15 @@ export const useDailyProgress = () => {
         }
         
         const goalAchieved = newWordsLearned >= dailyGoal;
+
+          // Check if goal JUST achieved
+        const wasGoalAchieved = todayStats?.goalAchieved || false;
+        const newGoalAchieved = newWordsLearned >= dailyGoal;
+
+        if (!wasGoalAchieved && newGoalAchieved) {
+          setGoalJustAchieved(true);
+          setTimeout(() => setGoalJustAchieved(false), 3000);
+        }
         
         const updates = {
           wordsLearned: newWordsLearned,
@@ -283,6 +301,7 @@ export const useDailyProgress = () => {
     dailyGoal,
     loading,
     error,
+    goalJustAchieved, 
     
     // Computed values
     isGoalAchieved,

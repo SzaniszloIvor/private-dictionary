@@ -331,3 +331,79 @@ export const getPronunciationPerformanceLevel = (avgScore) => {
     };
   }
 };
+
+// ============================================
+// STREAK-BASED BADGES
+// ============================================
+
+/**
+ * Streak badges configuration
+ */
+export const STREAK_BADGES = {
+  weekWarrior: {
+    id: 'weekWarrior',
+    name: 'Week Warrior',
+    icon: '7️⃣',
+    description: '7 nap egymást követő gyakorlás!',
+    requirement: (streak) => streak >= 7
+  },
+  twoWeekChampion: {
+    id: 'twoWeekChampion',
+    name: 'Két Hét Bajnok',
+    icon: '🔥',
+    description: '14 nap sorozat!',
+    requirement: (streak) => streak >= 14
+  },
+  monthMaster: {
+    id: 'monthMaster',
+    name: 'Month Master',
+    icon: '🏆',
+    description: '30 nap megszakítás nélkül!',
+    requirement: (streak) => streak >= 30
+  },
+  centuryClub: {
+    id: 'centuryClub',
+    name: 'Century Club',
+    icon: '💯',
+    description: '100 napos sorozat! Hihetetlen!',
+    requirement: (streak) => streak >= 100
+  },
+  goalGetter: {
+    id: 'goalGetter',
+    name: 'Goal Getter',
+    icon: '🎯',
+    description: 'Napi cél 7 napig egymás után!',
+    requirement: (consecutiveDays) => consecutiveDays >= 7
+  }
+};
+
+/**
+ * Check which streak badges user has earned
+ * @param {number} currentStreak - Current streak count
+ * @param {number} longestStreak - Longest streak ever
+ * @returns {Array} - Array of earned badges
+ */
+export const checkStreakBadges = (currentStreak, longestStreak) => {
+  const badges = [];
+  
+  Object.values(STREAK_BADGES).forEach(badge => {
+    if (badge.requirement(currentStreak)) {
+      badges.push(badge);
+    }
+  });
+  
+  return badges;
+};
+
+/**
+ * Get streak badge for specific milestone
+ * @param {number} streak - Streak count
+ * @returns {Object|null} - Badge object or null
+ */
+export const getStreakBadge = (streak) => {
+  if (streak >= 100) return STREAK_BADGES.centuryClub;
+  if (streak >= 30) return STREAK_BADGES.monthMaster;
+  if (streak >= 14) return STREAK_BADGES.twoWeekChampion;
+  if (streak >= 7) return STREAK_BADGES.weekWarrior;
+  return null;
+};

@@ -24,6 +24,181 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.6.0] - 06/10/2025
+
+### 🎮 Gamification & Progress Tracking
+
+#### Added
+- **Daily Progress System**
+  - Real-time tracking of words learned, practice sessions, and study time
+  - Daily goal setting (5-50 words) with customizable targets
+  - Progress bar with percentage indicator
+  - Visual feedback for goal achievement with confetti celebration
+  - "🎉 Napi cél elérve!" toast notification when reaching daily goal
+  - Practice session stats (words learned, reviewed, time spent)
+  - Integration with both Firebase (auth users) and localStorage (demo mode)
+
+- **Streak System**
+  - Current streak counter with flame emoji animation (🔥)
+  - Longest streak record tracking
+  - Streak milestone badges:
+    - 🔥 7 days: Week Warrior (Heti Harcos)
+    - 🔥 14 days: Two Week Champion (Két Hét Bajnok)
+    - 🏆 30 days: Month Master (Havi Mester)
+    - 💯 100 days: Century Club (Century Club)
+  - Confetti celebration when reaching streak milestones
+  - Next milestone indicator with days remaining
+  - Visual distinction between active and inactive streaks
+
+- **Progress Calendar**
+  - Monthly calendar view with color-coded activity levels
+  - Day colors based on words learned (gray/blue/yellow/green)
+  - Interactive day selection for detailed stats
+  - Current day highlight with purple ring
+  - Navigation between months
+  - Legend for activity levels (0, 1-4, 5-9, 10+ words)
+  - Selected day details showing words, sessions, time, and goal status
+
+- **Progress Charts & Analytics**
+  - Interactive charts using Recharts library
+  - Weekly and monthly view toggle
+  - Bar chart for words learned
+  - Line charts for time spent and pronunciation accuracy
+  - Custom tooltip with detailed daily breakdown
+  - Summary statistics (total words, time, active days, daily average)
+  - Dark mode compatible color schemes
+
+- **Comprehensive Statistics**
+  - Lifetime stats (total days, active days, total words, total time)
+  - Current week summary (words, time, active days, average per day)
+  - Best streaks display (current and longest)
+  - Achievement badges showcase with visual indicators
+  - Four badge types: Week Warrior, Two Week Champion, Month Master, Century Club
+  - "Elérve" status for unlocked badges
+
+- **Pronunciation Mode Integration**
+  - Pronunciation accuracy tracking in daily stats
+  - Average pronunciation score calculation
+  - Pronunciation-specific badges:
+    - 🗣️ Perfect Speaker (95%+ average)
+    - 🎤 Native-like (90%+ first attempt)
+    - 👑 Pronunciation Master (all words 85%+)
+    - 🔥 Perfect Streak (5+ consecutive perfect)
+    - ⚡ One Shot Wonder (all first attempt)
+    - 💪 Persistent Learner (3+ attempts)
+    - 🏆 Pronunciation Champion (20+ words 85%+)
+  - Pronunciation attempts counter
+  - Visual feedback for pronunciation performance
+
+- **UI Components**
+  - `DailyProgressCard`: Main progress card with goal tracking
+  - `StreakDisplay`: Streak visualization with milestones
+  - `DailyGoalSettings`: Modal for goal customization
+  - `ProgressCalendar`: Monthly activity calendar
+  - `ProgressChart`: Interactive multi-metric charts
+  - `StatsOverview`: Comprehensive statistics dashboard
+  - Collapsible detailed stats section
+  - "Részletes statisztikák megjelenítése/elrejtése" toggle button
+
+- **New Hooks**
+  - `useDailyProgress`: Core progress tracking and goal management
+  - `useStatsHistory`: Historical data and chart generation
+  - `useStreak`: Streak calculation and milestone tracking
+
+- **Milestone Notifications**
+  - Toast notifications at 25%, 50%, 75% practice completion
+  - Encouraging messages during practice sessions
+  - Visual feedback with emojis (🚀, 💪, 🎯)
+
+#### Enhanced
+- **Practice Mode**
+  - Automatic daily stats update after practice sessions
+  - Session tracking with words learned, reviewed, and time
+  - Pronunciation session data collection
+  - Goal achievement check after each session
+  - Confetti celebration for high-performance sessions
+
+- **Firebase Integration**
+  - New `dailyStats` collection for daily progress data
+  - New `userSettings` collection for user preferences
+  - Automatic date-based document creation
+  - Real-time sync of progress data
+  - Optimized batch updates for session completion
+
+- **Demo Mode**
+  - Full progress tracking in localStorage
+  - Demo stats helper utilities
+  - Persistent goal settings in demo mode
+  - Calendar and chart support for demo users
+
+#### UI/UX Improvements
+- Gradient backgrounds for progress cards
+- Smooth animations for progress bars
+- Color-coded progress indicators (blue/yellow/green)
+- Responsive grid layouts for stats
+- Dark mode support across all progress components
+- Animate-slide-in-up effect for collapsible sections
+- Hover effects with shadow and scale transforms
+- Professional card designs with borders and shadows
+
+#### Performance
+- Memoized chart data calculations
+- Optimized Firebase queries
+- Lazy loading of chart components
+- Efficient state management for large datasets
+
+### 🐛 Bug Fixes
+- Fixed goal achievement detection timing
+- Corrected pronunciation stats aggregation
+- Resolved calendar navigation boundary issues
+- Fixed streak calculation for timezone differences
+
+### 🔧 Technical
+- Added Recharts library for data visualization
+- Implemented date-based document structure in Firebase
+- Created modular stats calculation utilities
+- Added comprehensive error handling for stats loading
+- Implemented demo mode compatibility layer
+
+### 📝 Documentation
+- Added inline documentation for progress hooks
+- Documented badge system requirements
+- Added examples for stats calculation
+- Documented Firebase schema for daily stats
+
+---
+
+**Migration Notes:**
+- Users upgrading to 0.6.0 will see progress tracking start from upgrade date
+- Previous practice session data is not retroactively tracked
+- Daily goal defaults to 10 words (customizable)
+- No action required - features work automatically for all users
+
+**Database Schema:**
+```javascript
+// dailyStats/{userId}/stats/{YYYY-MM-DD}
+{
+  date: "2025-01-09",
+  wordsLearned: 15,
+  wordsReviewed: 8,
+  practiceSessionsCompleted: 2,
+  pronunciationAttempts: 10,
+  avgPronunciationScore: 87.5,
+  timeSpentMinutes: 23.4,
+  lessonsCompleted: [1, 2],
+  goalAchieved: true
+}
+
+// userSettings/{userId}
+{
+  dailyGoal: 20,
+  theme: "dark",
+  // ... other preferences
+}
+
+---
+
+
 ## [0.5.2] - 06/10/2025
 
 ### Added

@@ -1,4 +1,4 @@
-// src/App.jsx - COMPLETE TAILWIND INTEGRATION + TEST MODE FIX
+// src/App.jsx - COMPLETE TAILWIND INTEGRATION + TEST MODE FIX + GOAL ACHIEVEMENT TOAST
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginScreen from './components/LoginScreen/LoginScreen';
@@ -23,11 +23,21 @@ import { initialDictionary } from './data/dictionary';
 import { saveDictionary, loadDictionary } from './services/firebase';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useDarkMode } from './hooks/useDarkMode';
+import { useDailyProgress } from './hooks/useDailyProgress';
+import DailyProgressCard from './components/DailyProgress/DailyProgressCard';
+import StreakDisplay from './components/DailyProgress/StreakDisplay';
+import DailyGoalSettings from './components/DailyProgress/DailyGoalSettings';
+import ProgressCalendar from './components/DailyProgress/ProgressCalendar';
+import ProgressChart from './components/DailyProgress/ProgressChart';
+import StatsOverview from './components/DailyProgress/StatsOverview';
 
 const MainApp = () => {
   const { currentUser, isDemo, logout } = useAuth();
+  const { goalJustAchieved } = useDailyProgress();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const { darkMode, toggleDarkMode } = useDarkMode();
+  const [showGoalSettings, setShowGoalSettings] = useState(false);
+  const [showDetailedStats, setShowDetailedStats] = useState(false);
   
   // === DEMO LESSONS INITIALIZATION ===
   const getDemoLessons = () => {
@@ -429,6 +439,7 @@ const MainApp = () => {
 
   // === MAIN RENDER ===
   return (
+    <>
     <div className="max-w-7xl mx-auto my-5 
                   bg-white dark:bg-slate-900 
                   rounded-2xl shadow-2xl overflow-hidden
@@ -556,6 +567,50 @@ const MainApp = () => {
       {/* Main Content */}
       <Header isDemo={isDemo} demoLimits={demoLimits} />
       <ProgressSection dictionary={dictionary} isDemo={isDemo} demoLimits={demoLimits} />
+      {/* Daily Progress & Streaks Section */}
+        <div className="bg-gray-50 dark:bg-slate-800 p-5 border-b-2 border-gray-200 dark:border-slate-700
+                        transition-all duration-300">
+          {/* Main Progress Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <DailyProgressCard 
+              onSettingsClick={() => setShowGoalSettings(true)} 
+            />
+            <StreakDisplay />
+          </div>
+          
+          {/* Toggle Button for Detailed Stats */}
+          <button
+            onClick={() => setShowDetailedStats(!showDetailedStats)}
+            className="w-full px-4 py-3 rounded-lg font-medium
+                    bg-blue-500 dark:bg-purple-600 
+                    hover:bg-blue-600 dark:hover:bg-purple-700
+                    text-white
+                    transition-all duration-200
+                    flex items-center justify-center gap-2"
+          >
+            <span className="text-xl">
+              {showDetailedStats ? '▲' : '▼'}
+            </span>
+            <span>
+              {showDetailedStats 
+                ? 'Részletes statisztikák elrejtése' 
+                : 'Részletes statisztikák megjelenítése'}
+            </span>
+          </button>
+          
+          {/* Collapsible Detailed Stats */}
+          {showDetailedStats && (
+            <div className="mt-4 space-y-4 animate-slide-in-up">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <ProgressCalendar />
+                <ProgressChart />
+              </div>
+              <div>
+                <StatsOverview />
+              </div>
+            </div>
+          )}
+        </div>
       <SearchControls
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -648,7 +703,28 @@ const MainApp = () => {
           isMobile={false}
         />
       )}
+      <DailyGoalSettings
+        isOpen={showGoalSettings}
+        onClose={() => setShowGoalSettings(false)}
+      />
     </div>
+    
+    {/* ✅ Goal Achievement Toast */}
+    {goalJustAchieved && (
+      <div className="fixed bottom-20 right-5 z-[1001]
+                    bg-gradient-to-r from-green-500 to-emerald-500
+                    dark:from-green-600 dark:to-emerald-600
+                    text-white px-6 py-4 rounded-xl
+                    shadow-lg animate-slide-in-right
+                    flex items-center gap-3">
+        <span className="text-3xl animate-bounce">🎉</span>
+        <div>
+          <div className="font-bold text-lg">Napi cél elérve!</div>
+          <div className="text-sm opacity-90">Gratulálunk! Folytasd így!</div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 
