@@ -92,3 +92,21 @@ tmp/
 temp/
 
 .vercel
+
+# Business & Confidential Documents
+# These files contain sensitive business information and should NOT be committed
+docs/business_plan.md
+docs/business_*.md
+docs/financial_*.md
+docs/investor_*.md
+docs/strategy_*.md
+docs/competitive_analysis.md
+docs/pricing_strategy.md
+*.confidential.md
+*.private.md
+
+# Personal notes and drafts
+notes/
+drafts/
+TODO.private.md
+NOTES.private.md
