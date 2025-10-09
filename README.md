@@ -7,7 +7,7 @@ A modern, interactive English-Hungarian dictionary application designed for pers
 ![Firebase](https://img.shields.io/badge/Firebase-12.x-FFCA28?style=flat&logo=firebase)
 ![Vite](https://img.shields.io/badge/Vite-7.x-646CFF?style=flat&logo=vite)
 ![License](https://img.shields.io/badge/License-All_Rights_Reserved-red.svg)
-![Version](https://img.shields.io/badge/Version-0.5.1-blue.svg)
+![Version](https://img.shields.io/badge/Version-0.6.0-blue.svg)
 
 ## 📋 Table of Contents
 
@@ -94,6 +94,65 @@ Private Dictionary is a comprehensive language learning platform that provides a
   - Average pronunciation accuracy and perfect score count
   - Attempts per word and score breakdown
 - 🎯 **Milestone Notifications**: Encouragement at 25%, 50%, 75% progress
+
+### Progress Tracking & Gamification (v0.6.0)
+- 📊 **Daily Progress Tracking** - Real-time tracking of learning activity
+  - Words learned counter with daily goal
+  - Practice sessions completed
+  - Time spent studying (minutes)
+  - Visual progress bar with percentage
+  - Goal achievement celebrations (🎉 Napi cél elérve!)
+- 🔥 **Streak System** - Motivational consecutive days tracking
+  - Current streak with flame animation
+  - Longest streak record
+  - Streak milestones: 7, 14, 30, 100 days
+  - Milestone badges (7️⃣ 🔥 🏆 💯)
+  - Confetti celebrations on milestone achievements
+  - Next milestone indicator
+- 🎯 **Daily Goal Settings** - Customizable learning targets
+  - Adjustable goals (5-50 words/day)
+  - Quick presets (5, 10, 15, 20, 30, 50)
+  - Visual slider with real-time preview
+  - Goal achievement tracking
+- 📅 **Progress Calendar** - Monthly activity visualization
+  - Color-coded days (gray/blue/yellow/green)
+  - Activity levels (0, 1-4, 5-9, 10+ words)
+  - Interactive day selection for details
+  - Month navigation with today shortcut
+  - Selected day stats (words, sessions, time, goal status)
+- 📈 **Progress Charts** - Interactive data visualization
+  - Weekly and monthly views
+  - Bar chart for words learned
+  - Line charts for time and pronunciation accuracy
+  - Custom tooltips with detailed breakdowns
+  - Summary statistics (totals, averages, active days)
+  - Dark mode compatible colors
+- 📊 **Comprehensive Statistics** - Lifetime learning metrics
+  - Total days tracked and active days
+  - Total words learned all-time
+  - Total study time (minutes)
+  - Current week summary
+  - Best streaks (current and longest)
+  - Achievement badges showcase
+- 🎖️ **Achievement Badges** - Unlock learning milestones
+  - Week Warrior (7 days)
+  - Two Week Champion (14 days)
+  - Month Master (30 days)
+  - Century Club (100 days)
+- 💾 **Dual Mode Support** - Works everywhere
+  - Firebase integration for authenticated users
+  - localStorage for demo mode
+  - Automatic data sync
+  - Cross-device progress (authenticated)
+- 🎉 **Celebration System** - Visual rewards
+  - Toast notifications for goal achievements
+  - Confetti animations for milestones
+  - Milestone notifications during practice (25%, 50%, 75%)
+  - Encouraging messages and emojis
+- 📱 **Responsive Design** - Optimized for all devices
+  - Collapsible detailed stats section
+  - Mobile-friendly charts and calendar
+  - Touch-optimized interactions
 
 ### Pronunciation Practice Features
 - 🎤 **Real-time Speech Recognition** - Web Speech API integration (Chrome/Edge)
@@ -508,6 +567,13 @@ private-dictionary/
 │   │   ├── AddWordsModal/
 │   │   ├── KeyboardShortcutsHelper/
 │   │   ├── DarkModeToggle/
+|   |   |── DailyProgress/
+│   │   │   ├── DailyProgressCard.jsx
+│   │   │   ├── StreakDisplay.jsx
+│   │   │   ├── DailyGoalSettings.jsx
+│   │   │   ├── ProgressCalendar.jsx
+│   │   │   ├── ProgressChart.jsx
+│   │   │   └── StatsOverview.jsx
 │   │   ├── PracticeMode/
 │   │   │   ├── PracticeModeModal.jsx
 │   │   │   ├── FlashCard.jsx
@@ -537,12 +603,16 @@ private-dictionary/
 │   │   ├── useKeyboardShortcuts.js
 │   │   ├── useDarkMode.js
 │   │   ├── usePracticeMode.js
-│   │   └── useSwipeGesture.js
+│   │   ├── useSwipeGesture.js
+│   │   ├── useDailyProgress.js
+│   │   ├── useStatsHistory.js
+│   │   └── useStreak.js
 │   ├── utils/
 │   │   ├── phoneticHelper.js
 │   │   ├── pronunciationHelper.js
 │   │   ├── practiceHelper.js
-│   │   └── rewardHelper.js
+│   │   ├── rewardHelper.js
+│   │   └── demoStatsHelper.js
 │   ├── data/
 │   │   └── dictionary.js
 │   ├── App.jsx
@@ -567,6 +637,20 @@ private-dictionary/
 ```
 
 ### Key Components
+
+#### Progress Tracking Components (v0.6.0)
+- **DailyProgressCard.jsx** - Main daily progress display with goal tracking
+- **StreakDisplay.jsx** - Streak visualization with flame animation and milestones
+- **DailyGoalSettings.jsx** - Modal for customizing daily learning goals
+- **ProgressCalendar.jsx** - Monthly calendar with color-coded activity levels
+- **ProgressChart.jsx** - Interactive charts with Recharts (bar + line charts)
+- **StatsOverview.jsx** - Comprehensive statistics dashboard with lifetime metrics
+
+#### Progress Tracking Utilities (v0.6.0)
+- **useDailyProgress.js** - Core hook for daily stats and goal management
+- **useStatsHistory.js** - Historical data retrieval and chart data generation
+- **useStreak.js** - Streak calculation, milestone tracking, and badge logic
+- **demoStatsHelper.js** - localStorage-based stats for demo mode
 
 #### Practice Mode (v0.4.0 + v0.5.0)
 - **PracticeModeModal.jsx** - Main practice orchestrator, mode selection and session management
@@ -630,6 +714,7 @@ private-dictionary/
 - **Vite 7** - Build tool and dev server with terser optimization
 - **Lucide React** - Icon library
 - **@dnd-kit** - Drag and drop library with optimized touch sensors
+- **Recharts 2.x** - Composable charting library for data visualization
 
 ### Backend & Services
 - **Firebase Authentication** - Google OAuth integration
@@ -699,7 +784,6 @@ The following improvements are planned to enhance usability, learning efficiency
 
 ### 📊 Learning Aids
 - **Favorites** – Mark difficult or favorite words for quick access  
-- **Spaced Repetition** – Smart review system based on learning algorithms  
 - **OpenAI API Integration** – Supports (prioritized for Private Dictionary):  
   1. Querying Hungarian meanings  
   2. Practicing spelling (iPad integration)  
