@@ -22,7 +22,95 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - 
 
-## [0.7.1] - 12/10/2025
+## [0.7.2] - 11/10/2025
+
+### Fixed
+- **CRITICAL: Mobile drag & drop not working**
+  - Fixed PointerSensor being active on mobile devices, causing conflict with TouchSensor
+  - Platform-specific sensor configuration: PointerSensor desktop only, TouchSensor mobile only
+  - Mobile users can now drag and reorder words correctly with 1-second hold gesture
+  - Resolved sensor conflict that prevented touch-based drag & drop on iOS and Android devices
+
+- **Keyboard Shortcuts FAB removed from UI**
+  - Removed floating action button (⌨️) from bottom-right corner on desktop
+  - Keyboard shortcuts modal is now accessible only via menu button and Ctrl/⌘+K shortcut
+  - Prevents duplicate UI elements as shortcuts button already exists in navigation menu
+  - Cleaner interface with reduced visual clutter
+
+- **Keyboard Shortcuts modal updated**
+  - Added missing Ctrl/⌘+Shift+F shortcut to favorites in the shortcuts list
+  - Modal now displays all 11 available keyboard shortcuts correctly
+  - Updated shortcuts help to include favorites shortcut documentation
+
+### Changed
+- **Sensor Configuration (WordTable.jsx)**
+  - Desktop (≥768px): PointerSensor (8px distance activation) + KeyboardSensor
+  - Mobile (<768px): TouchSensor (1000ms delay + 5px tolerance) + KeyboardSensor
+  - Used conditional spread operator (...) for platform-specific sensor initialization
+  - KeyboardSensor remains active on both platforms for accessibility
+
+- **KeyboardShortcutsHelper Component**
+  - Removed FAB button component entirely from render method
+  - Modal-only interface: triggered by menu button or keyboard shortcut
+  - Added comment explaining FAB removal for future maintenance
+  - Updated shortcuts list to include 11 shortcuts (was missing favorites)
+
+### Technical Details
+- **Modified Files**
+  - `src/components/WordTable/WordTable.jsx` - Platform-specific sensors (~15 lines changed)
+  - `src/components/KeyboardShortcutsHelper/KeyboardShortcutsHelper.jsx` - FAB removed, shortcuts list updated (~25 lines changed)
+
+- **Sensor Configuration Code**
+  ```javascript
+  // Before (WRONG - PointerSensor active on mobile):
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: isMobile ? 10 : 5,  // ❌ Still active on mobile!
+      },
+    }),
+    // ...
+  );
+  
+  // After (CORRECT - Platform-specific sensors):
+  const sensors = useSensors(
+    ...(!isMobile ? [
+      useSensor(PointerSensor, {
+        activationConstraint: { distance: 8 },
+      })
+    ] : []),
+    ...(isMobile ? [
+      useSensor(TouchSensor, {
+        activationConstraint: { delay: 1000, tolerance: 5 },
+      })
+    ] : []),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+  ```
+
+### Tests Added
+- **test/v0.7.2/testMobileDrag.js**
+  - 8 comprehensive tests for mobile drag & drop functionality
+  - Platform-specific sensor validation
+  - Sensor conflict detection
+  - Configuration verification (delay, tolerance, distance)
+  - Tests ensure PointerSensor is NOT active on mobile
+  - Tests ensure TouchSensor is NOT active on desktop
+
+### UX Improvements
+- Mobile users can now reliably drag and reorder words
+- Desktop interface cleaner without duplicate keyboard shortcuts button
+- Consistent keyboard shortcuts documentation across all access points
+- Clear separation between scroll (quick swipe) and drag (1-second hold) on mobile
+
+### Breaking Changes
+None - All changes are bug fixes and improvements
+
+---
+
+## [0.7.1] - 11/10/2025
 
 ### 🐛 Favorites UI Fixes
 

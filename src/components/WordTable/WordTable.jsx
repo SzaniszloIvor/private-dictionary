@@ -624,26 +624,53 @@ const WordTable = ({
     originalIndex: index
   }));
 
+// ================================================================
+// CRITICAL FIX v0.7.2: Mobile Drag & Drop Sensor Configuration
+// ================================================================
+// Bug: PointerSensor was active on mobile, conflicting with TouchSensor
+// Result: Drag & drop didn't work on mobile devices
+// Solution: Platform-specific sensors using conditional spread operator
+// ================================================================
+
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: isMobile ? 10 : 5,
-      },
-    }),
+  // PointerSensor - DESKTOP ONLY
+    ...(!isMobile ? [
+      useSensor(PointerSensor, {
+        activationConstraint: {
+          distance: 8, // 8px movement required on desktop
+        },
+      })
+    ] : []),
     
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-    
+    // TouchSensor - MOBILE ONLY
     ...(isMobile ? [
       useSensor(TouchSensor, {
         activationConstraint: {
-          delay: 1000,
-          tolerance: 5,
+          delay: 1000,      // 1 second hold required (prevents accidental drags)
+          tolerance: 5,     // 5px movement tolerance
         },
       })
-    ] : [])
+    ] : []),
+    
+    // KeyboardSensor - BOTH PLATFORMS
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
   );
+  
+// ================================================================
+// Platform Configuration Summary:
+// ================================================================
+// Desktop (>= 768px):
+//   - PointerSensor: 8px distance activation
+//   - KeyboardSensor: enabled
+//   - TouchSensor: disabled
+//
+// Mobile (< 768px):
+//   - TouchSensor: 1000ms delay + 5px tolerance
+//   - KeyboardSensor: enabled  
+//   - PointerSensor: disabled
+// ================================================================
 
   const handleDeleteWord = (index) => {
     if (window.confirm('Biztosan törölni szeretnéd ezt a szót?')) {

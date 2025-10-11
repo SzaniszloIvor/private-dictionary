@@ -8,6 +8,7 @@ const KeyboardShortcutsHelper = ({ isOpen, onOpen, onClose }) => {
     { combo: 'mod+f', description: 'Keresés fókuszálása', icon: '🔍' },
     { combo: 'mod+s', description: 'Automatikus mentés', icon: '💾' },
     { combo: 'mod+d', description: 'Sötét mód kapcsolása', icon: '🌙' },
+    { combo: 'mod+shift+f', description: 'Kedvencek megnyitása', icon: '⭐' },
     { combo: 'mod+k', description: 'Billentyűparancsok megjelenítése', icon: '⌨️' },
     { combo: 'mod+arrowright', description: 'Következő óra', icon: '➡️' },
     { combo: 'mod+arrowleft', description: 'Előző óra', icon: '⬅️' },
@@ -18,27 +19,9 @@ const KeyboardShortcutsHelper = ({ isOpen, onOpen, onClose }) => {
 
   return (
     <>
-      {/* Floating Action Button - DESKTOP ONLY */}
-      <button
-        onClick={onOpen}
-        className="
-          hidden md:flex
-          fixed bottom-5 right-5 z-[999]
-          w-12 h-12 rounded-full
-          bg-gradient-to-r from-indigo-500 to-purple-600
-          dark:from-indigo-600 dark:to-purple-700
-          text-white text-2xl
-          items-center justify-center
-          shadow-lg hover:shadow-xl
-          hover:scale-110 active:scale-95
-          transition-all duration-300
-        "
-        title="Billentyűparancsok (Ctrl/⌘+K)"
-      >
-        ⌨️
-      </button>
-
-      {/* Modal Overlay - AVAILABLE ON BOTH MOBILE & DESKTOP */}
+      {/* Keyboard shortcuts button is already available in the menu/navigation bar */}
+      
+      {/* Modal Overlay - Available on both mobile & desktop */}
       {isOpen && (
         <div 
           onClick={onClose}
@@ -90,42 +73,45 @@ const KeyboardShortcutsHelper = ({ isOpen, onOpen, onClose }) => {
             </div>
 
             {/* Shortcuts List */}
-            <div className="flex flex-col gap-3">
-              {shortcuts.map((shortcut, index) => (
+            <div className="space-y-3">
+              {shortcuts.map(({ combo, description, icon }) => (
                 <div 
-                  key={index}
+                  key={combo}
                   className="
-                    flex justify-between items-center
+                    group
+                    flex items-center justify-between
                     p-3 rounded-lg
                     bg-gray-50 dark:bg-gray-700/50
-                    hover:bg-gray-100 dark:hover:bg-gray-700
-                    hover:translate-x-1
+                    hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50
+                    dark:hover:from-indigo-900/30 dark:hover:to-purple-900/30
+                    border border-gray-200 dark:border-gray-600
+                    hover:border-indigo-300 dark:hover:border-indigo-500
                     transition-all duration-200
-                    group
                   "
                 >
-                  {/* Left side: Icon + Description */}
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <span className="text-2xl flex-shrink-0">
-                      {shortcut.icon}
+                  <div className="flex items-center gap-3">
+                    <span className="
+                      text-2xl
+                      group-hover:scale-110
+                      transition-transform duration-200
+                    ">
+                      {icon}
                     </span>
                     <span className="
-                      text-gray-800 dark:text-gray-200
-                      text-sm font-medium
-                      truncate
+                      text-gray-700 dark:text-gray-200
+                      font-medium
                     ">
-                      {shortcut.description}
+                      {description}
                     </span>
                   </div>
-
-                  {/* Right side: Key combinations */}
-                  <div className="flex gap-1 items-center flex-shrink-0 ml-2">
-                    {getShortcutDisplay(shortcut.combo).split('+').map((key, i, arr) => (
+                  
+                  <div className="flex items-center gap-1">
+                    {getShortcutDisplay(combo).split('+').map((key, i, arr) => (
                       <React.Fragment key={i}>
                         <kbd className="
-                          bg-white dark:bg-gray-900
-                          text-indigo-600 dark:text-indigo-400
-                          border-2 border-indigo-600 dark:border-indigo-400
+                          bg-white dark:bg-gray-800
+                          text-gray-700 dark:text-gray-200
+                          border-2 border-indigo-400 dark:border-indigo-600 dark:border-indigo-400
                           px-2.5 py-1 rounded
                           text-xs font-bold
                           min-w-[32px] text-center
