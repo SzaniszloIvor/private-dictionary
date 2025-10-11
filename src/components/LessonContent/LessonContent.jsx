@@ -10,7 +10,9 @@ const LessonContent = ({
   deleteLesson, 
   renameLesson, 
   deleteWord, 
-  reorderWords 
+  reorderWords,
+  isFavorited,
+  handleToggleFavorite
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [newTitle, setNewTitle] = useState(lesson?.title || '');
@@ -226,6 +228,8 @@ const LessonContent = ({
           deleteWord={deleteWord}
           isDemo={false}
           onReorderWords={handleReorderWords}
+          isFavorited={isFavorited}
+          handleToggleFavorite={handleToggleFavorite}
         />
       ) : (
         <div className="text-center p-16 

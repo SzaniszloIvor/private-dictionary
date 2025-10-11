@@ -24,6 +24,110 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.7.0] - 11/10/2025
+
+### ⭐ Favorites System
+
+#### Added
+- **Favorites Feature**
+  - Star icon on each word to mark as favorite
+  - Favorites modal (Ctrl+Shift+F) with search and lesson filtering
+  - Real-time counter badge on navigation button
+  - Cross-device sync via Firebase (authenticated users)
+  - localStorage persistence for demo mode
+  - `useFavorites` custom hook for state management
+  - `FavoriteButton` and `FavoritesModal` components
+  - Automatic data migration for existing dictionaries
+
+- **Desktop Navigation Redesign**
+  - Unified button bar with "Kedvencek", "Sötét/Világos", "Billentyűk" buttons
+  - Consistent button sizes (144px × 40px)
+  - Gradient backgrounds with hover effects
+  - Dark Mode and Keyboard Shortcuts moved from FAB to main menu
+  - Favorites counter badge with real-time updates
+
+- **Mobile Optimization**
+  - Favorite star on left side of word card (vertically centered)
+  - Drag handle relocated to top-right corner
+  - Compact circular buttons in mobile header
+  - Touch-optimized sizes (minimum 40px × 40px)
+  - FAB button for Dark Mode remains on mobile
+
+- **Backend Integration**
+  - Firebase: `toggleFavorite()`, `getAllFavorites()`, `getFavoritesCount()`, `clearAllFavorites()`
+  - localStorage: `favoritesHelper.js` with demo mode utilities
+  - Extended word schema with `isFavorite` and `favoritedAt` fields
+
+#### Enhanced
+- **WordTable Component**
+  - Desktop: Favorite star in dedicated first column
+  - Mobile: Favorite star on left side
+  - Seamless drag-and-drop integration
+  
+- **LessonContent Component**
+  - Passes favorite props to WordTable
+  - Proper component hierarchy
+
+#### UI/UX Improvements
+- Toast notifications for favorite actions
+- Smooth animations and transitions
+- Dark mode optimized colors
+- ARIA labels and keyboard navigation
+- Real-time updates across all components
+
+### 🔧 Technical Improvements
+- Proper separation of concerns (FavoriteButton only in WordTable)
+- Memoized favorites list for performance
+- Efficient Firebase queries sorted by timestamp
+- Fixed desktop drag & drop on touch devices
+- Separated sensors: PointerSensor (desktop 5px), TouchSensor (mobile 1000ms)
+- Bundle size increase: ~12KB gzipped
+
+### 🐛 Fixed
+- Desktop drag & drop on touch-capable devices
+- FAB button visibility (mobile-only for Dark Mode)
+- Button sizing inconsistencies in navigation
+- Favorite button conditional rendering
+- JSX syntax errors in ternary operators
+- Touch sensor conflicts on desktop
+- Padding calculations for mobile cards
+
+### 📱 Mobile Specific
+- Favorite star moved to left side (matches desktop)
+- Drag handle to top-right with reduced opacity
+- Long-press (1000ms) for drag activation
+- Touch-friendly targets throughout
+
+### 🔐 Demo Mode
+- Full favorites functionality without authentication
+- localStorage persistence across sessions
+- Automatic cleanup on logout
+
+### 🎯 Keyboard Shortcuts
+- `Ctrl+Shift+F` - Open favorites modal
+- `Escape` - Close favorites modal
+
+### 📊 Data Structure
+- Extended word object with `isFavorite` boolean and `favoritedAt` timestamp
+- Separate `demoFavorites` array in localStorage
+- Automatic migration on first load (non-destructive)
+
+### 🧪 Testing
+- Unit tests for helper functions
+- Integration tests for useFavorites hook
+- Component tests for UI elements
+- Cross-browser and mobile testing
+
+---
+
+**Migration Notes:**
+- Automatic migration on first load
+- No action required from users
+- Demo mode: favorites cleared on logout
+- Authenticated: favorites sync across devices
+
+---
+
 ## [0.6.0] - 06/10/2025
 
 ### 🎮 Gamification & Progress Tracking
@@ -837,8 +941,8 @@ For developers updating from v0.2.0:
 - Refined component structure for better maintainability.
 
 ---
-
-[Unreleased]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.5.1...HEAD
+[0.7.0]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.5.0...v0.6.0
 [0.5.1]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.3.3...v0.4.0

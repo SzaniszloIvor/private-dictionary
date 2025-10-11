@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Keyboard Shortcuts - Cheat Sheet v0.3.0</title>
+  <title>Keyboard Shortcuts - Cheat Sheet v0.7.0</title>
   <style>
     * {
       margin: 0;
@@ -243,7 +243,7 @@
     }
     
     .whats-new li::before {
-      content: "✨";
+      content: "⭐";
       flex-shrink: 0;
     }
     
@@ -287,17 +287,20 @@
     <div class="header">
       <h1>⌨️ Keyboard Shortcuts</h1>
       <p>Private Dictionary - Teljes Referencia</p>
-      <span class="version-badge">v0.3.0 - 2025-10-04</span>
+      <span class="version-badge">v0.7.0 - 2025-10-11</span>
     </div>
     
     <!-- What's New Section -->
     <div class="whats-new">
-      <h3>🎉 Újdonságok v0.3.0-ban</h3>
+      <h3>🎉 Újdonságok v0.7.0-ban</h3>
       <ul>
-        <li><strong>Dark Mode:</strong> Új Ctrl/⌘+D billentyűparancs a világos/sötét mód váltásához</li>
-        <li><strong>Tailwind CSS:</strong> Teljes UI újratervezés modern utility-first megközelítéssel</li>
-        <li><strong>Mobilon jobb drag & drop:</strong> Gyorsabb aktiválás (100ms) és érzékenyebb érintés (5px)</li>
-        <li><strong>Egyszerűsített navigáció:</strong> Az alternatív ] és [ billentyűk eltávolítva a tisztább használatért</li>
+        <li><strong>Favorites System:</strong> Új Ctrl/⌘+Shift+F billentyűparancs a kedvencek megnyitásához</li>
+        <li><strong>Star Icon:</strong> Minden szó mellett kedvenc jelölő csillag (desktop: első oszlop, mobile: bal oldal)</li>
+        <li><strong>Keresés & Szűrés:</strong> Teljes keresési és szűrési funkcionalitás a kedvencek modal-ban</li>
+        <li><strong>Navigáció:</strong> Gyors ugrás a kedvenc szó eredeti helyére a leckében</li>
+        <li><strong>Cross-device Sync:</strong> Kedvencek szinkronizálása Firebase-en keresztül (auth mode)</li>
+        <li><strong>Desktop Navigation:</strong> Újratervezett egységes navigációs sáv (144px × 40px gombok)</li>
+        <li><strong>Mobile Layout:</strong> Optimalizált elrendezés érintésbarát vezérlőkkel</li>
       </ul>
     </div>
     
@@ -353,10 +356,7 @@
         
         <div class="card">
           <div class="card-icon">🌙</div>
-          <div class="card-title">
-            Sötét mód kapcsolása
-            <span class="new-badge">ÚJ</span>
-          </div>
+          <div class="card-title">Sötét mód kapcsolása</div>
           <div class="card-description">
             Váltás a világos és sötét téma között. A beállítás automatikusan mentésre kerül.
           </div>
@@ -366,6 +366,25 @@
             <span class="key">D</span>
           </div>
           <span class="toast-badge">Toast: 🌙 Sötét mód / ☀️ Világos mód</span>
+        </div>
+        
+        <div class="card">
+          <div class="card-icon">⭐</div>
+          <div class="card-title">
+            Kedvencek megnyitása
+            <span class="new-badge">ÚJ v0.7.0</span>
+          </div>
+          <div class="card-description">
+            Megnyitja a kedvencek modal-t teljes keresési és szűrési funkcionalitással. Navigálj gyorsan a jelölt szavakhoz!
+          </div>
+          <div class="keys">
+            <span class="key mod-key">Ctrl</span>
+            <span class="key separator">+</span>
+            <span class="key">Shift</span>
+            <span class="key separator">+</span>
+            <span class="key">F</span>
+          </div>
+          <span class="toast-badge">Toast: ⭐ Kedvencek megnyitása</span>
         </div>
         
         <div class="card">
@@ -385,7 +404,7 @@
           <div class="card-icon">❌</div>
           <div class="card-title">Modal bezárása</div>
           <div class="card-description">
-            Bezárja a megnyitott modal ablakot (pl. szavak hozzáadása, súgó).
+            Bezárja a megnyitott modal ablakot (szavak hozzáadása, billentyűparancsok súgója, kedvencek).
           </div>
           <div class="keys">
             <span class="key">ESC</span>
@@ -461,7 +480,11 @@
       <ul>
         <li>
           <span>⚡</span>
-          <span>A billentyűparancsok felgyorsítják a munkát</span>
+          <span>Összesen 12 billentyűparancs áll rendelkezésre</span>
+        </li>
+        <li>
+          <span>⭐</span>
+          <span>Jelöld meg a fontos szavakat és nyisd meg Ctrl/⌘+Shift+F-fel</span>
         </li>
         <li>
           <span>🌙</span>
@@ -470,6 +493,10 @@
         <li>
           <span>🎨</span>
           <span>Minden navigációs parancshoz toast visszajelzés tartozik</span>
+        </li>
+        <li>
+          <span>🔍</span>
+          <span>Keress a kedvencek között angol és magyar szavak alapján</span>
         </li>
         <li>
           <span>📱</span>
@@ -486,6 +513,10 @@
         <li>
           <span>🎯</span>
           <span>A Ctrl/⌘+K bármikor megjeleníti a súgót</span>
+        </li>
+        <li>
+          <span>💾</span>
+          <span>Kedvencek Firebase-ben (auth) vagy localStorage-ban (demo)</span>
         </li>
       </ul>
     </div>

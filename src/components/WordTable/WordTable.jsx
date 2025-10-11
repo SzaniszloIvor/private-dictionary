@@ -1,7 +1,8 @@
-// src/components/WordTable/WordTable.jsx - WITH INLINE EDIT + API
+// src/components/WordTable/WordTable.jsx - JAVÍTOTT VERZIÓ
 import React, { useState } from 'react';
 import { useSpeechSynthesis } from '../../hooks/useSpeechSynthesis';
 import { generatePhonetic } from '../../utils/phoneticHelper';
+import FavoriteButton from '../FavoriteButton/FavoriteButton';
 import {
   DndContext,
   closestCenter,
@@ -21,7 +22,9 @@ import {
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-// Sortable row component for desktop
+// ============================================
+// DESKTOP: Sortable ROW component
+// ============================================
 const SortableRow = ({ 
   word, 
   index, 
@@ -37,7 +40,10 @@ const SortableRow = ({
   onCancelEdit,
   onEditChange,
   isGeneratingPhonetic,
-  onGeneratePhonetic
+  onGeneratePhonetic,
+  lessonNumber,
+  isFavorited,
+  handleToggleFavorite
 }) => {
   const {
     attributes,
@@ -61,9 +67,13 @@ const SortableRow = ({
     e.stopPropagation();
   };
 
+  // EDIT MODE
   if (isEditing) {
     return (
       <tr className="border-b border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20">
+        <td className="px-2 py-4 text-center">
+          {/* Empty cell for favorite column in edit mode */}
+        </td>
         <td className="px-4 py-4">
           <input
             type="text"
@@ -161,6 +171,7 @@ const SortableRow = ({
     );
   }
 
+  // NORMAL MODE - TABLE ROW
   return (
     <tr 
       ref={setNodeRef} 
@@ -175,6 +186,20 @@ const SortableRow = ({
         ${index % 2 === 0 ? 'bg-gray-50 dark:bg-gray-900' : 'bg-white dark:bg-gray-800'}
       `}
     >
+      {/* ✅ FAVORITE COLUMN - MINDIG LÁTHATÓ */}
+      <td className="px-2 py-4 text-center w-12">
+        {handleToggleFavorite && lessonNumber !== null && (
+          <FavoriteButton
+            isFavorite={isFavorited(lessonNumber.toString(), index)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleToggleFavorite(lessonNumber.toString(), index);
+            }}
+            size="sm"
+          />
+        )}
+      </td>
+      
       <td className="px-4 py-4 font-bold text-gray-800 dark:text-gray-200 text-base">
         {word.english}
       </td>
@@ -248,7 +273,9 @@ const SortableRow = ({
   );
 };
 
-// Sortable card component for mobile
+// ============================================
+// MOBILE: Sortable CARD component
+// ============================================
 const SortableCard = ({ 
   word, 
   index, 
@@ -265,7 +292,10 @@ const SortableCard = ({
   onCancelEdit,
   onEditChange,
   isGeneratingPhonetic,
-  onGeneratePhonetic
+  onGeneratePhonetic,
+  lessonNumber,
+  isFavorited,
+  handleToggleFavorite
 }) => {
   const {
     attributes,
@@ -295,6 +325,7 @@ const SortableCard = ({
     e.stopPropagation();
   };
 
+  // EDIT MODE
   if (isEditing) {
     return (
       <div className="
@@ -405,6 +436,7 @@ const SortableCard = ({
     );
   }
 
+  // NORMAL MODE - CARD
   return (
     <div 
       ref={setNodeRef} 
@@ -421,18 +453,35 @@ const SortableCard = ({
         ${isDragging ? 'shadow-2xl border-2 border-indigo-500 dark:border-indigo-400' : ''}
       `}
     >
+      {/* FAVORITE BUTTON  */}
+      {handleToggleFavorite && lessonNumber !== null && (
+        <div className="absolute left-2 top-1/2 -translate-y-1/2 z-20">
+          <FavoriteButton
+            isFavorite={isFavorited(lessonNumber.toString(), index)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleToggleFavorite(lessonNumber.toString(), index);
+            }}
+            size="md"
+          />
+        </div>
+      )}
+      
+      {/*DRAG HANDLE  */}
       {!isDemo && (
         <div className="
-          absolute left-1 top-1/2 -translate-y-1/2
-          text-2xl text-indigo-500 dark:text-indigo-400
+          absolute right-2 top-2
+          text-xl text-indigo-500 dark:text-indigo-400
           pointer-events-none
           select-none
+          opacity-50
         ">
           ⋮⋮
         </div>
       )}
       
-      <div className={`flex justify-between items-start ${!isDemo ? 'pl-6' : ''}`}>
+      {/*CARD CONTENT */}
+      <div className="flex justify-between items-start pl-12 pr-8">
         <div className="flex-1">
           <div className="font-bold text-base text-gray-800 dark:text-gray-200 mb-1">
             {word.english}
@@ -446,6 +495,7 @@ const SortableCard = ({
         </div>
         
         <div className="flex gap-2 items-center">
+          {/* SPEAK BUTTON */}
           <button
             onTouchStart={handleButtonInteraction}
             onTouchEnd={handleButtonInteraction}
@@ -467,6 +517,7 @@ const SortableCard = ({
             🔊
           </button>
           
+          {/* MORE OPTIONS BUTTON */}
           <button
             onTouchStart={handleButtonInteraction}
             onTouchEnd={handleButtonInteraction}
@@ -491,6 +542,7 @@ const SortableCard = ({
         </div>
       </div>
       
+      {/* EXPANDED OPTIONS */}
       {isExpanded && (
         <div className="
           mt-3 pt-3 border-t border-gray-200 dark:border-gray-700
@@ -543,7 +595,18 @@ const SortableCard = ({
   );
 };
 
-const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = false, onReorderWords = null }) => {
+// ============================================
+// MAIN WordTable Component
+// ============================================
+const WordTable = ({ 
+  words, 
+  lessonNumber = null, 
+  deleteWord = null, 
+  isDemo = false, 
+  onReorderWords = null, 
+  isFavorited = null, 
+  handleToggleFavorite = null 
+}) => {
   const { speak, speechRate, updateSpeechRate } = useSpeechSynthesis();
   const [expandedRows, setExpandedRows] = useState(new Set());
   const [activeId, setActiveId] = useState(null);
@@ -564,13 +627,15 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
   }));
 
   const sensors = useSensors(
-    ...(!isMobile ? [
-      useSensor(PointerSensor, {
-        activationConstraint: {
-          distance: 8,
-        },
-      })
-    ] : []),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: isMobile ? 10 : 5,
+      },
+    }),
+    
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
     
     ...(isMobile ? [
       useSensor(TouchSensor, {
@@ -579,11 +644,7 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
           tolerance: 5,
         },
       })
-    ] : []),
-    
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+    ] : [])
   );
 
   const handleDeleteWord = (index) => {
@@ -706,6 +767,9 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // ============================================
+  // MOBILE RENDER
+  // ============================================
   if (isMobile) {
     return (
       <>
@@ -795,6 +859,9 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
                   onEditChange={handleEditChange}
                   isGeneratingPhonetic={isGeneratingPhonetic}
                   onGeneratePhonetic={handleGeneratePhonetic}
+                  lessonNumber={lessonNumber}
+                  isFavorited={isFavorited}
+                  handleToggleFavorite={handleToggleFavorite}
                 />
               ))}
             </SortableContext>
@@ -816,6 +883,9 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
     );
   }
 
+  // ============================================
+  // DESKTOP RENDER
+  // ============================================
   return (
     <>
       <div className="
@@ -877,6 +947,9 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
           ">
             <thead>
               <tr className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
+                <th className="px-2 py-4 text-center text-lg font-bold w-12">
+                  ⭐
+                </th>
                 <th className="px-4 py-4 text-left text-lg font-bold">Angol szó</th>
                 <th className="px-4 py-4 text-left text-lg font-bold">Fonetika</th>
                 <th className="px-4 py-4 text-left text-lg font-bold">Magyar jelentés</th>
@@ -908,6 +981,9 @@ const WordTable = ({ words, lessonNumber = null, deleteWord = null, isDemo = fal
                     onEditChange={handleEditChange}
                     isGeneratingPhonetic={isGeneratingPhonetic}
                     onGeneratePhonetic={handleGeneratePhonetic}
+                    lessonNumber={lessonNumber}
+                    isFavorited={isFavorited}
+                    handleToggleFavorite={handleToggleFavorite}
                   />
                 ))}
               </SortableContext>

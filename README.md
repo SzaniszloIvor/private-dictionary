@@ -33,16 +33,18 @@ A modern, interactive English-Hungarian dictionary application designed for pers
 Private Dictionary is a comprehensive language learning platform that provides a dynamic, customizable English curriculum with Hungarian translations. The application supports both demo mode for trying out features and Google authentication for unlimited personalized learning experiences with cloud synchronization.
 
 ### Key Highlights:
+- **Favorites System**: Mark and manage important words for focused learning (NEW in v0.7.0)
 - **Pronunciation Practice**: Real-time speech recognition with instant feedback (Chrome/Edge)
 - **Practice Modes**: Flashcards, pronunciation, and gamification system
+- **Progress Tracking**: Daily goals, streaks, and comprehensive statistics
 - **Dark Mode Support**: Eye-friendly interface with automatic theme switching
 - **Full-Featured Demo Mode**: Try all features with 2 lessons (max 20 words each)
-- **Keyboard Shortcuts**: 11 productivity shortcuts for efficient navigation
+- **Keyboard Shortcuts**: 12 productivity shortcuts for efficient navigation
 - **Tailwind CSS Design**: Modern, responsive UI built with utility-first CSS
 - **Dynamic Learning Path**: Create unlimited custom lessons (registered users)
 - **Dual Authentication**: Demo mode with localStorage and Google Sign-in with Firebase
 - **Real-time Sync**: Cloud-based storage with automatic saving
-- **Phonetic API**: IPA phonetic transcription now uses [DictionaryAPI](https://dictionaryapi.dev/) for more accurate results (replacing Datamuse API)
+- **Phonetic API**: IPA phonetic transcription via [DictionaryAPI](https://dictionaryapi.dev/)
 - **Speech Synthesis**: Native pronunciation for all words with speed control
 - **Drag & Drop**: Intuitive word and lesson reordering with persistence (optimized for mobile)
 - **Responsive Design**: Optimized for mobile and desktop devices
@@ -50,21 +52,42 @@ Private Dictionary is a comprehensive language learning platform that provides a
 ## ✨ Features
 
 ### Core Features
+- ⭐ **Favorites System (NEW v0.7.0)** - Mark important words for quick access
+  - One-click star toggle on each word
+  - Dedicated favorites modal with search and filtering (Ctrl+Shift+F)
+  - Cross-device sync (Firebase) or localStorage (demo)
+  - Real-time counter badge
+  - Navigate to word's original location
 - 🌙 **Dark Mode** - Toggle dark theme with Ctrl/⌘+D, persisted preference
 - 📖 **Dynamic Lesson System** - Create unlimited custom lessons (registered users)
-- ⌨️ **Keyboard Shortcuts** - 11 shortcuts for rapid navigation and actions
+- ⌨️ **Keyboard Shortcuts** - 12 shortcuts for rapid navigation and actions
 - 🎨 **Tailwind CSS UI** - Modern, responsive design with utility-first approach
 - 🎯 **Full-Featured Demo Mode** - Try all features with 2 lessons (max 20 words/lesson)
 - 🔊 **Text-to-Speech** - Native English pronunciation with adjustable speed (0.3x - 1.5x)
-- 🎵 **Automatic Phonetics** - IPA phonetic transcription via Datamuse API
+- 🎵 **Automatic Phonetics** - IPA phonetic transcription via DictionaryAPI
 - 🔍 **Smart Search** - Filter by English or Hungarian words
 - 📱 **Responsive Design** - Works seamlessly on all devices
 - 💾 **Auto-Save** - Automatic cloud synchronization for Google users, localStorage for demo
 - ✏️ **Lesson Management** - Rename and delete lessons (authenticated users)
 - 🗑️ **Word Management** - Add, delete, edit and organize words
-- 🖱️ **Drag & Drop** - Intuitive reordering with optimized mobile touch support (100ms activation)
+- 🖱️ **Drag & Drop** - Intuitive reordering with optimized mobile touch support
 - 🎚️ **Pronunciation Speed Control** - Adjustable speech synthesis speed (0.3x - 1.5x)
 - 🌐 **Offline Support** - Demo mode works offline with localStorage
+
+### Favorites Features (v0.7.0)
+- **Mark & Manage** - Star icon on each word (desktop: first column, mobile: left side)
+- **Favorites Modal** - Full-screen browser with advanced features (Ctrl+Shift+F)
+  - Search across English and Hungarian words
+  - Filter by lesson with dropdown
+  - Responsive grid layout (1 col mobile, 2 cols desktop)
+  - One-click removal with trash icon
+  - Navigate to word's location in lesson
+  - Sort by most recently favorited
+- **Desktop Navigation** - Unified button bar with Favorites, Dark Mode, Shortcuts
+- **Mobile Optimized** - Touch-friendly buttons and favorite star placement
+- **Dual Storage** - Firebase sync (authenticated) or localStorage (demo)
+- **Real-time Updates** - Counter badge updates instantly
+- **Keyboard Shortcut** - Ctrl+Shift+F to open favorites modal
 
 ### Practice Mode Features
 - 🎴 **Flashcard Learning** - Interactive 3D flip cards with smooth animations
@@ -95,7 +118,7 @@ Private Dictionary is a comprehensive language learning platform that provides a
   - Attempts per word and score breakdown
 - 🎯 **Milestone Notifications**: Encouragement at 25%, 50%, 75% progress
 
-### Progress Tracking & Gamification (v0.6.0)
+### Progress Tracking & Gamification
 - 📊 **Daily Progress Tracking** - Real-time tracking of learning activity
   - Words learned counter with daily goal
   - Practice sessions completed
@@ -191,6 +214,7 @@ Private Dictionary includes a comprehensive keyboard shortcut system for efficie
 | Save Status | `Ctrl+S` | `⌘S` | Show save notification |
 | Dark Mode | `Ctrl+D` | `⌘D` | Toggle dark/light theme |
 | Help | `Ctrl+K` | `⌘K` | Toggle shortcuts help |
+| Favorites | `Ctrl+Shift+F` | `⌘⇧F` | Open favorites modal |
 | Close | `ESC` | `ESC` | Close active modal |
 | **Navigation** | | | |
 | Next Lesson | `Ctrl+→` | `⌘→` | Navigate to next lesson |
@@ -567,7 +591,9 @@ private-dictionary/
 │   │   ├── AddWordsModal/
 │   │   ├── KeyboardShortcutsHelper/
 │   │   ├── DarkModeToggle/
-|   |   |── DailyProgress/
+│   │   ├── FavoriteButton/
+│   │   ├── FavoritesModal/
+│   │   ├── DailyProgress/
 │   │   │   ├── DailyProgressCard.jsx
 │   │   │   ├── StreakDisplay.jsx
 │   │   │   ├── DailyGoalSettings.jsx
@@ -602,6 +628,7 @@ private-dictionary/
 │   │   ├── useLocalStorage.js
 │   │   ├── useKeyboardShortcuts.js
 │   │   ├── useDarkMode.js
+│   │   ├── useFavorites.js
 │   │   ├── usePracticeMode.js
 │   │   ├── useSwipeGesture.js
 │   │   ├── useDailyProgress.js
@@ -612,6 +639,8 @@ private-dictionary/
 │   │   ├── pronunciationHelper.js
 │   │   ├── practiceHelper.js
 │   │   ├── rewardHelper.js
+│   │   ├── favoritesHelper.js
+│   │   ├── migration.js
 │   │   └── demoStatsHelper.js
 │   ├── data/
 │   │   └── dictionary.js
@@ -637,6 +666,10 @@ private-dictionary/
 ```
 
 ### Key Components
+
+#### Favorites Components (v0.7.0)
+- **FavoriteButton.jsx** - Reusable star button with 3 size variants (sm/md/lg)
+- **FavoritesModal.jsx** - Full-featured favorites browser with search and filtering
 
 #### Progress Tracking Components (v0.6.0)
 - **DailyProgressCard.jsx** - Main daily progress display with goal tracking
@@ -682,6 +715,11 @@ private-dictionary/
 - **DarkModeToggle.jsx** - Dark mode toggle component
 
 ### Key Utilities
+
+#### Favorites Utilities (v0.7.0)
+- **useFavorites.js** - Custom hook for favorites state management (Firebase + localStorage)
+- **favoritesHelper.js** - localStorage utilities for demo mode favorites
+- **migration.js** - Automatic data migration for existing dictionaries
 
 #### Practice Mode Utilities
 - **usePracticeMode.js** - Practice session state management (word progression, flips, timer)
@@ -783,7 +821,6 @@ See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes.
 The following improvements are planned to enhance usability, learning efficiency, and overall user experience:
 
 ### 📊 Learning Aids
-- **Favorites** – Mark difficult or favorite words for quick access  
 - **OpenAI API Integration** – Supports (prioritized for Private Dictionary):  
   1. Querying Hungarian meanings  
   2. Practicing spelling (iPad integration)  

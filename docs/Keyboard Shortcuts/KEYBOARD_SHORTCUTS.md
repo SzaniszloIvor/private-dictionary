@@ -2,7 +2,7 @@
 
 ## Áttekintés
 
-A Private Dictionary alkalmazás teljes billentyűparancs-kezelő rendszert tartalmaz, amely lehetővé teszi a gyors navigációt és műveletvégzést billentyűzet segítségével. A v0.3.0 óta támogatja a sötét módot és teljes mértékben Tailwind CSS-re épül.
+A Private Dictionary alkalmazás teljes billentyűparancs-kezelő rendszert tartalmaz, amely lehetővé teszi a gyors navigációt és műveletvégzést billentyűzet segítségével. A v0.7.0 óta támogatja a kedvencek (favorites) kezelést is billentyűparanccsal.
 
 ## Elérhető Billentyűparancsok
 
@@ -14,8 +14,9 @@ A Private Dictionary alkalmazás teljes billentyűparancs-kezelő rendszert tart
 | Keresés | `Ctrl+F` | `⌘F` | Keresési mező fókuszálása |
 | Mentés állapot | `Ctrl+S` | `⌘S` | Mentési értesítés megjelenítése |
 | Sötét mód | `Ctrl+D` | `⌘D` | Sötét/világos mód váltása |
+| Kedvencek | `Ctrl+Shift+F` | `⌘⇧F` | **Kedvencek modal megnyitása (ÚJ v0.7.0)** |
 | Súgó | `Ctrl+K` | `⌘K` | Billentyűparancsok listája (toggle) |
-| Bezárás | `ESC` | `ESC` | Aktív modal bezárása |
+| Bezárás | `ESC` | `ESC` | Aktív modal bezárása (Add Words, Shortcuts, Favorites) |
 
 ### Navigáció (Órák között)
 
@@ -41,6 +42,7 @@ Minden navigációs parancs vizuális visszajelzést ad toast notification form�
 - **Új szó**: `➕ Új szó hozzáadása`
 - **Keresés**: `🔍 Keresés aktiválva`
 - **Sötét mód**: `🌙 Sötét mód` vagy `☀️ Világos mód`
+- **Kedvencek**: `⭐ Kedvencek megnyitása` **(ÚJ v0.7.0)**
 
 ### Toast Stílus (Tailwind CSS)
 
@@ -49,6 +51,35 @@ Minden navigációs parancs vizuális visszajelzést ad toast notification form�
 - **Animáció**: `animate-slide-in-right` (Tailwind custom animation)
 - **Szín**: `bg-gradient-to-r from-primary-600 to-primary-dark`
 - **Dark Mode**: Automatikus alkalmazkodás sötét témához
+
+## Favorites System (v0.7.0+)
+
+### Funkcionalitás
+
+- **Gyors hozzáférés**: `Ctrl+Shift+F` billentyűparancs
+- **Keresés**: Szűrés angol és magyar szavak között
+- **Lesson filter**: Kedvencek szűrése lecke szerint
+- **Navigáció**: Ugrás a szó eredeti helyére
+- **Eltávolítás**: Kedvencekből való törlés egy kattintással
+- **Persistence**: Firebase (auth) vagy localStorage (demo)
+
+### Implementáció
+
+```javascript
+// Favorites modal toggle
+'mod+shift+f': (e) => {
+  e.preventDefault();
+  setShowFavoritesModal(true);
+  showToast('⭐ Kedvencek megnyitása');
+}
+
+// Escape key - bezárja a favorites modal-t is
+'escape': () => {
+  if (showAddModal) setShowAddModal(false);
+  else if (showShortcutsHelp) setShowShortcutsHelp(false);
+  else if (showFavoritesModal) setShowFavoritesModal(false);
+}
+```
 
 ## Dark Mode Support (v0.3.0+)
 
@@ -92,12 +123,20 @@ const { darkMode, toggleDarkMode } = useDarkMode();
 src/
 ├── hooks/
 │   ├── useKeyboardShortcuts.js    # Core hook a billentyűparancsok kezeléséhez
-│   └── useDarkMode.js             # Dark mode hook (v0.3.0+)
+│   ├── useDarkMode.js             # Dark mode hook (v0.3.0+)
+│   └── useFavorites.js            # Favorites hook (v0.7.0+)
 ├── components/
 │   ├── KeyboardShortcutsHelper/
 │   │   └── KeyboardShortcutsHelper.jsx  # Súgó UI komponens (Tailwind)
-│   └── DarkModeToggle/
-│       └── DarkModeToggle.jsx     # Dark mode toggle button (v0.3.0+)
+│   ├── DarkModeToggle/
+│   │   └── DarkModeToggle.jsx     # Dark mode toggle button (v0.3.0+)
+│   ├── FavoriteButton/
+│   │   └── FavoriteButton.jsx     # Favorite star button (v0.7.0+)
+│   └── FavoritesModal/
+│       └── FavoritesModal.jsx     # Favorites browser modal (v0.7.0+)
+├── utils/
+│   ├── favoritesHelper.js         # localStorage utilities (v0.7.0+)
+│   └── migration.js               # Data migration (v0.7.0+)
 ├── App.jsx                         # Főalkalmazás integrációval
 └── index.css                       # Tailwind directives + custom animations
 ```
@@ -117,13 +156,59 @@ src/
 const shortcuts = useMemo(() => ({
   'mod+e': (event) => { /* handler */ },
   'mod+d': (event) => { /* dark mode toggle */ },
+  'mod+shift+f': (event) => { /* favorites modal */ }, // ÚJ v0.7.0
   'mod+arrowright': (event) => { /* handler */ }
-}), [dependencies, darkMode]);
+}), [dependencies, darkMode, showFavoritesModal]);
 
 useKeyboardShortcuts(shortcuts, !loading);
 ```
 
-#### 2. useDarkMode Hook (v0.3.0+)
+#### 2. useFavorites Hook (v0.7.0+)
+
+**Felelősség**: Kedvencek állapot és műveletek kezelése
+
+**Működés**:
+```javascript
+export const useFavorites = (userId, isDemo, dictionary) => {
+  const [favorites, setFavorites] = useState([]);
+  const [favoritesCount, setFavoritesCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  // Toggle favorite
+  const toggleFavorite = async (lessonId, wordIndex) => {
+    const word = dictionary[lessonId]?.words[wordIndex];
+    const newValue = !word.isFavorite;
+    
+    if (isDemo) {
+      // localStorage implementation
+      toggleDemoFavorite(lessonId, wordIndex, newValue);
+    } else {
+      // Firebase implementation
+      await toggleFavoriteInFirebase(userId, lessonId, wordIndex, newValue);
+    }
+    
+    await refreshFavorites();
+  };
+
+  // Check if favorited
+  const isFavorited = (lessonId, wordIndex) => {
+    return favorites.some(
+      f => f.lessonId === lessonId && f.wordIndex === wordIndex
+    );
+  };
+
+  return {
+    favorites,
+    favoritesCount,
+    loading,
+    toggleFavorite,
+    isFavorited,
+    refreshFavorites
+  };
+};
+```
+
+#### 3. useDarkMode Hook (v0.3.0+)
 
 **Felelősség**: Sötét mód állapot kezelése
 
@@ -151,7 +236,7 @@ export const useDarkMode = () => {
 };
 ```
 
-#### 3. KeyboardShortcutsHelper Komponens
+#### 4. KeyboardShortcutsHelper Komponens
 
 **Felelősség**: Billentyűparancsok vizuális megjelenítése
 
@@ -160,15 +245,35 @@ export const useDarkMode = () => {
 - `onOpen` (Function): Modal megnyitása
 - `onClose` (Function): Modal bezárása
 
-**Jellemzők (v0.3.0+)**:
+**Jellemzők (v0.7.0)**:
 - Floating action button (⌨️) - **Desktop only** (`hidden md:flex`)
 - Modal overlay teljes listával (Tailwind CSS)
+- **12 parancs** megjelenítése (új: Ctrl+Shift+F)
 - Platform-függő billentyűk megjelenítése
 - Dark mode támogatás (`dark:bg-gray-800`, `dark:text-gray-100`)
 - Enhanced contrast sötét módban
 - **Mobil eszközökön rejtett** a jobb UX érdekében
 
-#### 4. DarkModeToggle Komponens (v0.3.0+)
+#### 5. FavoritesModal Komponens (v0.7.0+)
+
+**Felelősség**: Kedvencek böngészése és kezelése
+
+**Props**:
+- `isOpen` (Boolean): Modal láthatósága
+- `onClose` (Function): Modal bezárása
+- `favorites` (Array): Kedvenc szavak listája
+- `onToggleFavorite` (Function): Kedvenc toggle callback
+- `onNavigateToWord` (Function): Navigálás a szóhoz
+
+**Funkciók**:
+- Keresés angol és magyar szavak között
+- Lesson filter dropdown
+- Responsive grid (1 col mobile, 2 cols desktop)
+- Navigálás a szó helyére
+- Eltávolítás kedvencekből
+- Empty state onboarding
+
+#### 6. DarkModeToggle Komponens (v0.3.0+)
 
 **Felelősség**: Sötét mód váltó gomb UI
 
@@ -192,7 +297,7 @@ export const useDarkMode = () => {
 </button>
 ```
 
-#### 5. Toast Notification
+#### 7. Toast Notification
 
 **Felelősség**: Gyors vizuális visszajelzés
 
@@ -222,21 +327,33 @@ const showToast = (message, duration = 2000) => {
 
 ## Implementáció
 
-### App.jsx Integráció (v0.3.0+)
+### App.jsx Integráció (v0.7.0)
 
 ```javascript
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useDarkMode } from './hooks/useDarkMode';
+import { useFavorites } from './hooks/useFavorites';
 import KeyboardShortcutsHelper from './components/KeyboardShortcutsHelper';
 import DarkModeToggle from './components/DarkModeToggle';
+import FavoritesModal from './components/FavoritesModal';
 
 const MainApp = () => {
   // Dark mode
   const { darkMode, toggleDarkMode } = useDarkMode();
   
+  // Favorites (ÚJ v0.7.0)
+  const {
+    favorites,
+    favoritesCount,
+    toggleFavorite,
+    isFavorited,
+    refreshFavorites
+  } = useFavorites(user?.uid, isDemo, dictionary);
+  
   // States
   const [showAddModal, setShowAddModal] = useState(false);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+  const [showFavoritesModal, setShowFavoritesModal] = useState(false); // ÚJ
   const [toastMessage, setToastMessage] = useState('');
   const searchInputRef = useRef(null);
   
@@ -246,7 +363,7 @@ const MainApp = () => {
     setTimeout(() => setToastMessage(''), duration);
   };
   
-  // Shortcuts configuration
+  // Shortcuts configuration (Frissítve v0.7.0)
   const shortcuts = useMemo(() => ({
     'mod+e': (e) => {
       e.preventDefault();
@@ -258,8 +375,25 @@ const MainApp = () => {
       toggleDarkMode();
       showToast(darkMode ? '☀️ Világos mód' : '🌙 Sötét mód');
     },
+    'mod+shift+f': (e) => {  // ÚJ v0.7.0
+      e.preventDefault();
+      setShowFavoritesModal(true);
+      showToast('⭐ Kedvencek megnyitása');
+    },
+    'escape': () => {  // Bővítve v0.7.0
+      if (showAddModal) setShowAddModal(false);
+      else if (showShortcutsHelp) setShowShortcutsHelp(false);
+      else if (showFavoritesModal) setShowFavoritesModal(false);
+    },
     // ... további parancsok
-  }), [showAddModal, showShortcutsHelp, dictionary, currentLesson, darkMode]);
+  }), [
+    showAddModal,
+    showShortcutsHelp,
+    showFavoritesModal,
+    dictionary,
+    currentLesson,
+    darkMode
+  ]);
   
   // Hook inicializálása
   useKeyboardShortcuts(shortcuts, !loading);
@@ -274,6 +408,15 @@ const MainApp = () => {
         onClose={() => setShowShortcutsHelp(false)}
       />
       <DarkModeToggle darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+      
+      {/* ÚJ v0.7.0 */}
+      <FavoritesModal
+        isOpen={showFavoritesModal}
+        onClose={() => setShowFavoritesModal(false)}
+        favorites={favorites}
+        onToggleFavorite={toggleFavorite}
+        onNavigateToWord={handleNavigateToWord}
+      />
     </>
   );
 };
@@ -285,17 +428,20 @@ const MainApp = () => {
 - `mod` → `⌘` (Command)
 - Meta key használata: `event.metaKey`
 - Display: `⌘`, `⇧`, `⌥`
+- Favorites: `⌘⇧F` **(v0.7.0)**
 
 ### Windows/Linux
 - `mod` → `Ctrl`
 - Control key használata: `event.ctrlKey`
 - Display: `Ctrl`, `Shift`, `Alt`
+- Favorites: `Ctrl+Shift+F` **(v0.7.0)**
 
 ### Automatikus detekció
 
 ```javascript
 const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 const modKey = isMac ? event.metaKey : event.ctrlKey;
+const shiftKey = event.shiftKey;
 ```
 
 ## Best Practices
@@ -318,7 +464,11 @@ A shortcuts objektumot memoizáld a felesleges re-render elkerülésére:
 ```javascript
 const shortcuts = useMemo(() => ({
   // ...
-}), [relevantDependencies, darkMode]); // darkMode dependency hozzáadva
+}), [
+  relevantDependencies,
+  darkMode,
+  showFavoritesModal  // ÚJ v0.7.0
+]);
 ```
 
 ### 3. Dependency Array
@@ -329,11 +479,12 @@ Csak azokat a state-eket add hozzá a dependency array-hez, amelyeket a handlere
 useMemo(() => ({
   'escape': () => {
     if (showAddModal) setShowAddModal(false);
+    else if (showFavoritesModal) setShowFavoritesModal(false);
   },
   'mod+d': () => {
     toggleDarkMode(); // darkMode kell a dependency-be
   }
-}), [showAddModal, darkMode]); // mindkét dependency szükséges
+}), [showAddModal, showFavoritesModal, darkMode]); // mindhárom dependency szükséges
 ```
 
 ### 4. Toast Messages
@@ -355,15 +506,17 @@ Utility-first megközelítés:
 ## Responsive Design & Mobil
 
 ### Desktop (≥768px)
-- Teljes billentyűparancs támogatás
+- Teljes billentyűparancs támogatás (12 parancs)
 - Keyboard Shortcuts Helper FAB látható (`md:flex`)
+- Favorites modal teljes funkcionalitással
 - Toast notifications jobb alsó sarokban
 
 ### Mobil (<768px)
 - Billentyűparancsok nem érhetőek el
 - Keyboard Shortcuts Helper FAB rejtett (`hidden md:flex`)
+- Favorites elérhető navigációs gombon keresztül
 - Dark mode toggle látható (🌙 gomb)
-- Touch-optimalizált drag & drop (150ms/5px)
+- Touch-optimalizált drag & drop
 - Érintés-barát gombok és UI elemek
 
 ## Hibaelhárítás
@@ -395,6 +548,15 @@ Ellenőrizd:
 - localStorage írható? (privacy mode)
 - `<html>` elem elérhető? (`document.documentElement`)
 - Tailwind `darkMode: 'class'` konfiguráció helyes?
+
+### Probléma: Favorites modal nem nyílik meg (v0.7.0)
+
+Ellenőrizd:
+- `Ctrl+Shift+F` helyesen lenyomva?
+- `showFavoritesModal` state frissül?
+- `FavoritesModal` komponens renderelve van?
+- `useFavorites` hook inicializálva?
+- Favorites data betöltődött?
 
 ## Tailwind CSS Integráció (v0.3.0+)
 
@@ -452,13 +614,19 @@ export default {
 - [ ] Konfliktus detekció és figyelmeztetés
 - [ ] Több dark mode téma (gray, blue, purple)
 - [ ] Scheduled dark mode (auto-switch időpont alapján)
+- [ ] Favorites gyors hozzáadás (Ctrl+B jelenlegi szónál) **(v0.7.0 ötlet)**
+- [ ] Favorites export (PDF, CSV, Anki)
 
 ## Kapcsolódó Fájlok
 
 - `src/hooks/useKeyboardShortcuts.js` - Core hook
 - `src/hooks/useDarkMode.js` - Dark mode hook (v0.3.0+)
+- `src/hooks/useFavorites.js` - Favorites hook (v0.7.0+)
 - `src/components/KeyboardShortcutsHelper/KeyboardShortcutsHelper.jsx` - UI komponens (Tailwind)
 - `src/components/DarkModeToggle/DarkModeToggle.jsx` - Dark mode toggle (v0.3.0+)
+- `src/components/FavoriteButton/FavoriteButton.jsx` - Favorite button (v0.7.0+)
+- `src/components/FavoritesModal/FavoritesModal.jsx` - Favorites modal (v0.7.0+)
+- `src/utils/favoritesHelper.js` - Favorites utilities (v0.7.0+)
 - `src/App.jsx` - Integráció
 - `src/index.css` - Tailwind directives + custom animations
 - `tailwind.config.js` - Tailwind konfiguráció
@@ -466,10 +634,10 @@ export default {
 
 ## Verzió
 
-- **Verzió**: 0.3.0
-- **Utolsó frissítés**: 2025-10-04
+- **Verzió**: 0.7.0
+- **Utolsó frissítés**: 2025-10-11
 - **Szerző**: Private Dictionary
-- **Főbb változások**: Dark mode support, Tailwind CSS, optimalizált mobil drag & drop
+- **Főbb változások**: Favorites system (Ctrl+Shift+F), unified desktop navigation, mobile layout improvements
 
 ## Changelog Hivatkozás
 

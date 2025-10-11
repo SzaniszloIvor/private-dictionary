@@ -357,3 +357,155 @@ export const areConsecutiveDays = (date1, date2) => {
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   return diffDays === 1;
 };
+
+// ============================================
+// FAVORITES FUNCTIONS
+// ============================================
+
+/**
+ * Toggle favorite status for a word
+ * @param {string} userId - User ID
+ * @param {string} lessonId - Lesson number (as string)
+ * @param {number} wordIndex - Word index in lesson
+ * @param {boolean} isFavorite - New favorite status
+ * @returns {Promise<boolean>} Success status
+ */
+export const toggleFavorite = async (userId, lessonId, wordIndex, isFavorite) => {
+  try {
+    const docRef = doc(db, 'dictionaries', userId);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      const dictionary = docSnap.data().dictionary;
+      
+      // Check if lesson and word exist
+      if (dictionary[lessonId] && dictionary[lessonId].words[wordIndex]) {
+        // Update the specific word
+        dictionary[lessonId].words[wordIndex].isFavorite = isFavorite;
+        dictionary[lessonId].words[wordIndex].favoritedAt = isFavorite 
+          ? new Date().toISOString() 
+          : null;
+        
+        // Save updated dictionary
+        await setDoc(docRef, {
+          dictionary: dictionary,
+          updatedAt: new Date().toISOString()
+        });
+        
+        return true;
+      } else {
+        console.error('Lesson or word not found:', lessonId, wordIndex);
+        return false;
+      }
+    } else {
+      console.error('Dictionary not found for user:', userId);
+      return false;
+    }
+  } catch (error) {
+    console.error("Error toggling favorite:", error);
+    throw error;
+  }
+};
+
+/**
+ * Get all favorite words across all lessons
+ * @param {string} userId - User ID
+ * @returns {Promise<Array>} Array of favorite words with lesson info
+ */
+export const getAllFavorites = async (userId) => {
+  try {
+    const docRef = doc(db, 'dictionaries', userId);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      const dictionary = docSnap.data().dictionary;
+      const favorites = [];
+      
+      // Collect all favorites from all lessons
+      Object.keys(dictionary).forEach(lessonId => {
+        const lesson = dictionary[lessonId];
+        
+        if (lesson.words && Array.isArray(lesson.words)) {
+          lesson.words.forEach((word, index) => {
+            if (word.isFavorite) {
+              favorites.push({
+                ...word,
+                lessonId,
+                lessonTitle: lesson.title || `Lesson ${lessonId}`,
+                wordIndex: index
+              });
+            }
+          });
+        }
+      });
+      
+      // Sort by favoritedAt (newest first)
+      favorites.sort((a, b) => {
+        if (!a.favoritedAt) return 1;
+        if (!b.favoritedAt) return -1;
+        return new Date(b.favoritedAt) - new Date(a.favoritedAt);
+      });
+      
+      return favorites;
+    } else {
+      console.warn('No dictionary found for user:', userId);
+      return [];
+    }
+  } catch (error) {
+    console.error("Error loading favorites:", error);
+    return [];
+  }
+};
+
+/**
+ * Get favorites count for a user
+ * @param {string} userId - User ID
+ * @returns {Promise<number>} Number of favorite words
+ */
+export const getFavoritesCount = async (userId) => {
+  try {
+    const favorites = await getAllFavorites(userId);
+    return favorites.length;
+  } catch (error) {
+    console.error("Error getting favorites count:", error);
+    return 0;
+  }
+};
+
+/**
+ * Clear all favorites for a user
+ * @param {string} userId - User ID
+ * @returns {Promise<boolean>} Success status
+ */
+export const clearAllFavorites = async (userId) => {
+  try {
+    const docRef = doc(db, 'dictionaries', userId);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      const dictionary = docSnap.data().dictionary;
+      
+      // Remove favorite flags from all words
+      Object.keys(dictionary).forEach(lessonId => {
+        if (dictionary[lessonId].words) {
+          dictionary[lessonId].words.forEach(word => {
+            word.isFavorite = false;
+            word.favoritedAt = null;
+          });
+        }
+      });
+      
+      await setDoc(docRef, {
+        dictionary: dictionary,
+        updatedAt: new Date().toISOString()
+      });
+      
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error("Error clearing favorites:", error);
+    throw error;
+  }
+};

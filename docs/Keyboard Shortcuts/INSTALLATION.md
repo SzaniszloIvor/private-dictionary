@@ -1,4 +1,4 @@
-# Billentyűparancsok & Dark Mode Telepítési Útmutató
+# Billentyűparancsok & Favorites Telepítési Útmutató
 
 ## Előfeltételek
 
@@ -6,13 +6,23 @@
 - Működő Private Dictionary alkalmazás
 - Node.js 20.0.0+
 - npm vagy yarn
+- Firebase (authenticated mode) vagy localStorage (demo mode)
 
 ## Verzió Információ
 
-- **Verzió**: 0.3.1
+- **Verzió**: 0.7.0
 - **React verzió**: 19.1.1+
 - **Tailwind CSS**: 3.4.1
-- **Utolsó frissítés**: 2025-10-04
+- **Firebase**: 10.x+
+- **Utolsó frissítés**: 2025-10-11
+
+## Újdonságok v0.7.0-ban
+
+- ⭐ **Favorites System**: Kedvenc szavak jelölése és kezelése
+- 🔍 **Keresés & Szűrés**: Teljes keresési funkcionalitás a kedvencekben
+- ⌨️ **Új billentyűparancs**: `Ctrl+Shift+F` kedvencek megnyitása
+- 📱 **Unified Navigation**: Desktop navigációs sáv egységes gombokkal
+- 🎨 **Mobile Layout**: Optimalizált elrendezés kedvenc csillaggal bal oldalon
 
 ## Telepítési Lépések
 
@@ -40,17 +50,15 @@ export default {
 }
 ```
 
-```javascript
-// postcss.config.js
-export default {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-}
+### 2. Lucide React Icons (v0.7.0+)
+
+A favorites funkcióhoz szükséges (Star ikon):
+
+```bash
+npm install lucide-react
 ```
 
-### 2. Keyboard Shortcuts Hook
+### 3. Keyboard Shortcuts Hook
 
 Hozd létre a `src/hooks/useKeyboardShortcuts.js` fájlt:
 
@@ -98,319 +106,594 @@ export const useKeyboardShortcuts = (shortcuts = {}, enabled = true) => {
   }, [handleKeyDown, enabled]);
 };
 
-export const getShortcutDisplay = (shortcut) => {
-  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-  const modKey = isMac ? '⌘' : 'Ctrl';
-  
-  return shortcut
-    .replace('mod', modKey)
-    .replace('shift', isMac ? '⇧' : 'Shift')
-    .replace('alt', isMac ? '⌥' : 'Alt')
-    .split('+')
-    .map(key => key.charAt(0).toUpperCase() + key.slice(1))
-    .join('+');
-};
-
 export default useKeyboardShortcuts;
 ```
 
-### 3. Dark Mode Hook (v0.3.0+)
+### 4. Favorites Hook (ÚJ v0.7.0)
 
-Hozd létre a `src/hooks/useDarkMode.js` fájlt:
+Hozd létre a `src/hooks/useFavorites.js` fájlt:
 
 ```javascript
-// src/hooks/useDarkMode.js
-import { useState, useEffect } from 'react';
+// src/hooks/useFavorites.js
+import { useState, useEffect, useCallback } from 'react';
+import { 
+  getAllFavorites, 
+  toggleFavorite as toggleFavoriteInFirebase 
+} from '../services/firebase';
+import {
+  getAllDemoFavorites,
+  toggleDemoFavorite,
+  isDemoFavorite as checkDemoFavorite
+} from '../utils/favoritesHelper';
 
-export const useDarkMode = () => {
-  const [darkMode, setDarkMode] = useState(() => {
-    // Load from localStorage or system preference
-    const saved = localStorage.getItem('darkMode');
-    if (saved !== null) return saved === 'true';
-    return window.matchMedia && 
-           window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
+export const useFavorites = (userId, isDemo, dictionary) => {
+  const [favorites, setFavorites] = useState([]);
+  const [favoritesCount, setFavoritesCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    // Save to localStorage
-    localStorage.setItem('darkMode', darkMode);
-    
-    // Toggle dark class on HTML element
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
+  // Load favorites
+  const loadFavorites = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-  useEffect(() => {
-    // Listen to system preference changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    const handleChange = (e) => {
-      // Only update if user hasn't set preference manually
-      const saved = localStorage.getItem('darkMode');
-      if (saved === null) {
-        setDarkMode(e.matches);
+      let favList = [];
+
+      if (isDemo) {
+        // Demo mode: localStorage
+        favList = getAllDemoFavorites();
+      } else if (userId) {
+        // Authenticated mode: Firebase
+        favList = await getAllFavorites(userId);
       }
-    };
 
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', handleChange);
-      return () => mediaQuery.removeEventListener('change', handleChange);
-    } else if (mediaQuery.addListener) {
-      mediaQuery.addListener(handleChange);
-      return () => mediaQuery.removeListener(handleChange);
+      // Sort by most recent
+      favList.sort((a, b) => {
+        const dateA = new Date(a.favoritedAt || 0);
+        const dateB = new Date(b.favoritedAt || 0);
+        return dateB - dateA;
+      });
+
+      setFavorites(favList);
+      setFavoritesCount(favList.length);
+    } catch (err) {
+      console.error('Error loading favorites:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  }, [userId, isDemo]);
 
-  const toggleDarkMode = () => {
-    setDarkMode(prev => !prev);
+  // Initial load
+  useEffect(() => {
+    loadFavorites();
+  }, [loadFavorites]);
+
+  // Toggle favorite
+  const toggleFavorite = useCallback(async (lessonId, wordIndex) => {
+    try {
+      const word = dictionary[lessonId]?.words[wordIndex];
+      if (!word) return;
+
+      const newValue = !word.isFavorite;
+
+      if (isDemo) {
+        toggleDemoFavorite(lessonId, wordIndex, newValue);
+      } else if (userId) {
+        await toggleFavoriteInFirebase(userId, lessonId, wordIndex, newValue);
+      }
+
+      await loadFavorites();
+    } catch (err) {
+      console.error('Error toggling favorite:', err);
+      setError(err.message);
+    }
+  }, [userId, isDemo, dictionary, loadFavorites]);
+
+  // Check if favorited
+  const isFavorited = useCallback((lessonId, wordIndex) => {
+    if (isDemo) {
+      return checkDemoFavorite(lessonId, wordIndex);
+    }
+    return favorites.some(
+      f => f.lessonId === lessonId && f.wordIndex === parseInt(wordIndex)
+    );
+  }, [favorites, isDemo]);
+
+  // Refresh favorites
+  const refreshFavorites = useCallback(async () => {
+    await loadFavorites();
+  }, [loadFavorites]);
+
+  return {
+    favorites,
+    favoritesCount,
+    loading,
+    error,
+    toggleFavorite,
+    isFavorited,
+    refreshFavorites
   };
-
-  return { darkMode, toggleDarkMode };
 };
 
-export default useDarkMode;
+export default useFavorites;
 ```
 
-### 4. KeyboardShortcutsHelper Komponens (Tailwind v0.3.0+)
+### 5. Favorites Helper Utilities (ÚJ v0.7.0)
 
-Hozd létre a `src/components/KeyboardShortcutsHelper/KeyboardShortcutsHelper.jsx` fájlt:
+Hozd létre a `src/utils/favoritesHelper.js` fájlt:
 
 ```javascript
-// src/components/KeyboardShortcutsHelper/KeyboardShortcutsHelper.jsx
-import React from 'react';
-import { getShortcutDisplay } from '../../hooks/useKeyboardShortcuts';
+// src/utils/favoritesHelper.js
 
-const KeyboardShortcutsHelper = ({ isOpen, onOpen, onClose }) => {
-  const shortcuts = [
-    { combo: 'mod+e', description: 'Új szó hozzáadása', icon: '➕' },
-    { combo: 'mod+f', description: 'Keresés fókuszálása', icon: '🔍' },
-    { combo: 'mod+s', description: 'Mentési állapot megjelenítése', icon: '💾' },
-    { combo: 'mod+d', description: 'Sötét mód kapcsolása', icon: '🌙' },
-    { combo: 'mod+k', description: 'Billentyűparancsok megjelenítése', icon: '⌨️' },
-    { combo: 'mod+arrowright', description: 'Következő óra', icon: '➡️' },
-    { combo: 'mod+arrowleft', description: 'Előző óra', icon: '⬅️' },
-    { combo: 'mod+home', description: 'Első óra', icon: '⏮️' },
-    { combo: 'mod+end', description: 'Utolsó óra', icon: '⏭️' },
-    { combo: 'escape', description: 'Modal bezárása', icon: '❌' }
-  ];
+const DEMO_FAVORITES_KEY = 'demoFavorites';
 
-  return (
-    <>
-      {/* Floating Action Button - ONLY on desktop */}
-      <button
-        onClick={onOpen}
-        className="
-          hidden md:flex
-          fixed bottom-5 right-5 z-[999]
-          w-12 h-12 rounded-full
-          bg-gradient-to-r from-indigo-500 to-purple-600
-          dark:from-indigo-600 dark:to-purple-700
-          text-white text-2xl
-          items-center justify-center
-          shadow-lg hover:shadow-xl
-          hover:scale-110 active:scale-95
-          transition-all duration-300
-        "
-        title="Billentyűparancsok (Ctrl/⌘+K)"
-      >
-        ⌨️
-      </button>
+// Get all demo favorites
+export const getAllDemoFavorites = () => {
+  try {
+    const stored = localStorage.getItem(DEMO_FAVORITES_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch (error) {
+    console.error('Error loading demo favorites:', error);
+    return [];
+  }
+};
 
-      {/* Modal Overlay */}
-      {isOpen && (
-        <div 
-          onClick={onClose}
-          className="
-            fixed inset-0 z-[1001]
-            bg-black/70 dark:bg-black/85
-            flex items-center justify-center
-            p-5 animate-fade-in
-          "
-        >
-          {/* Modal Content */}
-          <div 
-            onClick={(e) => e.stopPropagation()}
-            className="
-              bg-white dark:bg-gray-800
-              rounded-2xl shadow-2xl
-              p-8 max-w-lg w-full
-              max-h-[80vh] overflow-y-auto
-              animate-slide-in-up
-            "
-          >
-            {/* Header */}
-            <div className="
-              flex justify-between items-center
-              mb-6 pb-4
-              border-b-2 border-gray-200 dark:border-gray-700
-            ">
-              <div className="
-                text-2xl font-bold
-                text-gray-800 dark:text-gray-100
-                flex items-center gap-3
-              ">
-                ⌨️ Billentyűparancsok
-              </div>
-              <button
-                onClick={onClose}
-                className="
-                  text-gray-600 dark:text-gray-400
-                  hover:text-gray-900 dark:hover:text-gray-100
-                  text-3xl font-bold
-                  w-8 h-8 flex items-center justify-center
-                  hover:scale-110 active:scale-95
-                  transition-transform duration-200
-                "
-                title="Bezárás (ESC)"
-              >
-                ×
-              </button>
-            </div>
+// Save demo favorites
+const saveDemoFavorites = (favorites) => {
+  try {
+    localStorage.setItem(DEMO_FAVORITES_KEY, JSON.stringify(favorites));
+  } catch (error) {
+    console.error('Error saving demo favorites:', error);
+  }
+};
 
-            {/* Shortcuts List */}
-            <div className="flex flex-col gap-3">
-              {shortcuts.map((shortcut, index) => (
-                <div 
-                  key={index}
-                  className="
-                    flex justify-between items-center
-                    p-3 rounded-lg
-                    bg-gray-50 dark:bg-gray-700/50
-                    hover:bg-gray-100 dark:hover:bg-gray-700
-                    hover:translate-x-1
-                    transition-all duration-200
-                    group
-                  "
-                >
-                  {/* Left side: Icon + Description */}
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <span className="text-2xl flex-shrink-0">
-                      {shortcut.icon}
-                    </span>
-                    <span className="
-                      text-gray-800 dark:text-gray-200
-                      text-sm font-medium
-                      truncate
-                    ">
-                      {shortcut.description}
-                    </span>
-                  </div>
+// Toggle demo favorite
+export const toggleDemoFavorite = (lessonId, wordIndex, isFavorite) => {
+  const favorites = getAllDemoFavorites();
+  
+  if (isFavorite) {
+    // Add to favorites
+    const newFavorite = {
+      lessonId,
+      wordIndex: parseInt(wordIndex),
+      addedAt: new Date().toISOString()
+    };
+    favorites.push(newFavorite);
+  } else {
+    // Remove from favorites
+    const filtered = favorites.filter(
+      f => !(f.lessonId === lessonId && f.wordIndex === parseInt(wordIndex))
+    );
+    saveDemoFavorites(filtered);
+    return;
+  }
+  
+  saveDemoFavorites(favorites);
+};
 
-                  {/* Right side: Key combinations */}
-                  <div className="flex gap-1 items-center flex-shrink-0 ml-2">
-                    {getShortcutDisplay(shortcut.combo).split('+').map((key, i, arr) => (
-                      <React.Fragment key={i}>
-                        <kbd className="
-                          bg-white dark:bg-gray-900
-                          text-indigo-600 dark:text-indigo-400
-                          border-2 border-indigo-600 dark:border-indigo-400
-                          px-2.5 py-1 rounded
-                          text-xs font-bold
-                          min-w-[32px] text-center
-                          shadow-sm
-                          group-hover:shadow-md
-                          transition-shadow duration-200
-                        ">
-                          {key}
-                        </kbd>
-                        {i < arr.length - 1 && (
-                          <span className="text-gray-500 dark:text-gray-400 text-sm">
-                            +
-                          </span>
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Footer Tip */}
-            <div className="
-              mt-6 p-4 rounded-lg
-              bg-gradient-to-r from-green-50 to-emerald-50
-              dark:from-green-900/20 dark:to-emerald-900/20
-              border border-green-200 dark:border-green-800
-              text-sm
-              text-green-800 dark:text-green-300
-            ">
-              💡 <strong>Tipp:</strong> Nyomd meg a{' '}
-              <kbd className="
-                bg-white dark:bg-gray-800
-                text-green-700 dark:text-green-400
-                border border-green-600 dark:border-green-500
-                px-2 py-0.5 rounded text-xs font-bold
-              ">
-                {getShortcutDisplay('mod+k')}
-              </kbd>{' '}
-              kombinációt bármikor a billentyűparancsok megjelenítéséhez!
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+// Check if demo favorite
+export const isDemoFavorite = (lessonId, wordIndex) => {
+  const favorites = getAllDemoFavorites();
+  return favorites.some(
+    f => f.lessonId === lessonId && f.wordIndex === parseInt(wordIndex)
   );
 };
 
-export default KeyboardShortcutsHelper;
+// Get demo favorites count
+export const getDemoFavoritesCount = () => {
+  return getAllDemoFavorites().length;
+};
+
+// Clear all demo favorites
+export const clearAllDemoFavorites = () => {
+  localStorage.removeItem(DEMO_FAVORITES_KEY);
+};
 ```
 
-### 5. DarkModeToggle Komponens (v0.3.0+)
+### 6. Firebase Integration (v0.7.0)
 
-Hozd létre a `src/components/DarkModeToggle/DarkModeToggle.jsx` fájlt:
+Frissítsd a `src/services/firebase.js` fájlt:
 
 ```javascript
-// src/components/DarkModeToggle/DarkModeToggle.jsx
-import React from 'react';
+// src/services/firebase.js
 
-const DarkModeToggle = ({ darkMode, toggleDarkMode }) => {
+// ... existing imports ...
+
+// Toggle favorite
+export const toggleFavorite = async (userId, lessonId, wordIndex, isFavorite) => {
+  try {
+    const docRef = doc(db, 'dictionaries', userId);
+    const timestamp = isFavorite ? new Date().toISOString() : null;
+    
+    await updateDoc(docRef, {
+      [`dictionary.${lessonId}.words.${wordIndex}.isFavorite`]: isFavorite,
+      [`dictionary.${lessonId}.words.${wordIndex}.favoritedAt`]: timestamp
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error toggling favorite:', error);
+    throw error;
+  }
+};
+
+// Get all favorites
+export const getAllFavorites = async (userId) => {
+  try {
+    const docRef = doc(db, 'dictionaries', userId);
+    const docSnap = await getDoc(docRef);
+    
+    if (!docSnap.exists()) return [];
+    
+    const dictionary = docSnap.data().dictionary || {};
+    const favorites = [];
+    
+    Object.entries(dictionary).forEach(([lessonId, lesson]) => {
+      lesson.words?.forEach((word, index) => {
+        if (word.isFavorite) {
+          favorites.push({
+            lessonId,
+            wordIndex: index,
+            word,
+            lessonTitle: lesson.title,
+            favoritedAt: word.favoritedAt
+          });
+        }
+      });
+    });
+    
+    return favorites;
+  } catch (error) {
+    console.error('Error getting favorites:', error);
+    throw error;
+  }
+};
+
+// Get favorites count
+export const getFavoritesCount = async (userId) => {
+  const favorites = await getAllFavorites(userId);
+  return favorites.length;
+};
+
+// Clear all favorites
+export const clearAllFavorites = async (userId) => {
+  try {
+    const docRef = doc(db, 'dictionaries', userId);
+    const docSnap = await getDoc(docRef);
+    
+    if (!docSnap.exists()) return;
+    
+    const dictionary = docSnap.data().dictionary || {};
+    const updates = {};
+    
+    Object.entries(dictionary).forEach(([lessonId, lesson]) => {
+      lesson.words?.forEach((word, index) => {
+        if (word.isFavorite) {
+          updates[`dictionary.${lessonId}.words.${index}.isFavorite`] = false;
+          updates[`dictionary.${lessonId}.words.${index}.favoritedAt`] = null;
+        }
+      });
+    });
+    
+    if (Object.keys(updates).length > 0) {
+      await updateDoc(docRef, updates);
+    }
+  } catch (error) {
+    console.error('Error clearing favorites:', error);
+    throw error;
+  }
+};
+```
+
+### 7. FavoriteButton Component (ÚJ v0.7.0)
+
+Hozd létre a `src/components/FavoriteButton/FavoriteButton.jsx` fájlt:
+
+```javascript
+// src/components/FavoriteButton/FavoriteButton.jsx
+import React from 'react';
+import { Star } from 'lucide-react';
+
+const FavoriteButton = ({ isFavorite, onClick, size = 'md' }) => {
+  const sizes = {
+    sm: 'w-6 h-6',
+    md: 'w-8 h-8',
+    lg: 'w-10 h-10'
+  };
+
   return (
     <button
-      onClick={toggleDarkMode}
-      className="fixed bottom-20 right-5 w-12 h-12 rounded-full 
-                 bg-gradient-to-br from-yellow-400 to-yellow-500
-                 dark:from-slate-700 dark:to-slate-800
-                 text-white text-2xl
-                 shadow-lg hover:shadow-xl
-                 transform hover:scale-110 hover:rotate-12
-                 transition-all duration-300
-                 flex items-center justify-center
-                 z-[998]
-                 animate-fade-in"
-      title={darkMode ? 'Váltás világos módra (Ctrl/⌘+D)' : 'Váltás sötét módra (Ctrl/⌘+D)'}
-      aria-label={darkMode ? 'Váltás világos módra' : 'Váltás sötét módra'}
+      onClick={onClick}
+      className={`
+        ${sizes[size]}
+        flex items-center justify-center
+        rounded-full
+        transition-all duration-200
+        hover:scale-110 active:scale-95
+        ${isFavorite 
+          ? 'text-yellow-400 hover:text-yellow-500' 
+          : 'text-gray-400 dark:text-gray-600 hover:text-gray-500'
+        }
+      `}
+      title={isFavorite ? 'Eltávolítás a kedvencekből' : 'Hozzáadás a kedvencekhez'}
+      aria-label={isFavorite ? 'Eltávolítás a kedvencekből' : 'Hozzáadás a kedvencekhez'}
     >
-      {darkMode ? '🌙' : '☀️'}
+      <Star
+        className={`w-full h-full ${isFavorite ? 'fill-current' : ''}`}
+        strokeWidth={2}
+      />
     </button>
   );
 };
 
-export default DarkModeToggle;
+export default FavoriteButton;
 ```
 
-### 6. App.jsx Integráció (v0.3.0+)
+### 8. FavoritesModal Component (ÚJ v0.7.0)
+
+Hozd létre a `src/components/FavoritesModal/FavoritesModal.jsx` fájlt:
+
+```javascript
+// src/components/FavoritesModal/FavoritesModal.jsx
+import React, { useState, useMemo } from 'react';
+import { X, Star, Search, Trash2, ExternalLink } from 'lucide-react';
+
+const FavoritesModal = ({ 
+  isOpen, 
+  onClose, 
+  favorites, 
+  onToggleFavorite, 
+  onNavigateToWord 
+}) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLesson, setSelectedLesson] = useState('all');
+
+  // Get unique lessons
+  const lessons = useMemo(() => {
+    const lessonSet = new Set();
+    favorites.forEach(fav => {
+      if (fav.lessonTitle) {
+        lessonSet.add(JSON.stringify({
+          id: fav.lessonId,
+          title: fav.lessonTitle
+        }));
+      }
+    });
+    return Array.from(lessonSet).map(item => JSON.parse(item));
+  }, [favorites]);
+
+  // Filter favorites
+  const filteredFavorites = useMemo(() => {
+    return favorites.filter(fav => {
+      const matchesSearch = searchTerm === '' ||
+        fav.word.english.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        fav.word.hungarian.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesLesson = selectedLesson === 'all' || 
+        fav.lessonId === selectedLesson;
+      
+      return matchesSearch && matchesLesson;
+    });
+  }, [favorites, searchTerm, selectedLesson]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-[1002] bg-black/70 dark:bg-black/85
+                flex items-center justify-center p-5 animate-fade-in"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl
+                  w-full max-w-6xl max-h-[90vh] overflow-hidden
+                  flex flex-col animate-slide-in-up"
+      >
+        {/* Header */}
+        <div className="p-6 border-b-2 border-gray-200 dark:border-gray-700
+                      flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <Star className="w-8 h-8 text-yellow-400 fill-yellow-400" />
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+                Kedvenc szavak
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {filteredFavorites.length} kedvenc
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-600 dark:text-gray-400
+                     hover:text-gray-900 dark:hover:text-gray-100
+                     w-10 h-10 flex items-center justify-center
+                     rounded-full hover:bg-gray-100 dark:hover:bg-gray-700
+                     transition-colors"
+            title="Bezárás (ESC)"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Filters */}
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700
+                      flex flex-col sm:flex-row gap-4">
+          {/* Search */}
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2
+                             w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Keresés angol vagy magyar szavak között..."
+              className="w-full pl-10 pr-4 py-2 rounded-lg
+                       border-2 border-gray-300 dark:border-gray-600
+                       bg-white dark:bg-gray-700
+                       text-gray-900 dark:text-gray-100
+                       focus:ring-2 focus:ring-yellow-400 focus:border-transparent
+                       transition-all"
+            />
+          </div>
+
+          {/* Lesson filter */}
+          <select
+            value={selectedLesson}
+            onChange={(e) => setSelectedLesson(e.target.value)}
+            className="px-4 py-2 rounded-lg
+                     border-2 border-gray-300 dark:border-gray-600
+                     bg-white dark:bg-gray-700
+                     text-gray-900 dark:text-gray-100
+                     focus:ring-2 focus:ring-yellow-400 focus:border-transparent
+                     transition-all cursor-pointer"
+          >
+            <option value="all">Összes óra</option>
+            {lessons.map(lesson => (
+              <option key={lesson.id} value={lesson.id}>
+                {lesson.title}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {filteredFavorites.length === 0 ? (
+            <div className="flex flex-col items-center justify-center
+                          py-16 text-center">
+              <Star className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+                {searchTerm || selectedLesson !== 'all'
+                  ? 'Nincs találat'
+                  : 'Még nincs kedvenc szó'}
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 max-w-md">
+                {searchTerm || selectedLesson !== 'all'
+                  ? 'Próbálj meg más keresési kifejezést vagy szűrőt.'
+                  : 'Jelöld meg a fontos szavakat a ⭐ ikonnal!'}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredFavorites.map((fav, index) => (
+                <div
+                  key={`${fav.lessonId}-${fav.wordIndex}-${index}`}
+                  className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4
+                           border-2 border-transparent
+                           hover:border-yellow-400 dark:hover:border-yellow-500
+                           transition-all duration-200"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                        <span className="font-bold text-lg text-gray-800 dark:text-gray-200">
+                          {fav.word.english}
+                        </span>
+                      </div>
+                      <div className="text-red-500 dark:text-red-400 italic text-sm mb-1">
+                        {fav.word.phonetic}
+                      </div>
+                      <div className="text-green-600 dark:text-green-400 font-medium">
+                        {fav.word.hungarian}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        📚 {fav.lessonTitle}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 mt-3">
+                    <button
+                      onClick={() => onNavigateToWord(fav.lessonId, fav.wordIndex)}
+                      className="flex-1 px-3 py-2 rounded-lg
+                               bg-blue-500 hover:bg-blue-600
+                               text-white text-sm font-medium
+                               flex items-center justify-center gap-2
+                               transition-colors"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      Megnyitás
+                    </button>
+                    <button
+                      onClick={() => onToggleFavorite(fav.lessonId, fav.wordIndex)}
+                      className="px-3 py-2 rounded-lg
+                               bg-red-500 hover:bg-red-600
+                               text-white
+                               flex items-center justify-center
+                               transition-colors"
+                      title="Eltávolítás a kedvencekből"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default FavoritesModal;
+```
+
+### 9. KeyboardShortcutsHelper Frissítése (v0.7.0)
+
+Frissítsd a shortcuts listát:
+
+```javascript
+const shortcuts = [
+  { combo: 'mod+e', description: 'Új szó hozzáadása', icon: '➕' },
+  { combo: 'mod+f', description: 'Keresés fókuszálása', icon: '🔍' },
+  { combo: 'mod+s', description: 'Mentési állapot', icon: '💾' },
+  { combo: 'mod+d', description: 'Sötét mód kapcsolása', icon: '🌙' },
+  { combo: 'mod+shift+f', description: 'Kedvencek megnyitása', icon: '⭐' }, // ÚJ
+  { combo: 'mod+k', description: 'Billentyűparancsok', icon: '⌨️' },
+  { combo: 'mod+arrowright', description: 'Következő óra', icon: '➡️' },
+  { combo: 'mod+arrowleft', description: 'Előző óra', icon: '⬅️' },
+  { combo: 'mod+home', description: 'Első óra', icon: '⏮️' },
+  { combo: 'mod+end', description: 'Utolsó óra', icon: '⏭️' },
+  { combo: 'escape', description: 'Modal bezárása', icon: '❌' }
+];
+```
+
+### 10. App.jsx Integráció (v0.7.0)
 
 Frissítsd az `src/App.jsx` fájlt:
 
 ```javascript
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useDarkMode } from './hooks/useDarkMode';
+import { useFavorites } from './hooks/useFavorites'; // ÚJ
 import KeyboardShortcutsHelper from './components/KeyboardShortcutsHelper';
 import DarkModeToggle from './components/DarkModeToggle';
+import FavoritesModal from './components/FavoritesModal'; // ÚJ
 
 const MainApp = () => {
   // Dark mode
   const { darkMode, toggleDarkMode } = useDarkMode();
   
-  // ... meglévő state-ek ...
+  // Favorites (ÚJ v0.7.0)
+  const {
+    favorites,
+    favoritesCount,
+    toggleFavorite,
+    isFavorited,
+    refreshFavorites
+  } = useFavorites(user?.uid, isDemo, dictionary);
   
-  // Új state-ek
-  const [showSaveNotification, setShowSaveNotification] = useState(false);
+  // States
+  const [showAddModal, setShowAddModal] = useState(false);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+  const [showFavoritesModal, setShowFavoritesModal] = useState(false); // ÚJ
   const [toastMessage, setToastMessage] = useState('');
   const searchInputRef = useRef(null);
   
@@ -420,26 +703,59 @@ const MainApp = () => {
     setTimeout(() => setToastMessage(''), duration);
   };
   
-  // Shortcuts konfiguráció
+  // Navigate to word from favorites (ÚJ)
+  const handleNavigateToWord = useCallback((lessonId, wordIndex) => {
+    setCurrentLesson(parseInt(lessonId));
+    setShowFavoritesModal(false);
+    showToast(`📍 ${dictionary[lessonId]?.title || 'Óra'}`);
+    
+    setTimeout(() => {
+      const element = document.getElementById(`word-${wordIndex}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 300);
+  }, [dictionary]);
+  
+  // Toggle favorite handler (ÚJ)
+  const handleToggleFavorite = useCallback((lessonId, wordIndex) => {
+    const word = dictionary[lessonId]?.words[wordIndex];
+    if (!word) return;
+    
+    const willBeFavorite = !word.isFavorite;
+    toggleFavorite(lessonId, wordIndex);
+    
+    showToast(
+      willBeFavorite 
+        ? '⭐ Kedvencekhez adva!' 
+        : 'Eltávolítva a kedvencekből'
+    );
+  }, [dictionary, toggleFavorite]);
+  
+  // Shortcuts (FRISSÍTVE v0.7.0)
   const shortcuts = useMemo(() => ({
     'mod+e': (e) => {
       e.preventDefault();
-      e.stopPropagation();
       setShowAddModal(true);
-      showToast('➕ Add new word');
+      showToast('➕ Új szó hozzáadása');
     },
     'mod+f': (e) => {
       e.preventDefault();
       if (searchInputRef.current) {
         searchInputRef.current.focus();
         searchInputRef.current.select();
-        showToast('🔍 Search activated');
+        showToast('🔍 Keresés aktiválva');
       }
     },
     'mod+d': (e) => {
       e.preventDefault();
       toggleDarkMode();
-      showToast(darkMode ? '☀️ Light mode' : '🌙 Dark mode');
+      showToast(darkMode ? '☀️ Világos mód' : '🌙 Sötét mód');
+    },
+    'mod+shift+f': (e) => {  // ÚJ v0.7.0
+      e.preventDefault();
+      setShowFavoritesModal(true);
+      showToast('⭐ Kedvencek megnyitása');
     },
     'mod+k': (e) => {
       e.preventDefault();
@@ -449,65 +765,27 @@ const MainApp = () => {
       e.preventDefault();
       setShowSaveNotification(true);
     },
-    'mod+arrowright': (e) => {
-      e.preventDefault();
-      // Navigate to next lesson + showToast
-    },
-    'mod+arrowleft': (e) => {
-      e.preventDefault();
-      // Navigate to previous lesson + showToast
-    },
-    'mod+home': (e) => {
-      e.preventDefault();
-      // Navigate to first lesson + showToast
-    },
-    'mod+end': (e) => {
-      e.preventDefault();
-      // Navigate to last lesson + showToast
-    },
-    'escape': () => {
+    'escape': () => {  // BŐVÍTVE
       if (showAddModal) setShowAddModal(false);
       else if (showShortcutsHelp) setShowShortcutsHelp(false);
-    }
-  }), [showAddModal, showShortcutsHelp, dictionary, currentLesson, darkMode, toggleDarkMode]);
+      else if (showFavoritesModal) setShowFavoritesModal(false);
+    },
+    // ... további parancsok
+  }), [
+    showAddModal,
+    showShortcutsHelp,
+    showFavoritesModal,
+    dictionary,
+    currentLesson,
+    darkMode,
+    toggleDarkMode
+  ]);
   
-  // Hook inicializálása
   useKeyboardShortcuts(shortcuts, !loading);
   
-  // Cleanup for SaveNotification
-  useEffect(() => {
-    if (showSaveNotification) {
-      const timer = setTimeout(() => {
-        setShowSaveNotification(false);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [showSaveNotification]);
-  
-  // Toast komponens (Tailwind)
-  const ToastNotification = () => {
-    if (!toastMessage) return null;
-    
-    return (
-      <div className="fixed bottom-20 right-5 z-[1000]
-                    bg-gradient-to-r from-primary-600 to-primary-dark
-                    text-white px-5 py-3 rounded-lg
-                    shadow-lg animate-slide-in-right
-                    max-w-[300px]">
-        <div className="text-sm font-medium">
-          {toastMessage}
-        </div>
-      </div>
-    );
-  };
-  
   return (
-    <div className="max-w-7xl mx-auto my-5 
-                  bg-white dark:bg-slate-900 
-                  rounded-2xl shadow-2xl overflow-hidden
-                  transition-all duration-300">
-      {/* ... meglévő komponensek ... */}
-      
+    <div className="...">
+      {/* Existing components */}
       <ToastNotification />
       <KeyboardShortcutsHelper 
         isOpen={showShortcutsHelp}
@@ -515,315 +793,174 @@ const MainApp = () => {
         onClose={() => setShowShortcutsHelp(false)}
       />
       <DarkModeToggle darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-    </div>
-  );
-};
-```
-
-### 7. SearchControls Módosítás
-
-Adj hozzá ref támogatást és Tailwind osztályokat:
-
-```javascript
-const SearchControls = ({ 
-  searchTerm, 
-  setSearchTerm, 
-  filter, 
-  setFilter,
-  searchInputRef  // Új prop
-}) => {
-  return (
-    <div className="p-5 bg-white dark:bg-slate-800 
-                  border-b border-gray-200 dark:border-slate-700
-                  flex flex-wrap gap-4 items-center
-                  transition-all duration-300">
-      <input
-        ref={searchInputRef}  // Ref hozzáadása
-        type="text"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        placeholder="Keresés... (Ctrl/⌘+F)"
-        className="flex-1 min-w-[200px] px-4 py-3
-                 bg-white dark:bg-slate-700
-                 text-gray-900 dark:text-gray-100
-                 placeholder-gray-500 dark:placeholder-gray-400
-                 border-2 border-gray-300 dark:border-slate-600
-                 rounded-lg
-                 focus:ring-2 focus:ring-blue-500 dark:focus:ring-purple-500
-                 focus:border-transparent
-                 transition-all duration-200
-                 text-base"
+      
+      {/* ÚJ v0.7.0 */}
+      <FavoritesModal
+        isOpen={showFavoritesModal}
+        onClose={() => setShowFavoritesModal(false)}
+        favorites={favorites}
+        onToggleFavorite={handleToggleFavorite}
+        onNavigateToWord={handleNavigateToWord}
+      />
+      
+      {/* Desktop Navigation Bar */}
+      <div className="flex items-center gap-3">
+        {/* Favorites Button */}
+        <button
+          onClick={() => setShowFavoritesModal(true)}
+          className="relative w-36 h-10 rounded-lg
+                   bg-gradient-to-r from-yellow-400 to-amber-500
+                   hover:from-yellow-500 hover:to-amber-600
+                   text-white font-medium text-sm
+                   transition-all duration-200
+                   hover:shadow-lg hover:scale-105
+                   flex items-center justify-center gap-2"
+        >
+          <Star className="w-4 h-4 fill-white" />
+          <span>Kedvencek</span>
+          {favoritesCount > 0 && (
+            <span className="absolute -top-2 -right-2 
+                           bg-red-500 text-white 
+                           w-5 h-5 rounded-full text-xs font-bold 
+                           flex items-center justify-center">
+              {favoritesCount}
+            </span>
+          )}
+        </button>
+        
+        {/* Other buttons... */}
+      </div>
+      
+      {/* Pass favorites props to LessonContent */}
+      <LessonContent
+        lesson={lesson}
+        lessonNumber={currentLesson}
+        handleToggleFavorite={handleToggleFavorite}
+        isFavorited={isFavorited}
+        // ... other props
       />
     </div>
   );
 };
 ```
 
-### 8. CSS/Tailwind Beállítások
+### 11. WordTable Integration (v0.7.0)
 
-Frissítsd az `src/index.css` fájlt:
-
-```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Custom Animations */
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slide-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slide-in-right {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
-/* Apply animations */
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out;
-}
-
-.animate-slide-in-up {
-  animation: slide-in-up 0.4s ease-out;
-}
-
-.animate-slide-in-right {
-  animation: slide-in-right 0.3s ease-out;
-}
-
-/* Touch optimizations */
-@layer base {
-  .touch-none {
-    touch-action: none !important;
-    user-select: none;
-  }
-  
-  .touch-auto {
-    touch-action: auto !important;
-  }
-}
-
-/* Focus styles */
-:focus-visible {
-  outline: 3px solid #667eea;
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-/* Dark mode scrollbar */
-@media (prefers-color-scheme: dark) {
-  ::-webkit-scrollbar-track {
-    background: #1f2937;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: #4b5563;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    background: #6b7280;
-  }
-}
-```
-
-### 9. Vite Build Konfiguráció
-
-Frissítsd a `vite.config.js` fájlt:
+Pass favorites props through to WordTable:
 
 ```javascript
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+// LessonContent.jsx
+<WordTable
+  words={lesson.words}
+  lessonNumber={lessonNumber}
+  handleToggleFavorite={handleToggleFavorite}  // Pass down
+  isFavorited={isFavorited}                     // Pass down
+  // ... other props
+/>
 
-export default defineConfig({
-  plugins: [react()],
-  build: {
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true
-      }
-    }
-  }
-})
+// WordTable.jsx
+import FavoriteButton from '../FavoriteButton';
+
+// Desktop: Add favorite column
+<th className="px-2 py-4">⭐</th>
+
+// Desktop row: Add favorite cell
+<td className="px-2 py-4">
+  {handleToggleFavorite && lessonNumber !== null && (
+    <FavoriteButton
+      isFavorite={isFavorited(lessonNumber.toString(), index)}
+      onClick={() => handleToggleFavorite(lessonNumber.toString(), index)}
+      size="md"
+    />
+  )}
+</td>
+
+// Mobile card: Add favorite button (left side)
+<div className="absolute left-2 top-1/2 -translate-y-1/2 z-20">
+  {handleToggleFavorite && lessonNumber !== null && (
+    <FavoriteButton
+      isFavorite={isFavorited(lessonNumber.toString(), index)}
+      onClick={(e) => {
+        e.stopPropagation();
+        handleToggleFavorite(lessonNumber.toString(), index);
+      }}
+      size="md"
+    />
+  )}
+</div>
 ```
 
 ## Tesztelés
 
-### 1. Alapvető Tesztek
+### 1. Favorites Alapvető Tesztek
 
-- ✅ `Ctrl+E` (vagy `⌘E` macOS-en) → Új szó modal megnyílik
-- ✅ `Ctrl+F` → Keresés fókuszálódik
-- ✅ `Ctrl+D` → Dark mode vált
-- ✅ `Ctrl+K` → Súgó megjelenik (csak desktop)
-- ✅ `ESC` → Modal bezáródik
+- ✅ Csillag ikon megjelenik minden szó mellett
+- ✅ Csillag kattintásra váltja az állapotot
+- ✅ `Ctrl+Shift+F` megnyitja a kedvencek modal-t
+- ✅ Keresés működik angol és magyar szavak között
+- ✅ Lesson filter helyesen szűr
+- ✅ Navigálás a szóhoz működik
+- ✅ Eltávolítás kedvencekből működik
+- ✅ Favorites counter frissül valós időben
 
-### 2. Navigációs Tesztek
+### 2. Perzisztencia Tesztek
 
-- ✅ `Ctrl+→` → Következő óra
-- ✅ `Ctrl+←` → Előző óra
-- ✅ `Ctrl+Home` → Első óra
-- ✅ `Ctrl+End` → Utolsó óra
+- ✅ Kedvencek megmaradnak oldal frissítés után
+- ✅ Demo mode: localStorage tárolás működik
+- ✅ Authenticated mode: Firebase sync működik
+- ✅ Logout törli a demo kedvenceket
 
-### 3. Toast Tesztek
+### 3. UI/UX Tesztek
 
-- ✅ Minden navigációs parancs után jelenik-e meg a toast?
-- ✅ A toast 2 másodperc után eltűnik?
-- ✅ A toast animáció smooth?
-- ✅ Dark mode-ban is jól látható?
+- ✅ Desktop: Csillag első oszlopban
+- ✅ Mobile: Csillag bal oldalon, középen függőlegesen
+- ✅ Hover effects működnek
+- ✅ Toast notifications megjelennek
+- ✅ Empty state helyesen jelenik meg
+- ✅ Dark mode minden komponensen működik
 
-### 4. Dark Mode Tesztek
+### 4. Modal Tesztek
 
-- ✅ `Ctrl+D` váltja a dark mode-ot?
-- ✅ localStorage-ban tárolódik?
-- ✅ Oldal frissítés után megmarad?
-- ✅ Rendszer preferencia érzékelése működik?
-- ✅ Minden komponens dark mode-ban is jól néz ki?
+- ✅ `Ctrl+Shift+F` megnyitja
+- ✅ `ESC` bezárja
+- ✅ Overlay click bezárja
+- ✅ Keresés real-time frissít
+- ✅ Responsive layout (mobile/desktop)
 
-### 5. Mobil Tesztek
+## Migrációs Útmutató v0.3.0 → v0.7.0
 
-- ✅ Keyboard shortcuts FAB rejtett mobilon?
-- ✅ Dark mode toggle látható mobilon?
-- ✅ Toast notifications jól jelennek meg?
-- ✅ Touch optimalizáció működik? (drag & drop)
-
-## Hibaelhárítás
-
-### Hook nem működik
-
-**Ellenőrzés:**
-```javascript
-console.log('Shortcuts enabled:', !loading);
-console.log('Dark mode:', darkMode);
-```
-
-Ha `false`, akkor a hook le van tiltva.
-
-### Toast nem jelenik meg
-
-Ellenőrizd:
-- `ToastNotification` komponens renderelve van?
-- Tailwind animációk betöltődtek?
-- z-index érték helyes? (`z-[1000]`)
-
-### Dark mode nem vált
-
-Ellenőrizd:
-- localStorage írható? (privacy mode)
-- `<html>` elem elérhető?
-- Tailwind `darkMode: 'class'` konfiguráció helyes?
-- `useDarkMode` hook helyesen importálva?
-
-### Tailwind osztályok nem működnek
-
-Ellenőrizd:
-- `tailwind.config.js` content path helyes?
-- `@tailwind` direktívák az `index.css`-ben?
-- PostCSS konfiguráció helyes?
-- Build után CSS purging működik?
-
-### Billentyűparancs ütközés
-
-Ha egy parancs nem működik, lehet hogy a böngésző alapértelmezett viselkedése ütközik. Használj alternatív kombinációt vagy add hozzá `preventDefault()`-et.
-
-## Production Build
+### Új függőségek:
 
 ```bash
-# Build
-npm run build
-
-# Preview
-npm run preview
+npm install lucide-react
 ```
 
-**Ellenőrzőlista:**
-- ✅ Console.log üzenetek eltávolítva
-- ✅ Tailwind CSS purging működik (~70% méretcsökkentés)
-- ✅ Dark mode működik production-ben
-- ✅ Keyboard shortcuts működnek
-- ✅ localStorage persistence működik
+### Új fájlok:
 
-## Migrációs Útmutató v0.2.0 → v0.3.1
+1. `src/hooks/useFavorites.js`
+2. `src/utils/favoritesHelper.js`
+3. `src/components/FavoriteButton/FavoriteButton.jsx`
+4. `src/components/FavoritesModal/FavoritesModal.jsx`
 
-### Eltávolítandó:
+### Firebase frissítések:
 
-1. **Inline styles helyett Tailwind**:
-   ```javascript
-   // ELŐTTE
-   style={{ background: 'white', padding: '20px' }}
-   
-   // UTÁNA
-   className="bg-white p-5"
-   ```
+Add hozzá a `firebase.js`-hez:
+- `toggleFavorite()`
+- `getAllFavorites()`
+- `getFavoritesCount()`
+- `clearAllFavorites()`
 
-2. **Alternatív navigációs parancsok**:
-   - ❌ `]` és `[` billentyűk eltávolítva
-   - ✅ Csak `Ctrl+→/←` működik
+### Word schema frissítés:
 
-3. **`src/styles/styles.js` fájl**:
-   - Törölhető, már nem szükséges
-
-### Hozzáadandó:
-
-1. **Dark mode support**:
-   - `useDarkMode` hook
-   - `DarkModeToggle` komponens
-   - `Ctrl+D` shortcut
-
-2. **Tailwind CSS**:
-   - Konfiguráció fájlok
-   - Custom animációk
-   - Dark mode osztályok
-
-3. **Mobil optimalizáció**:
-   - `hidden md:flex` a FAB-ra
-   - Touch sensor optimalizáció (150ms/5px)
+```javascript
+{
+  english: "apple",
+  hungarian: "alma",
+  phonetic: "/ˈæp.əl/",
+  isFavorite: false,
+  favoritedAt: null
+}
+```
 
 ## Függőségek
 
@@ -831,7 +968,9 @@ npm run preview
 {
   "dependencies": {
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "lucide-react": "^0.263.1",
+    "firebase": "^10.x"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.1",
@@ -845,18 +984,11 @@ npm run preview
 ## Kapcsolódó Dokumentáció
 
 - [KEYBOARD_SHORTCUTS.md](./KEYBOARD_SHORTCUTS.md) - Teljes dokumentáció
-- [CHANGELOG.md](../../CHANGELOG.md) - Verzió történet
-- [README.md](../../README.md) - Projekt README
-
-## Támogatás
-
-Ha problémákba ütközöl:
-1. Ellenőrizd a [Hibaelhárítás](#hibaelhárítás) szekciót
-2. Nézd meg a [CHANGELOG.md](../../CHANGELOG.md) fájlt
-3. Ellenőrizd a browser konzolt hibákért
+- [CHANGELOG.md](../../CHANGELOG.md) - Verzió történet (v0.7.0)
+- [README.md](../../README.md) - Projekt README (frissítve)
 
 ---
 
-**Verzió**: 0.3.0  
-**Utolsó frissítés**: 2025-10-04  
+**Verzió**: 0.7.0  
+**Utolsó frissítés**: 2025-10-11  
 **Szerző**: Private Dictionary Team

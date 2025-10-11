@@ -1,4 +1,4 @@
-// src/App.jsx - COMPLETE TAILWIND INTEGRATION + TEST MODE FIX + GOAL ACHIEVEMENT TOAST
+// src/App.jsx
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginScreen from './components/LoginScreen/LoginScreen';
@@ -19,27 +19,40 @@ import SearchResults from './components/SearchResults/SearchResults';
 import AddWordsModal from './components/AddWordsModal/AddWordsModal';
 import KeyboardShortcutsHelper from './components/KeyboardShortcutsHelper/KeyboardShortcutsHelper';
 import DarkModeToggle from './components/DarkModeToggle/DarkModeToggle';
-import { initialDictionary } from './data/dictionary';
-import { saveDictionary, loadDictionary } from './services/firebase';
-import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
-import { useDarkMode } from './hooks/useDarkMode';
-import { useDailyProgress } from './hooks/useDailyProgress';
 import DailyProgressCard from './components/DailyProgress/DailyProgressCard';
 import StreakDisplay from './components/DailyProgress/StreakDisplay';
 import DailyGoalSettings from './components/DailyProgress/DailyGoalSettings';
 import ProgressCalendar from './components/DailyProgress/ProgressCalendar';
 import ProgressChart from './components/DailyProgress/ProgressChart';
 import StatsOverview from './components/DailyProgress/StatsOverview';
+import FavoritesModal from './components/FavoritesModal/FavoritesModal';
+import { Star } from 'lucide-react';
+
+// Data & Services
+import { initialDictionary } from './data/dictionary';
+import { saveDictionary, loadDictionary } from './services/firebase';
+
+// Hooks
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { useDarkMode } from './hooks/useDarkMode';
+import { useDailyProgress } from './hooks/useDailyProgress';
+import { useFavorites } from './hooks/useFavorites';
 
 const MainApp = () => {
+  // === CONTEXT & AUTH ===
   const { currentUser, isDemo, logout } = useAuth();
-  const { goalJustAchieved } = useDailyProgress();
+  
+  // === RESPONSIVE STATE ===
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  
+  // === DARK MODE ===
   const { darkMode, toggleDarkMode } = useDarkMode();
+  
+  // === UI STATE ===
   const [showGoalSettings, setShowGoalSettings] = useState(false);
   const [showDetailedStats, setShowDetailedStats] = useState(false);
   
-  // === DEMO LESSONS INITIALIZATION ===
+  // === DEMO LESSONS HELPER ===
   const getDemoLessons = () => {
     const demoLessons = {};
     if (initialDictionary[1]) demoLessons[1] = initialDictionary[1];
@@ -47,7 +60,7 @@ const MainApp = () => {
     return demoLessons;
   };
   
-  // === STATE MANAGEMENT ===
+  // === DICTIONARY STATE (MUST BE BEFORE useFavorites!) ===
   const [dictionary, setDictionary] = useState(isDemo ? getDemoLessons() : {});
   const [currentLesson, setCurrentLesson] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,6 +68,28 @@ const MainApp = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [lastSaved, setLastSaved] = useState(null);
+  const [showFavoritesModal, setShowFavoritesModal] = useState(false);
+  
+  // === DAILY PROGRESS HOOK - Add this! ===
+  const {
+    goalJustAchieved,
+    todayProgress,
+    dailyGoal,
+    currentStreak,
+    longestStreak,
+    // Add any other values you need from useDailyProgress
+  } = useDailyProgress();
+  
+  // === FAVORITES HOOK (needs dictionary to be defined first) ===
+  const {
+    favorites,
+    loading: favoritesLoading,
+    error: favoritesError,
+    favoritesCount,
+    toggleWordFavorite,
+    isFavorited,
+    refreshFavorites
+  } = useFavorites(currentUser?.uid, isDemo, dictionary);
   
   // === KEYBOARD SHORTCUTS & UI STATE ===
   const [showSaveNotification, setShowSaveNotification] = useState(false);
@@ -107,7 +142,7 @@ const MainApp = () => {
       showToast(darkMode ? '☀️ Light mode' : '🌙 Dark mode');
     },
     
-    // === NAVIGATION: Next lesson ===
+    // Next lesson
     'mod+arrowright': (e) => {
       e.preventDefault();
       const lessons = Object.keys(dictionary).map(n => parseInt(n)).sort((a,b) => a-b);
@@ -121,7 +156,7 @@ const MainApp = () => {
       }
     },
     
-    // === NAVIGATION: Previous lesson ===
+    // Previous lesson
     'mod+arrowleft': (e) => {
       e.preventDefault();
       const lessons = Object.keys(dictionary).map(n => parseInt(n)).sort((a,b) => a-b);
@@ -135,7 +170,7 @@ const MainApp = () => {
       }
     },
     
-    // === NAVIGATION: First lesson ===
+    // First lesson
     'mod+home': (e) => {
       e.preventDefault();
       const lessons = Object.keys(dictionary).map(n => parseInt(n)).sort((a,b) => a-b);
@@ -146,7 +181,7 @@ const MainApp = () => {
       }
     },
     
-    // === NAVIGATION: Last lesson ===
+    // Last lesson
     'mod+end': (e) => {
       e.preventDefault();
       const lessons = Object.keys(dictionary).map(n => parseInt(n)).sort((a,b) => a-b);
@@ -156,6 +191,13 @@ const MainApp = () => {
         showToast(`⏭️ ${dictionary[lastLesson]?.title || `Lesson ${lastLesson}`}`);
       }
     },
+
+    // Open favorites
+    'mod+shift+f': (e) => {
+      e.preventDefault();
+      setShowFavoritesModal(true);
+      showToast('⭐ Favorites opened');
+    },
     
     // Close modals with Escape
     'escape': () => {
@@ -163,26 +205,11 @@ const MainApp = () => {
         setShowAddModal(false);
       } else if (showShortcutsHelp) {
         setShowShortcutsHelp(false);
+      } else if (showFavoritesModal) {
+        setShowFavoritesModal(false);
       }
     }
-  }), [showAddModal, showShortcutsHelp, dictionary, currentLesson, darkMode, toggleDarkMode]);
-
-  // === TOAST NOTIFICATION COMPONENT ===
-  const ToastNotification = () => {
-    if (!toastMessage) return null;
-    
-    return (
-      <div className="fixed bottom-20 right-5 z-[1000]
-                    bg-gradient-to-r from-primary-600 to-primary-dark
-                    text-white px-5 py-3 rounded-lg
-                    shadow-lg animate-slide-in-right
-                    max-w-[300px]">
-        <div className="text-sm font-medium">
-          {toastMessage}
-        </div>
-      </div>
-    );
-  };
+  }), [showAddModal, showShortcutsHelp, showFavoritesModal, dictionary, currentLesson, darkMode, toggleDarkMode]);
 
   // === INITIALIZE KEYBOARD SHORTCUTS ===
   useKeyboardShortcuts(shortcuts, !loading);
@@ -205,6 +232,24 @@ const MainApp = () => {
       return () => clearTimeout(timer);
     }
   }, [showSaveNotification]);
+  
+  // === TOAST NOTIFICATION COMPONENT ===
+  const ToastNotification = () => {
+    if (!toastMessage) return null;
+    
+    return (
+      <div className="fixed bottom-20 right-5 z-[1000]
+                    bg-gradient-to-r from-blue-500 to-indigo-600
+                    dark:from-purple-600 dark:to-indigo-700
+                    text-white px-5 py-3 rounded-lg
+                    shadow-lg animate-slide-in-right
+                    max-w-[300px]">
+        <div className="text-sm font-medium">
+          {toastMessage}
+        </div>
+      </div>
+    );
+  };
 
   // === SAVE NOTIFICATION COMPONENT ===
   const SaveNotification = () => {
@@ -212,7 +257,8 @@ const MainApp = () => {
     
     return (
       <div className="fixed top-5 right-5 z-[1000]
-                    bg-gradient-to-r from-success-500 to-success-light
+                    bg-gradient-to-r from-green-500 to-emerald-600
+                    dark:from-green-600 dark:to-emerald-700
                     text-white px-6 py-4 rounded-xl
                     shadow-lg animate-fade-in
                     flex items-center gap-3">
@@ -400,6 +446,37 @@ const MainApp = () => {
     }
   };
 
+  // === FAVORITES HANDLERS ===
+  const handleToggleFavorite = async (lessonId, wordIndex) => {
+    try {
+      const newStatus = await toggleWordFavorite(lessonId, wordIndex);
+      
+      if (isDemo) {
+        const updatedDictionary = { ...dictionary };
+        updatedDictionary[lessonId].words[wordIndex].isFavorite = newStatus;
+        updatedDictionary[lessonId].words[wordIndex].favoritedAt = 
+          newStatus ? new Date().toISOString() : null;
+        
+        setDictionary(updatedDictionary);
+        localStorage.setItem('demoDictionary', JSON.stringify(updatedDictionary));
+      } else {
+        const userDictionary = await loadDictionary(currentUser.uid);
+        setDictionary(userDictionary);
+      }
+      
+      showToast(newStatus ? '⭐ Kedvencekhez adva!' : 'Eltávolítva a kedvencekből');
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      showToast('❌ Hiba történt');
+    }
+  };
+
+  const handleNavigateToWord = (lessonId, wordIndex) => {
+    setCurrentLesson(parseInt(lessonId));
+    setShowFavoritesModal(false);
+    showToast(`➡️ ${dictionary[lessonId]?.title || `Lesson ${lessonId}`}`);
+  };
+
   // === SEARCH FUNCTIONALITY ===
   const getSearchResults = () => {
     if (!searchTerm) return null;
@@ -503,7 +580,26 @@ const MainApp = () => {
                 >
                   ⌨️
                 </button>
-                
+                {/* Favorites Button - Mobile */}
+                <button
+                  onClick={() => setShowFavoritesModal(true)}
+                  className="relative w-9 h-9 rounded-full 
+                           bg-gradient-to-r from-yellow-400 to-amber-500
+                           text-white flex items-center justify-center
+                           hover:scale-110 active:scale-95
+                           transition-transform duration-200 shadow-md"
+                  title="Kedvencek"
+                >
+                  <Star className="w-5 h-5 fill-white" />
+                  {favoritesCount > 0 && (
+                    <span className="absolute -top-1 -right-1 
+                                   bg-red-500 text-white 
+                                   text-xs font-bold rounded-full 
+                                   w-4 h-4 flex items-center justify-center">
+                      {favoritesCount > 9 ? '9+' : favoritesCount}
+                    </span>
+                  )}
+                </button>
                 {/* Logout Button */}
                 <button
                   onClick={logout}
@@ -524,7 +620,7 @@ const MainApp = () => {
             )}
           </>
         ) : (
-          // ===== DESKTOP LAYOUT (unchanged) =====
+          // ===== DESKTOP LAYOUT =====
           <>
             <div className="flex items-center gap-3">
               {currentUser.photoURL && (
@@ -532,7 +628,7 @@ const MainApp = () => {
                   src={currentUser.photoURL} 
                   alt="Profile" 
                   className="w-8 h-8 rounded-full 
-                           border-2 border-blue-400 dark:border-purple-500"
+                          border-2 border-blue-400 dark:border-purple-500"
                 />
               )}
               <span className="font-bold text-gray-800 dark:text-gray-200">
@@ -540,25 +636,105 @@ const MainApp = () => {
               </span>
               {isDemo && (
                 <span className="bg-orange-500 text-white 
-                               px-2 py-1 rounded text-xs">
+                              px-2 py-1 rounded text-xs">
                   DEMO
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-4">
+            
+            <div className="flex items-center gap-3">
               {lastSaved && !isDemo && (
                 <span className="text-sm text-gray-600 dark:text-gray-400">
                   Saved: {lastSaved.toLocaleTimeString()}
                 </span>
               )}
-              <button
-                onClick={logout}
-                className="px-4 py-2 bg-red-500 hover:bg-red-600 
-                         text-white rounded-lg text-sm font-medium
-                         transition-colors duration-200"
-              >
-                Logout
-              </button>
+              
+             {/* Favorites Button */}
+            <button
+              onClick={() => setShowFavoritesModal(true)}
+              className="
+                relative rounded-lg
+                bg-gradient-to-r from-yellow-400 to-amber-500
+                hover:from-yellow-500 hover:to-amber-600
+                text-white font-medium text-sm
+                transition-all duration-200
+                hover:shadow-lg hover:scale-105
+                flex items-center justify-center gap-2
+                w-36 h-10
+              "
+              title="Kedvencek megnyitása"
+            >
+              <Star className="w-4 h-4 fill-white" />
+              <span>Kedvencek</span>
+              {favoritesCount > 0 && (
+                <span className="
+                  absolute -top-2 -right-2
+                  bg-red-500 text-white
+                  text-xs font-bold rounded-full
+                  w-5 h-5 flex items-center justify-center
+                ">
+                  {favoritesCount}
+                </span>
+              )}
+            </button>
+
+            {/* Dark Mode Toggle */}
+            <button
+              onClick={toggleDarkMode}
+              className="
+                rounded-lg
+                bg-gradient-to-r from-indigo-500 to-purple-600
+                hover:from-indigo-600 hover:to-purple-700
+                dark:from-purple-600 dark:to-indigo-600
+                dark:hover:from-purple-700 dark:hover:to-indigo-700
+                text-white font-medium text-sm
+                transition-all duration-200
+                hover:shadow-lg hover:scale-105
+                flex items-center justify-center gap-2
+                w-36 h-10
+              "
+              title={darkMode ? 'Váltás világos módra' : 'Váltás sötét módra'}
+            >
+              <span className="text-lg leading-none">{darkMode ? '☀️' : '🌙'}</span>
+              <span>{darkMode ? 'Világos' : 'Sötét'}</span>
+            </button>
+
+            {/* Keyboard Shortcuts */}
+            <button
+              onClick={() => setShowShortcutsHelp(true)}
+              className="
+                rounded-lg
+                bg-gradient-to-r from-cyan-500 to-blue-600
+                hover:from-cyan-600 hover:to-blue-700
+                dark:from-cyan-600 dark:to-blue-700
+                dark:hover:from-cyan-700 dark:hover:to-blue-800
+                text-white font-medium text-sm
+                transition-all duration-200
+                hover:shadow-lg hover:scale-105
+                flex items-center justify-center gap-2
+                w-36 h-10
+              "
+              title="Billentyűparancsok megtekintése (Ctrl+K)"
+            >
+              <span className="text-lg leading-none">⌨️</span>
+              <span>Billentyűk</span>
+            </button>
+
+            {/* Logout */}
+            <button
+              onClick={logout}
+              className="
+                rounded-lg
+                bg-red-500 hover:bg-red-600
+                text-white font-medium text-sm
+                transition-all duration-200
+                hover:shadow-lg hover:scale-105
+                flex items-center justify-center
+                w-36 h-10
+              "
+            >
+              Logout
+            </button>
             </div>
           </>
         )}
@@ -643,6 +819,8 @@ const MainApp = () => {
             renameLesson={renameLesson}
             deleteWord={deleteWord}
             reorderWords={reorderWords}
+            handleToggleFavorite={handleToggleFavorite}
+            isFavorited={isFavorited}
           />
         )}
       </div>
@@ -689,27 +867,27 @@ const MainApp = () => {
       <ToastNotification />
       
       {/* Keyboard Shortcuts Modal - Always available */}
-      <KeyboardShortcutsHelper 
-        isOpen={showShortcutsHelp}
-        onOpen={() => setShowShortcutsHelp(true)}
-        onClose={() => setShowShortcutsHelp(false)}
-      />
-      
-      {/* FAB Buttons - Desktop ONLY */}
-      {!isMobile && (
-        <DarkModeToggle 
-          darkMode={darkMode} 
-          toggleDarkMode={toggleDarkMode}
-          isMobile={false}
+        <KeyboardShortcutsHelper 
+          isOpen={showShortcutsHelp}
+          onClose={() => setShowShortcutsHelp(false)}
         />
-      )}
+
+        {/* ✅ ÚJ - FAB Button CSAK mobilon */}
+        {/* FAB Buttons - Mobile ONLY */}
+        {isMobile && (
+          <DarkModeToggle 
+            darkMode={darkMode} 
+            toggleDarkMode={toggleDarkMode}
+            isMobile={true}
+          />
+        )}
       <DailyGoalSettings
         isOpen={showGoalSettings}
         onClose={() => setShowGoalSettings(false)}
       />
     </div>
     
-    {/* ✅ Goal Achievement Toast */}
+    {/* Goal Achievement Toast */}
     {goalJustAchieved && (
       <div className="fixed bottom-20 right-5 z-[1001]
                     bg-gradient-to-r from-green-500 to-emerald-500
@@ -724,6 +902,14 @@ const MainApp = () => {
         </div>
       </div>
     )}
+    {/* Favorites Modal */}
+    <FavoritesModal
+      isOpen={showFavoritesModal}
+      onClose={() => setShowFavoritesModal(false)}
+      favorites={favorites}
+      onToggleFavorite={handleToggleFavorite}
+      onNavigateToWord={handleNavigateToWord}
+    />
     </>
   );
 };
@@ -745,7 +931,7 @@ const App = () => {
 const AuthWrapper = () => {
   const { currentUser, loading } = useAuth();
   
-  // ✅ TEST MODE CHECK
+  // TEST MODE CHECK
   const isTestMode = import.meta.env.VITE_ENABLE_TEST_MODE === 'true';
 
   // Loading state
@@ -761,7 +947,7 @@ const AuthWrapper = () => {
     );
   }
 
-  // ✅ TEST MODE: Render test component instead of normal app
+  // TEST MODE: Render test component instead of normal app
   if (isTestMode && DailyProgressTest) {
     console.log('🧪 Test Mode Enabled - Loading DailyProgressTest component');
     
@@ -792,7 +978,7 @@ const AuthWrapper = () => {
     );
   }
 
-  // ✅ NORMAL MODE: Render login or main app
+  // NORMAL MODE: Render login or main app
   return currentUser ? <MainApp /> : <LoginScreen />;
 };
 
