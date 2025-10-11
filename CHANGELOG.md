@@ -22,6 +22,162 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - 
 
+## [0.7.1] - 12/10/2025
+
+### 🐛 Favorites UI Fixes
+
+#### Fixed
+- **WordTable Desktop**: Added missing ⭐ Favorites column as first column in table
+  - Previously: Favorite button was not visible in desktop table view
+  - Now: Dedicated ⭐ header column with star buttons for each word
+  - Consistent with mobile layout design
+  
+- **WordTable Mobile**: Fixed favorite button positioning
+  - Moved favorite star to left side of card (vertically centered)
+  - Added absolute positioning for consistent placement
+  - Fixed z-index layering to ensure clickability
+  - Added pointer-events-auto to prevent drag conflicts
+
+- **Touch Event Handling**
+  - Added stopPropagation on touch events for favorite button
+  - Prevents accidental drag activation when toggling favorites
+  - Improved mobile UX with better button isolation
+
+#### Enhanced
+- **Component Props Flow**
+  - Fixed `isFavorited` and `handleToggleFavorite` prop passing
+  - Both SortableRow and SortableCard now properly receive and use favorite props
+  - Consistent behavior between desktop table rows and mobile cards
+
+- **Visual Consistency**
+  - Desktop: ⭐ column width fixed at 48px (w-12)
+  - Mobile: Star button positioned at `left-2` with vertical centering
+  - Same star icon size in both layouts (via FavoriteButton size prop)
+
+### 🧪 Testing Suite
+
+#### Added - Complete Test Coverage (NEW)
+- **Favorites Test Suite** (`test/favorites/`)
+  - `testFavorites.js` - Phase 1: Backend & Data Structure
+    - 7 tests covering add/get/toggle/remove favorites
+    - Dictionary migration validation
+    - localStorage persistence checks
+    - Mock localStorage implementation for Node.js
+  
+  - `testUseFavorites.js` - Phase 2: Custom Hook & State Management
+    - 7 tests for hook initialization and state management
+    - Multiple favorites handling
+    - Lesson filtering and counting
+    - Memory leak prevention
+    - Simulated hook state (FavoritesState class)
+  
+  - `testUIComponents.js` - Phase 3: UI Components (CORRECTED VERSION)
+    - 8 tests for FavoriteButton and FavoritesModal
+    - File existence validation
+    - Syntax checking (balanced braces, JSX structure)
+    - Component structure verification (imports, exports, props)
+    - Dependency checks (react, lucide-react, tailwindcss)
+    - Directory structure validation
+    - **Fixed**: Correct path to `src/components/` (3 levels up)
+    
+- **Integration Tests** (`test/integration/`)
+  - `testAppIntegration.js` - Phase 4: App.jsx Integration (FIXED VERSION)
+    - 11 tests for complete App.jsx integration
+    - Favorites imports (useFavorites, FavoritesModal, Star icon)
+    - Hook usage and destructuring
+    - FavoritesModal props (isOpen, onClose, favorites, handlers)
+    - Props passing to LessonContent
+    - Toggle and navigate handlers
+    - Modal state management
+    - Favorites button in header
+    - Keyboard shortcut (Ctrl+Shift+F)
+    - LessonContent → WordTable prop flow
+    - **Architecture validation**: FavoriteButton NOT in App.jsx
+    - **Separation of concerns**: App → LessonContent → WordTable → FavoriteButton
+
+- **Version-Specific Test Suites** (ADDED)
+  - `test/v0.6.0/testMobileTouch.js` - Mobile Touch Optimization
+    - 9 tests for @dnd-kit sensors configuration
+    - TouchSensor and PointerSensor setup
+    - Optimal touch settings (100ms delay, 5px tolerance)
+    - Drag handle implementation
+    - Touch-action CSS validation
+    - Haptic feedback checks
+    - Scroll conflict prevention
+  
+  - `test/v0.6.0/testKeyboardShortcuts.js` - Keyboard Shortcuts System
+    - 9 tests for keyboard shortcuts implementation
+    - Hook and helper component validation
+    - Shortcut implementations (8 core shortcuts)
+    - Toast notification system
+    - Platform detection (Mac/Windows)
+    - App.jsx integration checks
+  
+  - `test/v0.6.0/testDarkMode.js` - Dark Mode Implementation
+    - 9 tests for dark mode functionality
+    - Dark mode state and toggle
+    - System preference detection
+    - Keyboard shortcut (Ctrl+D)
+    - CSS implementation (Tailwind dark: classes)
+    - localStorage persistence
+    - Component styling validation
+  
+  - `test/v0.5.0/testKeyboardShortcuts.js` - Enhanced Keyboard Shortcuts
+    - 10 tests for v0.5.0 keyboard shortcuts
+    - Hook structure and memory leak prevention
+    - Modifier keys handling (Ctrl/Cmd, Shift, Alt)
+    - Component structure validation
+    - Shortcuts list verification (4 core + 3 optional)
+    - SearchControls ref support
+    - Performance optimization (useMemo)
+  
+  - `test/v0.5.0/dragAndDrop.js` - Enhanced Drag & Drop
+    - 10 tests for mobile-optimized drag & drop
+    - DnD Kit sensors import validation
+    - Mobile detection implementation
+    - TouchSensor configuration (150-1000ms delay)
+    - PointerSensor configuration (5-10px distance)
+    - Conditional sensor usage
+    - Drag handlers and DndContext setup
+    - Persistence logic validation
+  
+  - `test/v0.5.0/testDemoMode.js` - Demo Mode & localStorage
+    - 10 tests for demo mode features
+    - isDemo state detection
+    - localStorage integration (getItem/setItem)
+    - Demo dictionary state
+    - Load/save from localStorage
+    - Word and lesson limits (20 words, 2 lessons)
+    - Demo UI indicators
+    - Feature parity validation
+
+- **PowerShell Test Runner** (`run-tests.ps1`)
+  - Single progress bar showing real-time test execution
+  - Automatic test file discovery (recursive)
+  - Color-coded output (Red/Green/Yellow/Cyan)
+  - Pass/Fail counters with percentage
+  - **Enhanced failure reporting**:
+    - Extracts exact failed test names using emoji byte detection
+    - Shows which file and which specific tests failed
+    - Manual run command suggestions for detailed debugging
+  - Exit codes for CI/CD integration
+  - Parallel-ready architecture
+
+#### Test Coverage Statistics
+- **Total Test Files**: 10 (all new)
+- **Total Tests**: 85+ individual test cases
+- **Lines of Test Code**: ~2,500 lines
+- **Coverage Areas**:
+  - ✅ Favorites backend (Phase 1)
+  - ✅ Favorites hook (Phase 2)
+  - ✅ Favorites UI (Phase 3)
+  - ✅ Favorites integration (Phase 4)
+  - ✅ Mobile touch (v0.6.0)
+  - ✅ Keyboard shortcuts (v0.6.0 + v0.5.0)
+  - ✅ Dark mode (v0.6.0)
+  - ✅ Drag & drop (v0.5.0)
+  - ✅ Demo mode (v0.5.0)
+
 ---
 
 ## [0.7.0] - 11/10/2025
@@ -941,6 +1097,7 @@ For developers updating from v0.2.0:
 - Refined component structure for better maintainability.
 
 ---
+[0.7.1]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.6.0...v0.7.1
 [0.7.0]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.5.0...v0.6.0
 [0.5.1]: https://github.com/SzaniszloIvor/private-dictionary/compare/v0.5.0...v0.5.1

@@ -7,7 +7,7 @@ A modern, interactive English-Hungarian dictionary application designed for pers
 ![Firebase](https://img.shields.io/badge/Firebase-12.x-FFCA28?style=flat&logo=firebase)
 ![Vite](https://img.shields.io/badge/Vite-7.x-646CFF?style=flat&logo=vite)
 ![License](https://img.shields.io/badge/License-All_Rights_Reserved-red.svg)
-![Version](https://img.shields.io/badge/Version-0.6.0-blue.svg)
+![Version](https://img.shields.io/badge/Version-0.7.1-blue.svg)
 
 ## 📋 Table of Contents
 
@@ -531,8 +531,18 @@ npm run preview
 ```
 
 ### Running Tests
+
+**Run all tests** (recommended):
 ```bash
-npm run test
+.\run-tests.ps1
+
+```
+
+**Run specific test**
+
+```bash
+node test/v0.6.0/testMobileTouch.js
+
 ```
 
 ### Linting
@@ -647,6 +657,24 @@ private-dictionary/
 │   ├── App.jsx
 │   ├── main.jsx
 │   └── index.css
+├── test/
+│   ├── favorites/
+│   │   ├── testFavorites.js           # Phase 1: Backend (7 tests)
+│   │   └── testUseFavorites.js        # Phase 2: Hook (7 tests)
+│   ├── v0.7.0/
+│   │   └── components/
+│   │       └── testUIComponents.js    # Phase 3: UI (8 tests)
+│   ├── integration/
+│   │   └── testAppIntegration.js      # Phase 4: Integration (11 tests)
+│   ├── v0.6.0/
+│   │   ├── testMobileTouch.js         # Mobile optimization (9 tests)
+│   │   ├── testKeyboardShortcuts.js   # Shortcuts system (9 tests)
+│   │   └── testDarkMode.js            # Dark mode (9 tests)
+│   ├── v0.5.0/
+│   │   ├── testKeyboardShortcuts.js   # Enhanced shortcuts (10 tests)
+│   │   ├── dragAndDrop.js             # Drag & drop (10 tests)
+│   │   └── testDemoMode.js            # Demo mode (10 tests)
+│   └── run-tests.ps1                  # PowerShell test runner
 ├── docs/
 │   ├── KEYBOARD_SHORTCUTS.md
 │   ├── INSTALLATION.md
@@ -782,6 +810,30 @@ private-dictionary/
 - ⚠️ **Safari 14+** - Limited (warning shown)
 - ❌ **Firefox** - Not supported (clear message)
 
+## 🧪 Testing
+
+### Test Suite
+- **Total Tests**: 85+ individual test cases across 10 files
+- **Test Runner**: PowerShell script with real-time progress tracking
+- **Coverage**: Favorites, keyboard shortcuts, dark mode, drag & drop, mobile touch, demo mode
+- **Node.js**: Mock localStorage for server-side testing
+- **ANSI Colors**: Enhanced readability with color-coded output
+
+### Test Files
+- `test/favorites/` - Favorites system (Phase 1-2)
+- `test/v0.7.0/components/` - UI components (Phase 3)
+- `test/integration/` - App.jsx integration (Phase 4)
+- `test/v0.6.0/` - Mobile touch, keyboard shortcuts, dark mode
+- `test/v0.5.0/` - Enhanced drag & drop, demo mode
+
+### Running Tests
+```bash
+# All tests with progress bar
+.\run-tests.ps1
+
+# Specific test
+node test/favorites/testFavorites.js
+
 ## 🤝 By invitation only
 
 1. Fork the repository
@@ -793,7 +845,7 @@ private-dictionary/
 ### Development Guidelines
 - Follow the existing code style (Tailwind CSS utility classes)
 - Write meaningful commit messages using Conventional Commits
-- Add tests for new features
+- **Add tests for new features** - Run `.\run-tests.ps1` before committing
 - Update documentation as needed
 - Test both demo and authenticated modes
 - Ensure drag & drop persistence works correctly
@@ -802,6 +854,7 @@ private-dictionary/
 - Test both light and dark modes
 - Test pronunciation mode on Chrome/Edge browsers
 - Ensure accessibility standards (WCAG 2.1 AA)
+- **Verify all tests pass** - 85+ tests must pass before PR approval
 
 ### Conventional Commit Examples
 ```bash

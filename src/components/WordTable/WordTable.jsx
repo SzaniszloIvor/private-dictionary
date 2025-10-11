@@ -65,6 +65,7 @@ const SortableRow = ({
 
   const handleButtonInteraction = (e) => {
     e.stopPropagation();
+    e.preventDefault();
   };
 
   // EDIT MODE
@@ -195,7 +196,9 @@ const SortableRow = ({
               e.stopPropagation();
               handleToggleFavorite(lessonNumber.toString(), index);
             }}
-            size="sm"
+            onTouchStart={(e) => e.stopPropagation()} 
+            onTouchEnd={(e) => e.stopPropagation()} 
+            className="pointer-events-auto" 
           />
         )}
       </td>
@@ -462,6 +465,9 @@ const SortableCard = ({
               e.stopPropagation();
               handleToggleFavorite(lessonNumber.toString(), index);
             }}
+            onTouchStart={(e) => e.stopPropagation()} 
+            onTouchEnd={(e) => e.stopPropagation()} 
+            className="pointer-events-auto" 
             size="md"
           />
         </div>
@@ -497,8 +503,6 @@ const SortableCard = ({
         <div className="flex gap-2 items-center">
           {/* SPEAK BUTTON */}
           <button
-            onTouchStart={handleButtonInteraction}
-            onTouchEnd={handleButtonInteraction}
             onClick={(e) => {
               handleButtonInteraction(e);
               speak(word.english);
@@ -519,8 +523,6 @@ const SortableCard = ({
           
           {/* MORE OPTIONS BUTTON */}
           <button
-            onTouchStart={handleButtonInteraction}
-            onTouchEnd={handleButtonInteraction}
             onClick={(e) => {
               handleButtonInteraction(e);
               toggleExpanded(index);
@@ -552,8 +554,6 @@ const SortableCard = ({
           {!isDemo && (
             <>
               <button
-                onTouchStart={handleButtonInteraction}
-                onTouchEnd={handleButtonInteraction}
                 onClick={(e) => {
                   handleButtonInteraction(e);
                   onStartEdit(index);
@@ -570,8 +570,6 @@ const SortableCard = ({
                 ✏️ Szerkesztés
               </button>
               <button
-                onTouchStart={handleButtonInteraction}
-                onTouchEnd={handleButtonInteraction}
                 onClick={(e) => {
                   handleButtonInteraction(e);
                   handleDeleteWord(index);

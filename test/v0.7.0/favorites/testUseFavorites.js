@@ -12,7 +12,7 @@ import {
   isDemoFavorite,
   getDemoFavoritesCount,
   clearAllDemoFavorites
-} from '../../src/utils/favoritesHelper.js';
+} from '../../../src/utils/favoritesHelper.js';
 
 // Mock localStorage for Node.js environment
 class LocalStorageMock {

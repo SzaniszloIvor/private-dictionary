@@ -2,7 +2,7 @@
  * 🧪 UI Components Test Suite
  * Tests FavoriteButton and FavoritesModal components
  * 
- * Run: node test/components/testUIComponents.js
+ * Run: node test/v0.7.0/components/testUIComponents.js
  */
 
 import { existsSync } from 'fs';
@@ -11,7 +11,8 @@ import { dirname, join } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const projectRoot = join(__dirname, '../..');
+// JAVÍTVA: 3 szintet vissza, hogy elérjük a projekt gyökeret
+const projectRoot = join(__dirname, '../../..');
 
 // ANSI colors
 const colors = {
@@ -67,7 +68,7 @@ function runTest(name, testFn) {
   }
 }
 
-// Component paths
+// Component paths - JAVÍTVA: src/components mappát használ
 const components = {
   FavoriteButton: {
     path: join(projectRoot, 'src/components/FavoriteButton/FavoriteButton.jsx'),
@@ -259,6 +260,7 @@ async function test7_ComponentDependencies() {
 }
 
 function test8_DirectoryStructure() {
+  // JAVÍTVA: src/components mappát ellenőrzi
   const directories = [
     join(projectRoot, 'src/components'),
     join(projectRoot, 'src/components/FavoriteButton'),
